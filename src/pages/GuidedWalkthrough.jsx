@@ -83,46 +83,64 @@ export default function GuidedWalkthrough() {
   const zoomRef = useRef(null)
   const rafRef = useRef(null)
   const stepRef = useRef(0)
+  const appliedRef = useRef({ s: 1, x: 50, y: 32 }) // eased values carried across frames
 
+  // Continuous, damped rAF loop. Reads scroll each frame and eases the applied
+  // transform toward the target (no CSS transition — that fought the per-frame writes
+  // and made the zoom lag the scroll). Video is seeked only on meaningful change.
   useEffect(() => {
-    const onScroll = () => { if (rafRef.current == null) rafRef.current = requestAnimationFrame(frame) }
-    const frame = () => {
-      rafRef.current = null
+    let running = true
+    const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v))
+    const lerp = (m, n, e) => m + (n - m) * e
+
+    const loop = () => {
+      if (!running) return
+      rafRef.current = requestAnimationFrame(loop) // schedule next up-front
+      if (document.hidden) return
       const track = trackRef.current
       if (!track) return
+
       const vh = window.innerHeight
       const rect = track.getBoundingClientRect()
       const denom = rect.height - vh
-      let p = denom > 0 ? -rect.top / denom : 0
-      p = Math.max(0, Math.min(0.9999, p))
+      const p = clamp(denom > 0 ? -rect.top / denom : 0, 0, 0.9999)
 
-      // seek the video (never play — scrub only)
-      const v = videoRef.current
-      if (v && v.duration) v.currentTime = p * v.duration
-
-      // zoom lerp between part focus points
+      // target focus for this scroll position, eased within the active part
       const pf = p * N
-      const idx = Math.max(0, Math.min(N - 1, Math.floor(pf)))
-      const raw = Math.max(0, Math.min(1, pf - idx))
-      const e = smoother(raw)
+      const idx = clamp(Math.floor(pf), 0, N - 1)
+      const e = smoother(clamp(pf - idx, 0, 1))
       const a = FOCUS[parts[idx]?.key] || FOCUS.style
       const b = FOCUS[parts[Math.min(N - 1, idx + 1)]?.key] || a
-      const lerp = (m, n) => m + (n - m) * e
+      const tx = { s: lerp(a.s, b.s, e), x: lerp(a.x, b.x, e), y: lerp(a.y, b.y, e) }
+
+      // damped follow → smooth motion decoupled from scroll-event cadence
+      const k = 0.16
+      const ap = appliedRef.current
+      ap.s += (tx.s - ap.s) * k
+      ap.x += (tx.x - ap.x) * k
+      ap.y += (tx.y - ap.y) * k
+
       const z = zoomRef.current
       if (z) {
-        z.style.transformOrigin = `${lerp(a.x, b.x)}% ${lerp(a.y, b.y)}%`
-        z.style.transform = `scale(${lerp(a.s, b.s).toFixed(4)})`
+        z.style.transform = `scale(${ap.s.toFixed(4)})`
+        z.style.transformOrigin = `${ap.x.toFixed(2)}% ${ap.y.toFixed(2)}%`
       }
+
+      // seek the video (scrub only) — skip sub-frame deltas to avoid decode stutter
+      const v = videoRef.current
+      if (v && v.duration) {
+        const tt = p * v.duration
+        if (Math.abs(v.currentTime - tt) > 1 / 30) {
+          try { v.currentTime = tt } catch { /* not seekable yet */ }
+        }
+      }
+
       if (idx !== stepRef.current) { stepRef.current = idx; setStep(idx) }
     }
-    window.addEventListener('scroll', onScroll, { passive: true, capture: true })
-    window.addEventListener('resize', onScroll, { passive: true })
-    document.addEventListener('scroll', onScroll, { passive: true, capture: true })
-    onScroll()
+
+    rafRef.current = requestAnimationFrame(loop)
     return () => {
-      window.removeEventListener('scroll', onScroll, true)
-      window.removeEventListener('resize', onScroll)
-      document.removeEventListener('scroll', onScroll, true)
+      running = false
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current)
     }
   }, [N, parts])
