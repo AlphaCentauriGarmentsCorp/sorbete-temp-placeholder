@@ -5,7 +5,7 @@
 // + api calls without changing this component's public shape.
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { quoteTotals } from '../data/orderConfig.js'
-import { transition, INITIAL_STATE } from '../data/orderStates.js'
+import { transition, INITIAL_STATE, getState } from '../data/orderStates.js'
 import * as api from '../mocks/api.js'
 import { SEED_ORDERS } from '../data/mockData.js'
 
@@ -90,29 +90,75 @@ export function OrderProvider({ children }) {
   /**
    * Apply a state-machine event to an order (appends a timeline entry).
    * payload may carry { classification, reason, channel, note, patch } — `patch` merges
-   * extra fields (e.g. an appended payment record). Returns the next status, or null if invalid.
+   * extra fields (e.g. an appended payment record). Uses a functional update so several
+   * advance() calls in sequence (e.g. cash: submit_proof → approve_payment) each operate
+   * on the result of the previous one.
    */
-  const advance = useCallback(
-    (id, event, payload = {}) => {
+  const advance = useCallback((id, event, payload = {}) => {
+    setOrders((prev) =>
+      prev.map((o) => {
+        if (o.id !== id) return o
+        let next
+        try {
+          next = transition(o.status, event, payload)
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.warn(err.message)
+          return o
+        }
+        const entry = { status: next, at: now(), note: payload.note || noteFor(event, payload) }
+        return { ...o, status: next, timeline: [...o.timeline, entry], ...(payload.patch || {}), updatedAt: now() }
+      }),
+    )
+  }, [])
+
+  const mkPayment = (type, channel, ref, proofName, amount, status) => ({
+    id: 'pay_' + Math.random().toString(36).slice(2, 9),
+    type, channel, ref: ref || null, proofName: proofName || null, amount, status, at: now(),
+  })
+
+  /**
+   * Client pays the currently-due step (§3). Non-cash → records proof + moves to review.
+   * Cash (walk-in) → staff confirms on the spot, skipping review. Balance has no review
+   * state (§6) — it settles straight to delivered.
+   */
+  const pay = useCallback(
+    (id, { channel, ref, proofName } = {}) => {
       const order = orders.find((o) => o.id === id)
-      if (!order) return null
-      let next
-      try {
-        next = transition(order.status, event, payload)
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.warn(err.message)
-        return null
+      if (!order) return
+      const type = getState(order.status).payment // 'sampleFee' | 'dp' | 'bal'
+      if (!type) return
+      const amount = order.totals[type]
+      const isCash = channel === 'Cash'
+      if (type === 'bal') {
+        const p = mkPayment(type, channel, ref, proofName, amount, isCash ? 'approved' : 'submitted')
+        advance(id, 'pay_balance', { channel, patch: { payments: [...order.payments, p] } })
+        return
       }
-      const entry = { status: next, at: now(), note: payload.note || noteFor(event, payload) }
-      patchOrder(id, {
-        status: next,
-        timeline: [...order.timeline, entry],
-        ...(payload.patch || {}),
-      })
-      return next
+      if (isCash) {
+        const p = mkPayment(type, channel, ref, proofName, amount, 'approved')
+        advance(id, 'submit_proof', { channel, patch: { payments: [...order.payments, p] } })
+        advance(id, 'approve_payment', { note: 'Cash received at counter' })
+      } else {
+        const p = mkPayment(type, channel, ref, proofName, amount, 'under_review')
+        advance(id, 'submit_proof', { channel, patch: { payments: [...order.payments, p] } })
+      }
     },
-    [orders, patchOrder],
+    [orders, advance],
+  )
+
+  /** Staff decision on the latest under-review proof (manual review, §3). */
+  const reviewProof = useCallback(
+    (id, decision, reason) => {
+      const order = orders.find((o) => o.id === id)
+      if (!order) return
+      const last = order.payments.length - 1
+      const payments = order.payments.map((p, i) =>
+        i === last ? { ...p, status: decision === 'approve' ? 'approved' : 'rejected', reason: reason || null, reviewedAt: now() } : p,
+      )
+      advance(id, decision === 'approve' ? 'approve_payment' : 'reject_payment', { reason, patch: { payments } })
+    },
+    [orders, advance],
   )
 
   const value = {
@@ -121,6 +167,8 @@ export function OrderProvider({ children }) {
     getById,
     listForUser,
     advance,
+    pay,
+    reviewProof,
     patchOrder,
     pathLabel: (p) => PATH_LABEL[p] || p,
   }
