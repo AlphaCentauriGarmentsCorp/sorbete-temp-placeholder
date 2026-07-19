@@ -1,0 +1,54 @@
+/* src/design/Payment.css — interim order-placed + schedule screen. */
+.pay-wrap { max-width: 720px; margin: 0 auto; padding: 40px 16px 90px; }
+
+.pay-banner {
+  display: flex; align-items: center; gap: 14px;
+  background: #111; color: #fff; border-radius: 16px; padding: 20px 22px; margin-bottom: 18px;
+}
+.pay-banner-icon { font-size: 34px; color: #ffd400; flex: none; }
+.pay-banner-title { font-family: var(--font-display); font-weight: 900; font-size: 20px; }
+.pay-banner-sub { font-size: 13px; color: rgba(255, 255, 255, 0.7); margin-top: 2px; }
+
+.pay-card {
+  background: #fff; border: 1px solid var(--line); border-radius: 20px;
+  box-shadow: 0 18px 40px rgba(18, 18, 18, 0.08); padding: 30px;
+}
+.pay-h2 { font-family: var(--font-display); font-weight: 900; text-transform: uppercase; font-size: 22px; margin: 0 0 6px; }
+.pay-lead { color: var(--muted); font-size: 14px; margin: 0 0 20px; }
+
+.pay-schedule { display: flex; flex-direction: column; gap: 10px; }
+.pay-step { border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+.pay-step-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.pay-step-k { font-family: var(--font-display); font-weight: 800; font-size: 15px; }
+.pay-step-v { font-family: var(--font-display); font-weight: 900; font-size: 18px; color: var(--gold-ink); }
+.pay-step-note { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+
+.pay-total {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 14px 4px 2px; border-top: 1px solid var(--line); margin-top: 4px;
+}
+.pay-total span:first-child { font-weight: 700; }
+.pay-total span:last-child { font-family: var(--font-display); font-weight: 900; font-size: 24px; }
+
+.pay-channels { margin-top: 22px; }
+.pay-channels-label {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+}
+.pay-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.pay-chip {
+  background: rgba(18, 18, 18, 0.05); border-radius: 999px; padding: 8px 14px;
+  font-size: 13px; font-weight: 700;
+}
+
+.pay-phase3 {
+  margin-top: 22px; padding: 14px 16px; border-radius: 12px;
+  background: rgba(255, 212, 0, 0.14); border: 1px solid rgba(143, 115, 0, 0.25);
+  font-size: 13px; line-height: 1.5; color: #6b5800;
+}
+
+.pay-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+
+@media (max-width: 560px) {
+  .pay-card { padding: 22px; }
+}

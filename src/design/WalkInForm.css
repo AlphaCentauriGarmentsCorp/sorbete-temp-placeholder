@@ -1,0 +1,79 @@
+/* src/design/WalkInForm.css — in-store kiosk (single-column, touch-friendly). */
+.wk-page { min-height: 100vh; display: flex; flex-direction: column; background: var(--paper); }
+.wk-head { padding: 16px; display: flex; align-items: center; gap: 14px; }
+.wk-exit {
+  width: 38px; height: 38px; border-radius: 50%; border: none;
+  background: #f0ede4; color: #111; font-size: 18px; cursor: pointer;
+  display: grid; place-items: center; flex: none;
+}
+.wk-step-label {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 800; color: #7a766c;
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.wk-step-label svg { font-size: 16px; }
+
+.wk-main { flex: 1; display: flex; justify-content: center; padding: 10px 16px 60px; }
+.wk-inner { width: 100%; max-width: 560px; }
+.wk-panel { display: flex; flex-direction: column; gap: 20px; }
+.wk-h1 {
+  margin: 0; font-family: var(--font-display); font-weight: 900;
+  font-size: clamp(26px, 5.5vw, 36px); text-transform: uppercase; letter-spacing: -0.01em;
+}
+
+.wk-garments { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.wk-garment {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 28px 16px; border-radius: 16px; cursor: pointer;
+  border: 2px solid #e0dbcd; background: #fff; color: #141414; font-family: inherit;
+  transition: transform 0.14s ease;
+}
+.wk-garment:hover { transform: translateY(-2px); }
+.wk-garment--on { border-color: #111; background: #111; color: #ffd400; }
+.wk-garment-glyph { font-size: 30px; font-weight: 900; }
+.wk-garment-label { font-size: 15px; font-weight: 800; }
+
+.wk-fields { display: flex; flex-direction: column; gap: 12px; }
+.wk-input {
+  border: 2px solid #e0dbcd; border-radius: 10px; padding: 13px 14px;
+  font-size: 14px; outline: none; font-family: inherit; background: #fff; resize: vertical;
+}
+.wk-input:focus { border-color: #111; }
+.wk-qty-row { display: flex; align-items: center; gap: 14px; margin-top: 4px; }
+.wk-qty-label { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
+.wk-qty-btn {
+  width: 40px; height: 40px; border-radius: 50%; border: 2px solid #111; background: #fff;
+  font-size: 18px; font-weight: 800; cursor: pointer; font-family: inherit;
+}
+.wk-qty-val { font-size: 20px; font-weight: 900; min-width: 60px; text-align: center; }
+.wk-hint { font-size: 12.5px; color: #8a867c; }
+.wk-contact { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; padding-top: 14px; border-top: 1px solid rgba(18, 18, 18, 0.1); }
+
+.wk-summary { background: #fff; border: 1px solid #e7e2d5; border-radius: 16px; overflow: hidden; }
+.wk-summary-row { display: flex; justify-content: space-between; gap: 16px; padding: 13px 18px; border-top: 1px solid #eeeae0; font-size: 14px; }
+.wk-summary-row:first-child { border-top: none; }
+.wk-summary-k { color: #7a766c; font-weight: 600; }
+.wk-summary-v { font-weight: 800; text-align: right; }
+
+.wk-total {
+  background: #111; border-radius: 16px; padding: 20px;
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+.wk-total-k { font-size: 13px; color: #9a9a9a; text-transform: uppercase; letter-spacing: 0.05em; }
+.wk-total-v { font-family: var(--font-display); font-size: 26px; font-weight: 900; color: #ffd400; }
+.wk-note { margin: 0; font-size: 12.5px; line-height: 1.5; color: #6b675e; }
+
+.wk-actions { display: flex; gap: 10px; }
+.wk-grow { flex: 1; }
+.wk-ghost {
+  background: transparent; color: #111; border: 2px solid #e0dbcd;
+  font-family: inherit; font-weight: 800; font-size: 14px; padding: 13px 20px;
+  border-radius: 999px; cursor: pointer;
+}
+.wk-primary {
+  background: #111; color: #fff; border: none; font-family: inherit; font-weight: 900;
+  font-size: 15px; padding: 15px; border-radius: 999px; cursor: pointer;
+  text-transform: uppercase; letter-spacing: 0.03em;
+}
+.wk-primary:disabled { opacity: 0.6; cursor: default; }
+.wk-gold { background: #ffd400; color: #111; }

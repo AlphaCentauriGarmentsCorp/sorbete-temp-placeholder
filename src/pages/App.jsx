@@ -8,6 +8,14 @@ import ChoosePath from './ChoosePath.jsx'
 import Auth from './Auth.jsx'
 import Stub from './Stub.jsx'
 
+// Phase 2 — ordering flow
+import GuidedWalkthrough from './GuidedWalkthrough.jsx'
+import DirectForm from './DirectForm.jsx'
+import WalkInsInfo from './WalkInsInfo.jsx'
+import WalkInForm from './WalkInForm.jsx'
+import Checkout from './Checkout.jsx'
+import Payment from './Payment.jsx'
+
 // Subscribe the whole app to route changes with one external store.
 function usePage() {
   return useSyncExternalStore(onNavigate, getPageParam, getPageParam)
@@ -28,16 +36,6 @@ const STUBS = {
   'quick-quote': { title: 'Quick Quote', phase: 5 },
   pricing: { title: 'Pricing', phase: 5 },
   mockup: { title: 'Logo Mockup Tool', phase: 6 },
-
-  // Ordering flow — Phase 2
-  walkthrough: { title: 'Guided Walkthrough', phase: 2 },
-  'direct-form': { title: 'Instant Builder', phase: 2 },
-  'walk-ins': { title: 'For Walk-Ins', phase: 2 },
-  'walk-in': { title: 'In-Store Kiosk', phase: 2 },
-  quote: { title: 'Your Quote', phase: 2 },
-
-  // Payment — Phase 3
-  payment: { title: 'Payment', phase: 3 },
 }
 
 // Auth-gated dashboard routes — Phase 4. Wrapped in RequireAuth (Google sign-in).
@@ -59,6 +57,22 @@ export default function App() {
   if (page === 'home') return <Home />
   if (page === 'start') return <ChoosePath />
   if (page === 'auth') return <Auth />
+
+  // Ordering flow (Phase 2) — quote-building is open to guests
+  if (page === 'walkthrough') return <GuidedWalkthrough />
+  if (page === 'direct-form') return <DirectForm />
+  if (page === 'walk-ins') return <WalkInsInfo />
+  if (page === 'walk-in') return <WalkInForm />
+  if (page === 'payment') return <Payment /> // reachable by online (authed) + walk-in (SMS) orders
+
+  // Order placement resume — requires sign-in (spec §2 gate)
+  if (page === 'checkout') {
+    return (
+      <RequireAuth>
+        <Checkout />
+      </RequireAuth>
+    )
+  }
 
   // Auth-gated placeholders
   if (GATED_STUBS[page]) {
