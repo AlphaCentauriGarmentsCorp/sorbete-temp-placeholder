@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <title>Upload files — Sorbetes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; background: #FBFAF7; font-family: 'Archivo', Helvetica, Arial, sans-serif; color: #141414; min-height: 100vh; }
+    * { box-sizing: border-box; }
+  </style>
+</helmet>
+
+<div style="min-height: 100vh; display: flex; flex-direction: column;">
+  <header style="padding: 16px; display: flex; align-items: center; gap: 14px;">
+    <a href="GWQ Product Details.dc.html" aria-label="Back" style="width: 36px; height: 36px; border-radius: 50%; background: #F0EDE4; display: grid; place-items: center; text-decoration: none; color: #111111; font-size: 16px;">←</a>
+    <span style="font-size: 13px; font-weight: 800; color: #7A766C; text-transform: uppercase; letter-spacing: 0.05em;">Guided Walkthrough · Step 3 of 4</span>
+  </header>
+
+  <main style="flex: 1; display: flex; justify-content: center; padding: 10px 16px 60px 16px;">
+    <div style="width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 20px;">
+      <h1 style="margin: 0; font-size: clamp(26px, 5.5vw, 36px); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em;">Upload your design</h1>
+      <p style="margin: 0; font-size: 14px; color: #7A766C;">PNG, JPEG, PDF, or AI file. No design yet? Skip this — our team will follow up.</p>
+
+      <label style="{{ dropStyle }}">
+        <input type="file" multiple onChange="{{ onFiles }}" style="display: none;">
+        <span style="font-size: 32px; font-weight: 900; color: #C9C4B4;">＋</span>
+        <span style="font-size: 15px; font-weight: 800;">Click to upload or drag files here</span>
+        <span style="font-size: 12px; color: #7A766C;">Up to 5 files, 20MB each</span>
+      </label>
+
+      <sc-if value="{{ hasFiles }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <sc-for list="{{ files }}" as="f" hint-placeholder-count="2">
+            <div style="display: flex; align-items: center; gap: 10px; background: #FFFFFF; border: 1px solid #E7E2D5; border-radius: 12px; padding: 12px 14px;">
+              <span style="font-size: 13px; font-weight: 700; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ f.name }}</span>
+              <button onClick="{{ f.remove }}" style="background: none; border: none; color: #A6392C; font-weight: 800; cursor: pointer; font-family: inherit; font-size: 13px;">Remove</button>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <div style="display: flex; gap: 10px;">
+        <a href="GWQ Pricing.dc.html" style="flex: 1; text-align: center; background: transparent; color: #111111; text-decoration: none; font-weight: 800; font-size: 14px; padding: 13px; border-radius: 999px; border: 2px solid #E0DBCD;">Skip for now</a>
+        <a href="GWQ Pricing.dc.html" style="flex: 1; text-align: center; background: #111111; color: #FFFFFF; text-decoration: none; font-weight: 900; font-size: 14px; padding: 14px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.02em;">Continue</a>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { files: [] };
+
+  renderVals() {
+    const files = this.state.files.map((f, i) => ({
+      name: f.name,
+      remove: () => this.setState(s => ({ files: s.files.filter((_, idx) => idx !== i) })),
+    }));
+    return {
+      files,
+      hasFiles: files.length > 0,
+      dropStyle: {
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+        border: '2px dashed #D8D2C0', borderRadius: 16, padding: '36px 20px',
+        cursor: 'pointer', textAlign: 'center',
+      },
+      onFiles: (e) => {
+        const incoming = Array.from(e.target.files || []).slice(0, 5);
+        this.setState(s => ({ files: [...s.files, ...incoming].slice(0, 5) }));
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>

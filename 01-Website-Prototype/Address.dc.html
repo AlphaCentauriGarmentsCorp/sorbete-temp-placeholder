@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <title>Address — Sorbetes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; background: #FBFAF7; font-family: 'Archivo', Helvetica, Arial, sans-serif; color: #141414; min-height: 100vh; }
+    * { box-sizing: border-box; }
+    input { font-family: inherit; }
+  </style>
+</helmet>
+
+<div style="min-height: 100vh; display: flex; flex-direction: column; padding-bottom: 70px;">
+  <header style="padding: 16px; display: flex; align-items: center; gap: 14px;">
+    <a href="Home Signed In.dc.html" aria-label="Back" style="width: 36px; height: 36px; border-radius: 50%; background: #F0EDE4; display: grid; place-items: center; text-decoration: none; color: #111111; font-size: 16px;">←</a>
+    <span style="font-size: 18px; font-weight: 900; text-transform: uppercase;">Settings</span>
+  </header>
+
+  <div class="chips-row" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+    <div style="max-width: 640px; margin: 0 auto; padding: 0 16px 14px 16px; display: flex; gap: 8px; width: max-content; min-width: 100%;">
+      <sc-for list="{{ settingsNav }}" as="s" hint-placeholder-count="5">
+        <a href="{{ s.href }}" style="{{ s.style }}">{{ s.label }}</a>
+      </sc-for>
+    </div>
+  </div>
+
+  <main style="flex: 1;">
+    <div style="max-width: 480px; margin: 0 auto; padding: 0 16px; display: flex; flex-direction: column; gap: 18px;">
+
+      <sc-if value="{{ isList }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <sc-for list="{{ addresses }}" as="a" hint-placeholder-count="2">
+            <div style="background: #FFFFFF; border: 1px solid #E7E2D5; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 14px; font-weight: 800;">{{ a.label }}</span>
+                <sc-if value="{{ a.isDefault }}" hint-placeholder-val="{{ false }}">
+                  <span style="background: #FFD400; color: #111111; font-size: 10px; font-weight: 900; padding: 3px 8px; border-radius: 999px; text-transform: uppercase;">Default</span>
+                </sc-if>
+              </div>
+              <span style="font-size: 13px; color: #4A4740; line-height: 1.5;">{{ a.full }}</span>
+              <div style="display: flex; gap: 14px; margin-top: 6px;">
+                <button onClick="{{ a.edit }}" style="background: none; border: none; padding: 0; font-family: inherit; font-size: 12px; font-weight: 800; color: #111111; cursor: pointer;">Edit</button>
+                <button onClick="{{ a.remove }}" style="background: none; border: none; padding: 0; font-family: inherit; font-size: 12px; font-weight: 800; color: #A6392C; cursor: pointer;">Remove</button>
+              </div>
+            </div>
+          </sc-for>
+          <button onClick="{{ addNew }}" style="background: transparent; color: #111111; border: 2px dashed #D8D2C0; font-family: inherit; font-weight: 800; font-size: 14px; padding: 14px; border-radius: 14px; cursor: pointer;">+ Add new address</button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isForm }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <h2 style="margin: 0; font-size: 17px; font-weight: 900; text-transform: uppercase;">{{ formTitle }}</h2>
+          <input type="text" placeholder="Label (e.g. Office, Home)" style="border: 2px solid #E0DBCD; border-radius: 10px; padding: 13px 14px; font-size: 14px; outline: none;">
+          <input type="text" placeholder="Street address" style="border: 2px solid #E0DBCD; border-radius: 10px; padding: 13px 14px; font-size: 14px; outline: none;">
+          <input type="text" placeholder="City" style="border: 2px solid #E0DBCD; border-radius: 10px; padding: 13px 14px; font-size: 14px; outline: none;">
+          <input type="text" placeholder="Province" style="border: 2px solid #E0DBCD; border-radius: 10px; padding: 13px 14px; font-size: 14px; outline: none;">
+          <input type="text" placeholder="ZIP code" style="border: 2px solid #E0DBCD; border-radius: 10px; padding: 13px 14px; font-size: 14px; outline: none;">
+          <div style="display: flex; gap: 10px; margin-top: 4px;">
+            <button onClick="{{ cancelForm }}" style="flex: 1; background: transparent; color: #111111; border: 2px solid #E0DBCD; font-family: inherit; font-weight: 800; font-size: 14px; padding: 13px; border-radius: 999px; cursor: pointer;">Cancel</button>
+            <button onClick="{{ saveForm }}" style="flex: 1; background: #111111; color: #FFFFFF; border: none; font-family: inherit; font-weight: 900; font-size: 14px; padding: 13px; border-radius: 999px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.03em;">Save address</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isDeleteConfirm }}" hint-placeholder-val="{{ false }}">
+        <div style="background: #FFFFFF; border: 1px solid #E7E2D5; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+          <span style="font-size: 16px; font-weight: 900; text-transform: uppercase;">Remove this address?</span>
+          <div style="display: flex; gap: 10px;">
+            <button onClick="{{ cancelDelete }}" style="flex: 1; background: transparent; color: #111111; border: 2px solid #E0DBCD; font-family: inherit; font-weight: 800; font-size: 13px; padding: 12px; border-radius: 999px; cursor: pointer;">Cancel</button>
+            <button onClick="{{ confirmDelete }}" style="flex: 1; background: #A6392C; color: #FFFFFF; border: none; font-family: inherit; font-weight: 800; font-size: 13px; padding: 12px; border-radius: 999px; cursor: pointer;">Remove</button>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </main>
+
+  <nav style="position: fixed; left: 0; right: 0; bottom: 0; background: #FFFFFF; border-top: 1px solid #E7E2D5; display: flex; padding: 8px 8px calc(8px + env(safe-area-inset-bottom)) 8px;">
+    <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+      <a href="{{ t.href }}" style="{{ t.style }}">
+        <span style="font-size: 18px;">{{ t.icon }}</span>
+        <span style="font-size: 10px; font-weight: 800; text-transform: uppercase;">{{ t.label }}</span>
+      </a>
+    </sc-for>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { view: 'list', pendingDeleteIdx: null };
+
+  addressData() {
+    return [
+      { label: 'Shop / Pickup', isDefault: true, full: 'Blk 4 Lot 12, Industrial Rd, Novaliches, Quezon City, 1123' },
+      { label: 'Office', isDefault: false, full: 'Unit 8B, Commerce Tower, Ortigas Ave, Pasig City, 1600' },
+    ];
+  }
+
+  settingsNavDefs(active) {
+    const defs = [
+      { key: 'account', label: 'Account', href: 'Account.dc.html' },
+      { key: 'address', label: 'Address', href: 'Address.dc.html' },
+      { key: 'password', label: 'Password', href: 'Password.dc.html' },
+      { key: 'club', label: 'Founder\u2019s Club', href: 'Sorbetes Founders Club.dc.html' },
+      { key: 'rewards', label: 'Rewards', href: 'Rewards.dc.html' },
+    ];
+    return defs.map(d => ({
+      ...d,
+      style: {
+        flexShrink: 0, padding: '9px 14px', borderRadius: 999, textDecoration: 'none',
+        fontSize: 13, fontWeight: 800, whiteSpace: 'nowrap',
+        border: d.key === active ? '2px solid #111111' : '2px solid #E0DBCD',
+        background: d.key === active ? '#111111' : '#FFFFFF',
+        color: d.key === active ? '#FFD400' : '#141414',
+      },
+    }));
+  }
+
+  tabDefs(active) {
+    const defs = [
+      { key: 'home', label: 'Home', icon: '🏠', href: 'Home Signed In.dc.html' },
+      { key: 'orders', label: 'Orders', icon: '📦', href: 'My Orders.dc.html' },
+      { key: 'chat', label: 'Chat', icon: '💬', href: 'Signed In Chatbot.dc.html' },
+      { key: 'account', label: 'Account', icon: '👤', href: 'Account.dc.html' },
+    ];
+    return defs.map(t => ({
+      ...t,
+      style: {
+        flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+        padding: '6px 4px', textDecoration: 'none',
+        color: t.key === active ? '#111111' : '#B3AD9E',
+      },
+    }));
+  }
+
+  renderVals() {
+    const addresses = this.addressData().map((a, i) => ({
+      ...a,
+      edit: () => this.setState({ view: 'form' }),
+      remove: () => this.setState({ view: 'confirm', pendingDeleteIdx: i }),
+    }));
+
+    return {
+      settingsNav: this.settingsNavDefs('address'),
+      tabs: this.tabDefs('account'),
+      isList: this.state.view === 'list',
+      isForm: this.state.view === 'form',
+      isDeleteConfirm: this.state.view === 'confirm',
+      addresses,
+      formTitle: 'Add address',
+      addNew: () => this.setState({ view: 'form' }),
+      cancelForm: () => this.setState({ view: 'list' }),
+      saveForm: () => this.setState({ view: 'list' }),
+      cancelDelete: () => this.setState({ view: 'list' }),
+      confirmDelete: () => this.setState({ view: 'list' }),
+    };
+  }
+}
+</script>
+</body>
+</html>

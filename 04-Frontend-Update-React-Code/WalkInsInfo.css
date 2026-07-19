@@ -1,0 +1,78 @@
+/* src/design/WalkInsInfo.css */
+.walkins-page { background: #fbfaf7; min-height: 100vh; }
+
+.walkins-hero {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 60px 16px 70px;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 48px;
+  align-items: start;
+}
+
+.walkins-eyebrow {
+  display: inline-block;
+  background: rgba(18, 18, 18, 0.06);
+  color: #6b675e;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 999px;
+  margin-bottom: 18px;
+}
+.walkins-title {
+  margin: 0 0 18px;
+  font-family: 'Archivo', sans-serif;
+  font-size: clamp(36px, 6vw, 54px);
+  font-weight: 900;
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: #111;
+}
+.walkins-lead { margin: 0 0 26px; font-size: 16px; line-height: 1.6; color: #4a4740; max-width: 46ch; }
+
+.walkins-address {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #e7e2d5;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 22px;
+  max-width: 360px;
+}
+.walkins-pin {
+  width: 32px; height: 32px; flex: none;
+  border-radius: 50%; background: #111; color: #ffd400;
+  display: flex; align-items: center; justify-content: center;
+}
+.walkins-address-label { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #8f7300; margin-bottom: 3px; }
+.walkins-address-value { font-size: 14.5px; font-weight: 700; line-height: 1.4; color: #141414; }
+
+.walkins-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.walkins-btn { font-family: inherit; font-weight: 800; font-size: 14px; border-radius: 999px; cursor: pointer; padding: 14px 22px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+.walkins-btn--dark { background: #111; color: #fff; border: none; }
+.walkins-btn--ghost { background: transparent; color: #111; border: 1.5px solid rgba(18, 18, 18, 0.2); }
+
+.walkins-foot { margin: 0; font-size: 13px; color: #6b675e; }
+.walkins-foot a { color: #111; font-weight: 700; cursor: pointer; }
+
+.walkins-map-card { position: relative; border-radius: 20px; overflow: hidden; box-shadow: 8px 8px 0 #ffd400; }
+.walkins-map-card iframe { width: 100%; height: 320px; display: block; border: 0; }
+.walkins-map-foot {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  background: #fff; padding: 14px 18px;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+.walkins-map-name { font-size: 14px; font-weight: 800; color: #141414; }
+.walkins-map-addr { font-size: 12px; color: #6b675e; }
+.walkins-map-foot a { font-size: 12.5px; font-weight: 800; color: #111; text-decoration: none; white-space: nowrap; }
+
+@media (max-width: 820px) {
+  .walkins-hero { grid-template-columns: 1fr; gap: 28px; }
+}

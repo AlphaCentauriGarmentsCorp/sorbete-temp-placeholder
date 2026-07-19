@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <title>Notifications — Sorbetes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; background: #FBFAF7; font-family: 'Archivo', Helvetica, Arial, sans-serif; color: #141414; min-height: 100vh; }
+    * { box-sizing: border-box; }
+  </style>
+</helmet>
+
+<div style="min-height: 100vh; display: flex; flex-direction: column; padding-bottom: 70px;">
+  <header style="padding: 16px; display: flex; align-items: center; gap: 14px;">
+    <a href="Home Signed In.dc.html" aria-label="Back" style="width: 36px; height: 36px; border-radius: 50%; background: #F0EDE4; display: grid; place-items: center; text-decoration: none; color: #111111; font-size: 16px;">←</a>
+    <span style="font-size: 18px; font-weight: 900; text-transform: uppercase;">Notifications</span>
+  </header>
+
+  <main style="flex: 1;">
+    <div style="max-width: 640px; margin: 0 auto; padding: 0 16px; display: flex; flex-direction: column; gap: 8px;">
+      <sc-for list="{{ notifs }}" as="n" hint-placeholder-count="6">
+        <div style="{{ n.style }}">
+          <span style="{{ n.dotStyle }}"></span>
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <span style="font-size: 14px; font-weight: 800;">{{ n.title }}</span>
+            <span style="font-size: 13px; color: #4A4740;">{{ n.body }}</span>
+            <span style="font-size: 11px; color: #A8A398; margin-top: 2px;">{{ n.time }}</span>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </main>
+
+  <nav style="position: fixed; left: 0; right: 0; bottom: 0; background: #FFFFFF; border-top: 1px solid #E7E2D5; display: flex; padding: 8px 8px calc(8px + env(safe-area-inset-bottom)) 8px;">
+    <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+      <a href="{{ t.href }}" style="{{ t.style }}">
+        <span style="font-size: 18px;">{{ t.icon }}</span>
+        <span style="font-size: 10px; font-weight: 800; text-transform: uppercase;">{{ t.label }}</span>
+      </a>
+    </sc-for>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  tabDefs(active) {
+    const defs = [
+      { key: 'home', label: 'Home', icon: '🏠', href: 'Home Signed In.dc.html' },
+      { key: 'orders', label: 'Orders', icon: '📦', href: 'My Orders.dc.html' },
+      { key: 'chat', label: 'Chat', icon: '💬', href: 'Signed In Chatbot.dc.html' },
+      { key: 'account', label: 'Account', icon: '👤', href: 'Account.dc.html' },
+    ];
+    return defs.map(t => ({
+      ...t,
+      style: {
+        flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+        padding: '6px 4px', textDecoration: 'none',
+        color: t.key === active ? '#111111' : '#B3AD9E',
+      },
+    }));
+  }
+
+  renderVals() {
+    const rowStyle = (unread) => ({
+      display: 'flex', gap: 12, padding: '14px 4px',
+      background: unread ? '#FFFBF0' : 'transparent', borderRadius: 12,
+      borderBottom: '1px solid #EEEAE0',
+    });
+    const dotStyle = (unread) => ({
+      width: 8, height: 8, borderRadius: '50%', marginTop: 5, flexShrink: 0,
+      background: unread ? '#FFD400' : 'transparent',
+    });
+    const data = [
+      { title: 'Production started', body: 'Order #10482 has entered the printing stage.', time: '2 hours ago', unread: true },
+      { title: 'Mockup approved', body: 'Your mockup for Order #10482 was approved automatically.', time: 'Yesterday', unread: true },
+      { title: 'Ready to ship', body: 'Order #10399 is packed and ready for pickup or delivery.', time: '2 days ago', unread: false },
+      { title: 'Payment received', body: 'We received your 50% deposit for Order #10482.', time: '4 days ago', unread: false },
+      { title: 'Points earned', body: 'You earned 80 Founder\u2019s Club points from Order #10399.', time: '5 days ago', unread: false },
+      { title: 'Welcome to Sorbetes', body: 'Your account is set up. Explore your dashboard anytime.', time: '2 weeks ago', unread: false },
+    ];
+    return {
+      tabs: this.tabDefs('home'),
+      notifs: data.map(n => ({ ...n, style: rowStyle(n.unread), dotStyle: dotStyle(n.unread) })),
+    };
+  }
+}
+</script>
+</body>
+</html>

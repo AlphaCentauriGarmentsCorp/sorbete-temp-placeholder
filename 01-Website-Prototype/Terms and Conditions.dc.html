@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <title>Terms & Conditions — Sorbetes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; background: #FBFAF7; font-family: 'Archivo', Helvetica, Arial, sans-serif; color: #141414; min-height: 100vh; }
+    * { box-sizing: border-box; }
+  </style>
+</helmet>
+
+<div style="min-height: 100vh; display: flex; flex-direction: column;">
+  <header style="padding: 20px 16px; border-bottom: 1px solid #E7E2D5;">
+    <a href="Home.dc.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; width: fit-content;">
+      <img src="uploads/Logo%20too.jpg" alt="Sorbetes logo" style="width: 32px; height: 32px; border-radius: 50%; display: block;">
+      <span style="color: #111111; font-weight: 900; font-size: 16px; letter-spacing: 0.05em; text-transform: uppercase;">Sorbetes</span>
+    </a>
+  </header>
+
+  <main style="flex: 1; padding: 32px 16px 100px 16px;">
+    <div style="max-width: 680px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
+      <h1 style="margin: 0; font-size: clamp(26px, 5vw, 38px); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em;">Terms & Conditions</h1>
+      <p style="margin: 0; font-size: 13px; color: #7A766C;">Last updated July 2026</p>
+      <div style="display: flex; flex-direction: column; gap: 18px;">
+        <sc-for list="{{ sections }}" as="s" hint-placeholder-count="6">
+          <div>
+            <h2 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800; text-transform: uppercase;">{{ s.title }}</h2>
+            <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #4A4740;">{{ s.body }}</p>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </main>
+
+  <div style="position: sticky; bottom: 0; background: #FBFAF7; border-top: 1px solid #E7E2D5; padding: 14px 16px calc(14px + env(safe-area-inset-bottom)) 16px;">
+    <div style="max-width: 680px; margin: 0 auto; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+      <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #4A4740; cursor: pointer;">
+        <input type="checkbox" checked="{{ agreed }}" onChange="{{ toggle }}">
+        I have read and accept the Terms & Conditions
+      </label>
+      <button onClick="{{ accept }}" style="{{ acceptStyle }}">Accept & continue</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { agreed: false };
+
+  renderVals() {
+    return {
+      agreed: this.state.agreed,
+      toggle: () => this.setState(s => ({ agreed: !s.agreed })),
+      acceptStyle: {
+        marginLeft: 'auto', background: this.state.agreed ? '#111111' : '#D8D2C0',
+        color: '#FFFFFF', border: 'none', fontFamily: 'inherit', fontWeight: 900,
+        fontSize: 14, padding: '12px 22px', borderRadius: 999,
+        cursor: this.state.agreed ? 'pointer' : 'not-allowed',
+        textTransform: 'uppercase', letterSpacing: '0.03em', whiteSpace: 'nowrap',
+      },
+      accept: () => { if (this.state.agreed) window.location.href = 'Login OTP.dc.html'; },
+      sections: [
+        { title: '1. Orders & Minimums', body: 'All custom orders require a minimum of 50 pieces per design and colorway. Quoted prices are estimates until final specs and file review are confirmed.' },
+        { title: '2. Payment', body: 'A 50% deposit is required to begin production. The remaining balance is due before delivery or pickup. We accept bank transfer, GCash, and card.' },
+        { title: '3. Production Timeline', body: 'Standard turnaround is 7\u201315 business days after mockup approval, depending on quantity and print method. Delays caused by fabric backorders will be communicated promptly.' },
+        { title: '4. Design Files & Approval', body: 'You are responsible for reviewing and approving the digital mockup before production begins. Errors not flagged at approval are not eligible for free reprint.' },
+        { title: '5. Cancellations & Refunds', body: 'Orders cancelled after production has started are non-refundable for materials already cut or printed. Deposits on cancelled pre-production orders are refundable minus processing fees.' },
+        { title: '6. Founder\u2019s Club', body: 'Points and tier status are non-transferable and apply only to the account that earned them. Sorbetes reserves the right to adjust the rewards program with notice.' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

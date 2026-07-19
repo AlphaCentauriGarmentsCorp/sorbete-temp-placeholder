@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <title>Start an order — Sorbetes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; background: #FBFAF7; font-family: 'Archivo', Helvetica, Arial, sans-serif; color: #141414; min-height: 100vh; }
+    * { box-sizing: border-box; }
+  </style>
+</helmet>
+
+<div style="min-height: 100vh; display: flex; flex-direction: column;">
+  <header style="padding: 20px 16px;">
+    <a href="Home.dc.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; width: fit-content;">
+      <img src="uploads/Logo%20too.jpg" alt="Sorbetes logo" style="width: 32px; height: 32px; border-radius: 50%; display: block;">
+      <span style="color: #111111; font-weight: 900; font-size: 16px; letter-spacing: 0.05em; text-transform: uppercase;">Sorbetes</span>
+    </a>
+  </header>
+
+  <main style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px 16px 60px 16px;">
+    <div style="width: 100%; max-width: 780px; display: flex; flex-direction: column; gap: 28px; text-align: center;">
+      <div>
+        <h1 style="margin: 0 0 8px 0; font-size: clamp(28px, 6vw, 42px); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em;">How do you want to build your order?</h1>
+        <p style="margin: 0; font-size: 15px; color: #7A766C;">Both end at the same price and payment step — pick whichever feels faster.</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; text-align: left;">
+        <a href="GWQ.dc.html" style="text-decoration: none; color: inherit; background: #111111; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 14px;">
+          <span style="align-self: flex-start; background: #FFD400; color: #111111; font-size: 11px; font-weight: 900; padding: 5px 10px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.06em;">Guided</span>
+          <span style="font-size: 22px; font-weight: 900; color: #FFFFFF; text-transform: uppercase; line-height: 1.15;">Answer a few questions</span>
+          <span style="font-size: 14px; line-height: 1.5; color: #B9B9B9;">We walk you through garment, fabric, print, and quantity one step at a time. Best if this is your first order.</span>
+          <span style="margin-top: 6px; font-size: 13px; font-weight: 800; color: #FFD400;">Start walkthrough →</span>
+        </a>
+        <a href="Fill Form Directly.dc.html" style="text-decoration: none; color: inherit; background: #FFFFFF; border: 1px solid #E7E2D5; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 14px;">
+          <span style="align-self: flex-start; background: #111111; color: #FFD400; font-size: 11px; font-weight: 900; padding: 5px 10px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.06em;">Direct</span>
+          <span style="font-size: 22px; font-weight: 900; text-transform: uppercase; line-height: 1.15;">Fill out the form directly</span>
+          <span style="font-size: 14px; line-height: 1.5; color: #4A4740;">One scrolling spec form — fit, fabric, print, and packaging all on one screen. Best if you already know what you want.</span>
+          <span style="margin-top: 6px; font-size: 13px; font-weight: 800;">Open the form →</span>
+        </a>
+      </div>
+
+      <div style="font-size: 13px; color: #7A766C;">Walking into our Quezon City shop instead? <a href="Walk-in Form.dc.html" style="color: #111111; font-weight: 800; text-decoration: none; border-bottom: 2px solid #FFD400;">Use the walk-in form</a></div>
+    </div>
+  </main>
+</div>
+</x-dc>
+</body>
+</html>

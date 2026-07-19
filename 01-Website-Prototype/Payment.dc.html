@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <title>Payment — Sorbetes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; background: #FBFAF7; font-family: 'Archivo', Helvetica, Arial, sans-serif; color: #141414; min-height: 100vh; }
+    * { box-sizing: border-box; }
+  </style>
+</helmet>
+
+<div style="min-height: 100vh; display: flex; flex-direction: column;">
+  <header style="padding: 16px; display: flex; align-items: center; gap: 14px;">
+    <a href="Home.dc.html" aria-label="Exit" style="width: 36px; height: 36px; border-radius: 50%; background: #F0EDE4; display: grid; place-items: center; text-decoration: none; color: #111111; font-size: 16px; font-weight: 800;">✕</a>
+    <span style="font-size: 13px; font-weight: 800; color: #7A766C; text-transform: uppercase; letter-spacing: 0.05em;">Checkout</span>
+  </header>
+
+  <main style="flex: 1; display: flex; justify-content: center; padding: 10px 16px 60px 16px;">
+    <div style="width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 20px;">
+
+      <sc-if value="{{ notPaid }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+          <h1 style="margin: 0; font-size: clamp(26px, 5.5vw, 36px); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em;">Payment</h1>
+
+          <div style="background: #111111; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 10px;">
+            <span style="font-size: 11px; font-weight: 900; color: #7A766C; text-transform: uppercase; letter-spacing: 0.06em;">{{ sourceLabel }}</span>
+            <sc-for list="{{ summaryRows }}" as="r" hint-placeholder-count="4">
+              <div style="display: flex; justify-content: space-between; gap: 16px; font-size: 13px;">
+                <span style="color: #9A9A9A; font-weight: 600;">{{ r.label }}</span>
+                <span style="color: #FFFFFF; font-weight: 800; text-align: right;">{{ r.value }}</span>
+              </div>
+            </sc-for>
+            <div style="display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid #2E2E2E; padding-top: 12px; margin-top: 4px;">
+              <span style="font-size: 13px; color: #9A9A9A; text-transform: uppercase; letter-spacing: 0.05em;">Order total</span>
+              <span style="font-size: 24px; font-weight: 900; color: #FFD400;">₱{{ total }}</span>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;">How much to pay now?</div>
+            <div style="display: flex; gap: 10px;">
+              <sc-for list="{{ payOptions }}" as="opt" hint-placeholder-count="2">
+                <button onClick="{{ opt.pick }}" style="{{ opt.style }}">
+                  <span style="font-size: 14px; font-weight: 800;">{{ opt.label }}</span>
+                  <span style="font-size: 12px; font-weight: 600; opacity: 0.75;">₱{{ opt.amount }}</span>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;">Payment method</div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <sc-for list="{{ methods }}" as="m" hint-placeholder-count="3">
+                <button onClick="{{ m.pick }}" style="{{ m.style }}">
+                  <span style="font-size: 14px; font-weight: 800;">{{ m.label }}</span>
+                  <sc-if value="{{ m.picked }}" hint-placeholder-val="{{ false }}">
+                    <span style="margin-left: auto; font-size: 15px;">✓</span>
+                  </sc-if>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+
+          <button onClick="{{ pay }}" style="background: #FFD400; color: #111111; border: none; font-family: inherit; font-weight: 900; font-size: 15px; padding: 16px; border-radius: 999px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.03em;">Pay ₱{{ payAmount }} now</button>
+          <p style="margin: 0; font-size: 12px; color: #9A958A; text-align: center;">Free etiketa + free ziploc included. You'll get a receipt and order tracking link right after.</p>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ paid }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 18px; text-align: center; padding-top: 20px;">
+          <div style="width: 60px; height: 60px; border-radius: 50%; background: #FFD400; display: grid; place-items: center; font-size: 26px; font-weight: 900;">✓</div>
+          <div>
+            <h1 style="margin: 0 0 6px 0; font-size: 26px; font-weight: 900; text-transform: uppercase;">Payment received</h1>
+            <p style="margin: 0; font-size: 14px; color: #7A766C;">Order #{{ orderNum }} is confirmed. We'll message you once production starts.</p>
+          </div>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+            <a href="Home Signed In.dc.html" style="background: #111111; color: #FFFFFF; text-decoration: none; font-weight: 900; font-size: 14px; padding: 14px 22px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em;">View my orders</a>
+            <a href="Home.dc.html" style="background: transparent; color: #111111; text-decoration: none; font-weight: 800; font-size: 14px; padding: 13px 20px; border-radius: 999px; border: 2px solid #E0DBCD;">Back to home</a>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { payTier: 'deposit', method: 'GCash', paid: false };
+
+  readSource() {
+    const q = new URLSearchParams(window.location.search);
+    const src = q.get('src') || 'fillform';
+    const keyMap = {
+      gwq: 'sorbetes_gwq_answers',
+      fillform: 'sorbetes_fillform_summary',
+      walkin: 'sorbetes_walkin_summary',
+    };
+    let data = {};
+    try { data = JSON.parse(localStorage.getItem(keyMap[src] || '') || '{}'); } catch (e) {}
+    return { src, data };
+  }
+
+  renderVals() {
+    const { src, data } = this.readSource();
+
+    let sourceLabel, summaryRows, perPc, qty;
+    if (src === 'gwq') {
+      sourceLabel = 'Guided Walkthrough';
+      const weightBase = { 'Light (150\u2013180 GSM)': 270, 'Standard (200\u2013220 GSM)': 290, 'Heavy (240\u2013280 GSM)': 320 };
+      const colorExtra = { '1 color': 0, '2 colors': 20, '3 colors': 40 };
+      const qtyMap = { '50\u201399 pcs': 75, '100\u2013299 pcs': 150, '300\u2013499 pcs': 350, '500+ pcs': 550 };
+      perPc = (weightBase[data.weight] || 290) + (colorExtra[data.colors] || 0) + (data.timeline === 'Rush (+fee)' ? 15 : 0);
+      qty = qtyMap[data.qty] || 100;
+      summaryRows = [
+        { label: 'Garment', value: data.garment || '\u2014' },
+        { label: 'Fabric', value: data.weight || '\u2014' },
+        { label: 'Print', value: (data.print || '\u2014') + ' \u00B7 ' + (data.colors || '') },
+        { label: 'Quantity', value: qty + ' pcs' },
+      ];
+    } else if (src === 'walkin') {
+      sourceLabel = 'Walk-in Order';
+      perPc = data.perPc || 290;
+      qty = data.qty || 50;
+      summaryRows = [
+        { label: 'Garment', value: data.garment || '\u2014' },
+        { label: 'Design / label', value: data.label || '\u2014' },
+        { label: 'Quantity', value: qty + ' pcs' },
+      ];
+    } else {
+      sourceLabel = 'Fill Form Directly';
+      perPc = data.perPc || 290;
+      qty = data.qty || 50;
+      summaryRows = (data.lines || []).slice(0, 3).map(l => ({ label: l.label, value: l.value }));
+      summaryRows.push({ label: 'Quantity', value: qty + ' pcs' });
+    }
+    const total = perPc * qty;
+    const depositAmt = Math.round(total * 0.5);
+
+    const tierStyle = (active) => ({
+      flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2,
+      padding: '13px 16px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
+      border: active ? '2px solid #111111' : '2px solid #E0DBCD',
+      background: active ? '#111111' : '#FFFFFF',
+      color: active ? '#FFD400' : '#141414',
+    });
+    const methodStyle = (active) => ({
+      display: 'flex', alignItems: 'center', width: '100%', textAlign: 'left',
+      padding: '14px 16px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
+      border: active ? '2px solid #111111' : '2px solid #E0DBCD',
+      background: active ? '#111111' : '#FFFFFF',
+      color: active ? '#FFD400' : '#141414',
+    });
+
+    const payAmount = this.state.payTier === 'deposit' ? depositAmt : total;
+
+    return {
+      notPaid: !this.state.paid,
+      paid: this.state.paid,
+      orderNum: '10482',
+      sourceLabel, summaryRows,
+      total: total.toLocaleString(),
+      payAmount: payAmount.toLocaleString(),
+      payOptions: [
+        { key: 'deposit', label: '50% deposit', amount: depositAmt.toLocaleString(), pick: () => this.setState({ payTier: 'deposit' }), style: tierStyle(this.state.payTier === 'deposit') },
+        { key: 'full', label: 'Pay in full', amount: total.toLocaleString(), pick: () => this.setState({ payTier: 'full' }), style: tierStyle(this.state.payTier === 'full') },
+      ],
+      methods: ['GCash', 'Bank transfer', 'Credit / debit card'].map(m => ({
+        label: m, picked: this.state.method === m,
+        pick: () => this.setState({ method: m }),
+        style: methodStyle(this.state.method === m),
+      })),
+      pay: () => this.setState({ paid: true }),
+    };
+  }
+}
+</script>
+</body>
+</html>

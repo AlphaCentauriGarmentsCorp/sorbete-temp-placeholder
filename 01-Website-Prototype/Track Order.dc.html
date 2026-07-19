@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <title>Track order — Sorbetes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; background: #FBFAF7; font-family: 'Archivo', Helvetica, Arial, sans-serif; color: #141414; min-height: 100vh; }
+    * { box-sizing: border-box; }
+  </style>
+</helmet>
+
+<div style="min-height: 100vh; display: flex; flex-direction: column; padding-bottom: 40px;">
+  <header style="padding: 16px; display: flex; align-items: center; gap: 14px;">
+    <a href="{{ backHref }}" aria-label="Back" style="width: 36px; height: 36px; border-radius: 50%; background: #F0EDE4; display: grid; place-items: center; text-decoration: none; color: #111111; font-size: 16px;">←</a>
+    <span style="font-size: 18px; font-weight: 900; text-transform: uppercase;">Track order #{{ num }}</span>
+  </header>
+
+  <main style="flex: 1;">
+    <div style="max-width: 520px; margin: 0 auto; padding: 10px 16px 0 16px; display: flex; flex-direction: column; gap: 26px;">
+      <p style="margin: 0; font-size: 14px; color: #7A766C;">{{ subtitle }}</p>
+
+      <div style="display: flex; flex-direction: column;">
+        <sc-for list="{{ stages }}" as="s" hint-placeholder-count="5">
+          <div style="display: flex; gap: 14px;">
+            <div style="display: flex; flex-direction: column; align-items: center;">
+              <div style="{{ s.dotStyle }}">{{ s.dotContent }}</div>
+              <div style="{{ s.lineStyle }}"></div>
+            </div>
+            <div style="padding-bottom: 26px; display: flex; flex-direction: column; gap: 2px;">
+              <span style="{{ s.titleStyle }}">{{ s.title }}</span>
+              <span style="font-size: 13px; color: #7A766C;">{{ s.desc }}</span>
+              <sc-if value="{{ s.showDate }}" hint-placeholder-val="{{ false }}">
+                <span style="font-size: 12px; color: #A8A398; margin-top: 2px;">{{ s.date }}</span>
+              </sc-if>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  stageDefs() {
+    return [
+      { key: 'placed', title: 'Order placed', desc: 'Payment confirmed, order queued for production.', date: 'Jul 2, 9:14 AM' },
+      { key: 'mockup', title: 'Mockup approved', desc: 'Design mockup confirmed and locked for printing.', date: 'Jul 2, 3:40 PM' },
+      { key: 'production', title: 'In production', desc: 'Cutting, sewing, and printing underway on our floor.', date: 'Jul 3, 8:00 AM' },
+      { key: 'qa', title: 'QA & packing', desc: 'Final quality check, folding, and ziploc packing.', date: null },
+      { key: 'delivered', title: 'Delivered', desc: 'Order handed off for pickup or courier delivery.', date: null },
+    ];
+  }
+
+  renderVals() {
+    const q = new URLSearchParams(window.location.search);
+    const num = q.get('id') || '10482';
+    // Map order -> current stage index (0-4)
+    const statusMap = { '10482': 2, '10399': 3, '10201': 4, '10098': 4, '9977': 0 };
+    const currentIdx = statusMap[num] ?? 2;
+
+    const stages = this.stageDefs().map((s, i) => {
+      const done = i < currentIdx;
+      const active = i === currentIdx;
+      const upcoming = i > currentIdx;
+      return {
+        ...s,
+        showDate: done || active,
+        dotContent: done ? '\u2713' : '',
+        dotStyle: {
+          width: 28, height: 28, borderRadius: '50%', display: 'grid', placeItems: 'center',
+          fontSize: 13, fontWeight: 900, flexShrink: 0,
+          background: done ? '#111111' : active ? '#FFD400' : '#EEEAE0',
+          color: done ? '#FFD400' : '#111111',
+          border: active ? '2px solid #111111' : 'none',
+        },
+        lineStyle: {
+          width: 2, flex: 1, minHeight: 20,
+          background: done ? '#111111' : '#EEEAE0',
+        },
+        titleStyle: {
+          fontSize: 15, fontWeight: 800,
+          color: upcoming ? '#B3AD9E' : '#141414',
+        },
+      };
+    });
+
+    return {
+      num,
+      backHref: 'My Orders Info.dc.html?id=' + num,
+      subtitle: currentIdx >= 4 ? 'This order has been delivered.' : 'Stage ' + (currentIdx + 1) + ' of 5 \u2014 updates in real time.',
+      stages,
+    };
+  }
+}
+</script>
+</body>
+</html>

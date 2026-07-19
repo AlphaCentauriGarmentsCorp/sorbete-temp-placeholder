@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <title>Client work — Sorbetes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <script src="image-slot.js"></script>
+  <style>
+    html, body { margin: 0; padding: 0; background: #FBFAF7; font-family: 'Archivo', Helvetica, Arial, sans-serif; color: #141414; }
+    * { box-sizing: border-box; }
+    .chips-row::-webkit-scrollbar { display: none; }
+  </style>
+</helmet>
+
+<!-- ============ NAV ============ -->
+<header data-screen-label="Nav" style="position: sticky; top: 0; z-index: 80; background: #111111;">
+  <div style="max-width: 1100px; margin: 0 auto; padding: 0 16px; height: 58px; display: flex; align-items: center; gap: 12px;">
+    <a href="Home.dc.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
+      <img src="uploads/Logo%20too.jpg" alt="Sorbetes logo" style="width: 34px; height: 34px; border-radius: 50%; display: block;">
+      <span style="color: #FFFFFF; font-weight: 900; font-size: 17px; letter-spacing: 0.05em; text-transform: uppercase;">Sorbetes</span>
+    </a>
+    <sc-if value="{{ isDesktopNav }}" hint-placeholder-val="{{ false }}">
+      <nav style="margin-left: auto; display: flex; align-items: center; gap: 16px;">
+        <sc-for list="{{ navLinks }}" as="l" hint-placeholder-count="6">
+          <a href="{{ l.href }}" style="{{ l.style }}">{{ l.label }}</a>
+        </sc-for>
+        <span style="width: 1px; height: 18px; background: #3A3A3A;"></span>
+        <a href="#" style="color: #DADADA; font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap;">Log in</a>
+        <a href="Quick%20Quote.dc.html" style="color: #FFD400; font-size: 13px; font-weight: 800; text-decoration: none; padding: 8px 13px; border: 1.5px solid #FFD400; border-radius: 999px; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.03em;">Get instant quote</a>
+        <a href="#" style="background: #FFD400; color: #111111; font-size: 13px; font-weight: 800; text-decoration: none; padding: 9px 14px; border-radius: 999px; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.03em;">Start an order</a>
+      </nav>
+    </sc-if>
+    <sc-if value="{{ isMobileNav }}" hint-placeholder-val="{{ true }}">
+      <button onClick="{{ openMenu }}" aria-label="Open menu" style="margin-left: auto; width: 42px; height: 42px; border-radius: 10px; border: 1px solid #3A3A3A; background: transparent; color: #FFFFFF; font-size: 18px; cursor: pointer; display: grid; place-items: center;">☰</button>
+    </sc-if>
+  </div>
+</header>
+
+<!-- ============ TRUST STRIP ============ -->
+<div data-screen-label="Trust strip" style="background: #FFD400; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+  <div style="max-width: 1100px; margin: 0 auto; padding: 7px 16px; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; color: #111111;">
+    Direct factory — Quezon City &nbsp;·&nbsp; in-house production &nbsp;·&nbsp; min. 50 pcs &nbsp;·&nbsp; Classic Tee from ₱290/pc
+  </div>
+</div>
+
+<!-- ============ HEADER + FILTERS ============ -->
+<section data-screen-label="Work header" style="background: #FBFAF7;">
+  <div style="max-width: 1100px; margin: 0 auto; padding: 32px 16px 0 16px;">
+    <h1 style="margin: 0 0 6px 0; font-size: clamp(36px, 8vw, 64px); font-weight: 900; text-transform: uppercase; letter-spacing: -0.02em;">Client work</h1>
+    <p style="margin: 0 0 12px 0; font-size: 15px; color: #7A766C;">Real runs from our Quezon City floor. Tap a card for the full case.</p>
+    <a href="Sorbetes%20Archive.dc.html" style="display: inline-block; margin-bottom: 18px; color: #111111; font-size: 13px; font-weight: 700; text-decoration: none; border-bottom: 2px solid #FFD400; padding-bottom: 2px;">Browse the Sorbetes Archive (our own label) →</a>
+  </div>
+  <div class="chips-row" style="overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
+    <div style="max-width: 1100px; margin: 0 auto; padding: 0 16px 18px 16px; display: flex; gap: 8px; width: max-content; min-width: 100%;">
+      <sc-for list="{{ chips }}" as="chip" hint-placeholder-count="6">
+        <button onClick="{{ chip.pick }}" style="{{ chip.style }}">{{ chip.label }}</button>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CASE GRID ============ -->
+<section data-screen-label="Case grid" style="background: #FBFAF7;">
+  <div style="max-width: 1100px; margin: 0 auto; padding: 0 16px 60px 16px;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px;">
+      <sc-for list="{{ projects }}" as="p" hint-placeholder-count="12">
+        <div onClick="{{ p.open }}" style="background: #FFFFFF; border: 1px solid #E7E2D5; border-radius: 14px; overflow: hidden; cursor: pointer; display: flex; flex-direction: column;" style-hover="border-color: #111111;">
+          <div style="width: 100%; height: 180px; overflow: hidden; position: relative; flex-shrink: 0;">
+            <x-import component-from-global-scope="image-slot" from="./image-slot.js" id="{{ p.slotId }}" shape="rect" placeholder="{{ p.placeholder }}" hint-size="100%,100%" style="width: 100%; height: 100%; display: block;"></x-import>
+          </div>
+          <div style="padding: 12px 12px 14px 12px; display: flex; flex-direction: column; gap: 5px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 15px; font-weight: 800;">{{ p.name }}</span>
+              <span style="margin-left: auto; font-size: 14px; color: #B3AD9E;">→</span>
+            </div>
+            <div style="font-size: 12px; line-height: 1.45; color: #7A766C;">{{ p.specLine }}</div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- Empty state -->
+    <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Empty state" style="border: 2px dashed #D8D2C0; border-radius: 18px; padding: 48px 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center;">
+        <div style="width: 54px; height: 54px; border-radius: 50%; background: #FFD400; display: grid; place-items: center; font-size: 22px; font-weight: 900;">＋</div>
+        <div style="font-size: 19px; font-weight: 900; text-transform: uppercase;">Wala pang case study dito</div>
+        <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #7A766C; max-width: 340px;">We produce runs for this segment weekly — message us and we'll send recent sample photos.</p>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 6px;">
+          <button onClick="{{ openChat }}" style="background: #111111; color: #FFFFFF; border: none; font-family: inherit; font-weight: 800; font-size: 14px; padding: 13px 20px; border-radius: 999px; cursor: pointer;">Chat with us</button>
+          <a href="Get%20Quote.html" style="background: transparent; color: #111111; text-decoration: none; font-weight: 800; font-size: 14px; padding: 12px 18px; border-radius: 999px; border: 2px solid #111111;">Be the first — get a quote</a>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+</section>
+
+<!-- ============ CTA BAND ============ -->
+<section data-screen-label="CTA band" style="background: #111111;">
+  <div style="max-width: 1100px; margin: 0 auto; padding: 48px 16px 56px 16px; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center;">
+    <h2 style="margin: 0; font-size: clamp(26px, 5.5vw, 44px); font-weight: 900; color: #FFFFFF; text-transform: uppercase;">Your run could be here.</h2>
+    <a href="Get%20Quote.html" style="background: #FFD400; color: #111111; text-decoration: none; font-weight: 900; font-size: 15px; padding: 15px 26px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em;">Build your quote</a>
+  </div>
+</section>
+
+<footer style="background: #111111; border-top: 1px solid #2A2A2A;">
+  <div style="max-width: 1100px; margin: 0 auto; padding: 18px 16px 110px 16px; display: flex; align-items: center; gap: 10px;">
+    <img src="uploads/Logo%20too.jpg" alt="" style="width: 24px; height: 24px; border-radius: 50%;">
+    <span style="color: #8A8A8A; font-size: 12px;">© 2026 Sorbetes Manufacturing · Quezon City, PH</span>
+  </div>
+</footer>
+
+<!-- ============ STICKY MOBILE ACTION BAR ============ -->
+<div data-screen-label="Sticky action bar" style="{{ barStyle }}">
+  <a href="Get%20Quote.html" style="flex: 1; background: #FFD400; color: #111111; text-decoration: none; font-weight: 900; font-size: 14px; padding: 15px 8px; border-radius: 999px; text-align: center; text-transform: uppercase; letter-spacing: 0.02em;">Get quote</a>
+  <button onClick="{{ openChat }}" style="flex: 1; background: #111111; color: #FFFFFF; font-family: inherit; font-weight: 800; font-size: 14px; padding: 15px 8px; border-radius: 999px; border: 1px solid #3A3A3A; cursor: pointer;">Chat with us</button>
+</div>
+
+<!-- ============ MENU SHEET ============ -->
+<div data-screen-label="Menu sheet" style="{{ menuBackdropStyle }}" onClick="{{ closeMenu }}"></div>
+<div style="{{ menuSheetStyle }}">
+  <div style="width: 40px; height: 4px; background: #D8D4C8; border-radius: 999px; margin: 0 auto 10px auto;"></div>
+  <sc-for list="{{ menuLinks }}" as="l" hint-placeholder-count="6">
+    <a href="{{ l.href }}" style="{{ l.style }}">{{ l.label }}</a>
+  </sc-for>
+  <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 16px;">
+    <a href="#" style="background: #FFD400; color: #111111; text-decoration: none; text-align: center; font-weight: 900; font-size: 15px; padding: 15px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em;">Start an order</a>
+    <a href="Quick%20Quote.dc.html" style="background: #111111; color: #FFFFFF; text-decoration: none; text-align: center; font-weight: 800; font-size: 15px; padding: 15px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em;">Get instant quote</a>
+    <a href="#" style="background: transparent; color: #111111; text-decoration: none; text-align: center; font-weight: 800; font-size: 14px; padding: 13px; border-radius: 999px; border: 2px solid #E0DBCD;">Log in</a>
+  </div>
+</div>
+
+<!-- ============ CHAT SHEET ============ -->
+<div data-screen-label="Chat sheet" style="{{ chatBackdropStyle }}" onClick="{{ closeChat }}"></div>
+<div style="{{ chatSheetStyle }}">
+  <div style="width: 40px; height: 4px; background: #D8D4C8; border-radius: 999px; margin: 0 auto 14px auto;"></div>
+  <div style="font-size: 17px; font-weight: 900; text-transform: uppercase; margin-bottom: 4px;">Chat with us</div>
+  <div style="font-size: 13px; color: #7A766C; margin-bottom: 16px;">Usually replies within the hour, 9am–6pm.</div>
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+    <a href="https://m.me/sorbetesmfg" style="display: flex; align-items: center; gap: 12px; background: #0084FF; color: #FFFFFF; text-decoration: none; font-weight: 800; font-size: 15px; padding: 14px 16px; border-radius: 12px;"><span style="width: 26px; height: 26px; border-radius: 50%; background: #FFFFFF; color: #0084FF; display: grid; place-items: center; font-size: 13px; font-weight: 900;">M</span>Messenger</a>
+    <a href="viber://chat?number=%2B639000000000" style="display: flex; align-items: center; gap: 12px; background: #7360F2; color: #FFFFFF; text-decoration: none; font-weight: 800; font-size: 15px; padding: 14px 16px; border-radius: 12px;"><span style="width: 26px; height: 26px; border-radius: 50%; background: #FFFFFF; color: #7360F2; display: grid; place-items: center; font-size: 13px; font-weight: 900;">V</span>Viber</a>
+    <a href="https://wa.me/639000000000" style="display: flex; align-items: center; gap: 12px; background: #25D366; color: #FFFFFF; text-decoration: none; font-weight: 800; font-size: 15px; padding: 14px 16px; border-radius: 12px;"><span style="width: 26px; height: 26px; border-radius: 50%; background: #FFFFFF; color: #25D366; display: grid; place-items: center; font-size: 13px; font-weight: 900;">W</span>WhatsApp</a>
+  </div>
+</div>
+
+<!-- ============ CASE DETAIL SHEET ============ -->
+<div data-screen-label="Case detail sheet" style="{{ caseBackdropStyle }}" onClick="{{ closeCase }}"></div>
+<div style="{{ caseSheetStyle }}">
+  <div style="position: sticky; top: 0; background: #FFFFFF; padding: 14px 18px 10px 18px; border-radius: 20px 20px 0 0; z-index: 2;">
+    <div style="width: 40px; height: 4px; background: #D8D4C8; border-radius: 999px; margin: 0 auto 12px auto;"></div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div style="display: flex; flex-direction: column; gap: 2px;">
+        <span style="font-size: 19px; font-weight: 900; text-transform: uppercase;">{{ selName }}</span>
+        <span style="font-size: 12px; font-weight: 700; color: #7A766C; text-transform: uppercase; letter-spacing: 0.05em;">{{ selCat }}</span>
+      </div>
+      <button onClick="{{ closeCase }}" style="margin-left: auto; width: 36px; height: 36px; border-radius: 50%; border: none; background: #F0EDE4; font-size: 16px; font-weight: 800; cursor: pointer; font-family: inherit;">✕</button>
+    </div>
+  </div>
+  <div style="padding: 6px 18px calc(20px + env(safe-area-inset-bottom)) 18px; display: flex; flex-direction: column; gap: 18px;">
+    <div style="display: flex; gap: 10px; overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -18px; padding: 0 18px;">
+      <sc-for list="{{ selPhotos }}" as="ph" hint-placeholder-count="3">
+        <x-import component-from-global-scope="image-slot" from="./image-slot.js" id="{{ ph.slotId }}" shape="rounded" radius="12" placeholder="{{ ph.placeholder }}" hint-size="220px,220px" style="width: 220px; height: 220px; flex-shrink: 0; display: block;"></x-import>
+      </sc-for>
+    </div>
+    <div style="display: flex; flex-direction: column;">
+      <div style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; color: #7A766C; padding-bottom: 8px;">Spec</div>
+      <sc-for list="{{ selSpecs }}" as="row" hint-placeholder-count="6">
+        <div style="display: flex; justify-content: space-between; gap: 16px; padding: 9px 0; border-top: 1px solid #EEEAE0; font-size: 14px;">
+          <span style="color: #7A766C; font-weight: 600;">{{ row.label }}</span>
+          <span style="font-weight: 800; text-align: right;">{{ row.value }}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="background: #F5F2E9; border-radius: 14px; padding: 16px;">
+      <div style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; color: #7A766C; margin-bottom: 6px;">What we solved</div>
+      <p style="margin: 0; font-size: 14px; line-height: 1.55;">{{ selSolved }}</p>
+    </div>
+    <a href="{{ selQuoteUrl }}" style="background: #FFD400; color: #111111; text-decoration: none; text-align: center; font-weight: 900; font-size: 15px; padding: 16px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em;">Get this spec quoted</a>
+    <a href="{{ selExpandedUrl }}" style="background: transparent; color: #111111; text-decoration: none; text-align: center; font-weight: 800; font-size: 14px; padding: 13px; border-radius: 999px; border: 2px solid #E0DBCD;">View full case study →</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { scrolled: false, chatOpen: false, filter: 'All', selected: null, navMobile: false, menuOpen: false };
+
+  componentDidMount() {
+    this._onScroll = () => {
+      const s = window.scrollY > 40;
+      if (s !== this.state.scrolled) this.setState({ scrolled: s });
+    };
+    window.addEventListener('scroll', this._onScroll, { passive: true });
+    this._onScroll();
+    this._onNavResize = () => {
+      const m = window.innerWidth < 1080;
+      if (m !== this.state.navMobile) this.setState({ navMobile: m });
+    };
+    window.addEventListener('resize', this._onNavResize);
+    this._onNavResize();
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('scroll', this._onScroll);
+    window.removeEventListener('resize', this._onNavResize);
+  }
+
+  data() {
+    return [
+      { id: 'dyip', name: 'Dyip Studios', cat: 'Streetwear', fabric: 'Cotton, combed', gsm: '240gsm', cut: 'Oversized, boxy', print: 'Silkscreen · 2 colors', qty: 150, days: 12, styleKey: 'premium', colors: 2, photos: 4, solved: 'They needed retail-hang quality for a mall pop-up. We moved them to 240gsm with taped shoulder seams and side-seam etiketa so the tees read premium on the rack.' },
+      { id: 'kanto', name: 'Kanto Klub', cat: 'Streetwear', fabric: 'Cotton, combed', gsm: '200gsm', cut: 'Regular', print: 'Silkscreen · front + back', qty: 80, days: 10, styleKey: 'classic', colors: 2, photos: 3, solved: 'Small frequent drops — 80 pcs every 6 weeks. We keep their screens filed so reprints skip setup and ship in 10 days flat.' },
+      { id: 'habi', name: 'Habi Apparel', cat: 'Streetwear', fabric: 'Cotton, carded', gsm: '220gsm', cut: 'Oversized', print: 'Discharge print', qty: 300, days: 14, styleKey: 'premium', colors: 1, photos: 3, solved: 'Their old supplier\u2019s plastisol cracked after 3 washes. We switched them to discharge ink — soft hand, zero cracking, same price tier at 300 pcs.' },
+      { id: 'tahi', name: 'Tahi Studio', cat: 'Streetwear', fabric: 'Cotton, combed', gsm: '240gsm', cut: 'Boxy, drop shoulder', print: 'Embroidery, 3in chest hit', qty: 60, days: 13, styleKey: 'premium', colors: 1, photos: 2, solved: 'Low-qty embroidery run below most factories\u2019 minimums. Our in-house embroidery head makes 60-pc runs viable without a surcharge.' },
+      { id: 'meralco', name: 'GridWorks Corp.', cat: 'Corporate', fabric: 'CVC 60/40', gsm: '180gsm', cut: 'Regular, unisex', print: 'Silkscreen · 1 color', qty: 500, days: 12, styleKey: 'classic', colors: 1, photos: 2, solved: 'Uniform re-order across 4 branches with strict color matching. We keep their Pantone recipe on file — batch 2 matched batch 1 exactly.' },
+      { id: 'bpo', name: 'NorthBPO', cat: 'Corporate', fabric: 'Drifit polyester', gsm: '160gsm', cut: 'Regular', print: 'Sublimation, all-over', qty: 350, days: 15, styleKey: 'classic', colors: 3, photos: 3, solved: 'Team-building shirts with per-department colorways. Sublimation let us run 6 colorways in one production window without screen changes.' },
+      { id: 'sari', name: 'Sari Logistics', cat: 'Corporate', fabric: 'Cotton, carded', gsm: '200gsm', cut: 'Regular', print: 'Silkscreen · 2 colors', qty: 200, days: 11, styleKey: 'classic', colors: 2, photos: 2, solved: 'Rider uniforms that survive daily wash cycles. Double-cured print plus bartack stress points — replacements dropped to near zero.' },
+      { id: 'funrun', name: 'Takbo Para Sa Kalikasan', cat: 'Events', fabric: 'Drifit polyester', gsm: '150gsm', cut: 'Regular, unisex', print: 'Sublimation, full front', qty: 1200, days: 18, styleKey: 'classic', colors: 3, photos: 4, solved: '1,200 race shirts on a fixed event date. We split the run across two lines and delivered in waves — full quantity 4 days before gun start.' },
+      { id: 'fiesta', name: 'Bagumbayan Fiesta 2026', cat: 'Events', fabric: 'Cotton, carded', gsm: '180gsm', cut: 'Regular', print: 'Silkscreen · 3 colors', qty: 600, days: 14, styleKey: 'classic', colors: 3, photos: 2, solved: 'LGU procurement with strict documentation. We handled OR, sample approvals, and staggered delivery to three barangay halls.' },
+      { id: 'concert', name: 'Gabi Ng Ingay Tour', cat: 'Events', fabric: 'Cotton, combed', gsm: '220gsm', cut: 'Oversized', print: 'Silkscreen · front + back', qty: 450, days: 13, styleKey: 'premium', colors: 2, photos: 3, solved: 'Tour merch across 3 cities with per-stop designs. Shared body stock, per-city prints — merch tables never ran dry.' },
+      { id: 'univ', name: 'UP Circuit Org', cat: 'Schools & Orgs', fabric: 'Cotton, combed', gsm: '200gsm', cut: 'Regular, unisex', print: 'Silkscreen · 2 colors', qty: 120, days: 10, styleKey: 'classic', colors: 2, photos: 2, solved: 'Org shirt with a hard budget per member. We tuned the spec to hit their exact price point without dropping to a flimsy fabric.' },
+      { id: 'hs', name: 'Batch 2026 — SJHS', cat: 'Schools & Orgs', fabric: 'CVC 60/40', gsm: '180gsm', cut: 'Regular', print: 'Silkscreen · 1 color + names', qty: 280, days: 12, styleKey: 'classic', colors: 1, photos: 3, solved: 'Individual name prints for 280 students. Vinyl name layer over a shared silkscreen base kept it affordable and error-free — we triple-check the name list.' },
+    ];
+  }
+
+  navVals(active) {
+    const m = this.state.navMobile;
+    const open = this.state.menuOpen;
+    const linkDefs = [
+      { label: 'Our Story', href: 'Our Story.dc.html', key: 'story' },
+      { label: 'Services', href: 'Our Services.dc.html', key: 'services' },
+      { label: 'Portfolio', href: 'Portfolio.dc.html', key: 'portfolio' },
+      { label: 'Guides', href: 'Guide.dc.html', key: 'guides' },
+      { label: 'Founder\u2019s Club', href: 'Founders Club.dc.html', key: 'club' },
+      { label: 'Contact', href: 'Get in Touch.dc.html', key: 'contact' },
+    ];
+    return {
+      isDesktopNav: !m,
+      isMobileNav: m,
+      navLinks: linkDefs.map(l => ({ ...l, style: {
+        color: l.key === active ? '#FFD400' : '#DADADA',
+        fontSize: 13, fontWeight: l.key === active ? 800 : 600,
+        textDecoration: 'none', whiteSpace: 'nowrap',
+      } })),
+      menuLinks: linkDefs.map(l => ({ ...l, style: {
+        display: 'block', padding: '13px 0', borderBottom: '1px solid #EEEAE0',
+        color: '#141414', fontSize: 17, fontWeight: 800, textDecoration: 'none',
+        textTransform: 'uppercase', letterSpacing: '0.02em',
+      } })),
+      openMenu: () => this.setState({ menuOpen: true }),
+      closeMenu: () => this.setState({ menuOpen: false }),
+      menuBackdropStyle: {
+        position: 'fixed', inset: 0, zIndex: 93, background: 'rgba(0,0,0,0.5)',
+        opacity: open ? 1 : 0, pointerEvents: open ? 'auto' : 'none',
+        transition: 'opacity 0.25s ease',
+      },
+      menuSheetStyle: {
+        position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 94,
+        background: '#FFFFFF', borderRadius: '20px 20px 0 0',
+        padding: '14px 20px calc(22px + env(safe-area-inset-bottom)) 20px',
+        maxWidth: 560, margin: '0 auto', maxHeight: '86vh', overflowY: 'auto',
+        transform: open ? 'translateY(0)' : 'translateY(105%)',
+        transition: 'transform 0.32s cubic-bezier(0.2,0.8,0.2,1)',
+        boxShadow: '0 -8px 40px rgba(0,0,0,0.18)',
+      },
+    };
+  }
+
+  renderVals() {
+    const cats = ['All', 'Streetwear', 'Corporate', 'Events', 'Schools & Orgs', 'Live-selling brands'];
+    const all = this.data();
+    const filter = this.state.filter;
+    const visible = all.filter(p => filter === 'All' || p.cat === filter);
+
+    const chips = cats.map(c => {
+      const n = c === 'All' ? all.length : all.filter(p => p.cat === c).length;
+      const active = filter === c;
+      return {
+        label: c + ' · ' + n,
+        pick: () => this.setState({ filter: c, selected: null }),
+        style: {
+          flexShrink: 0, padding: '10px 16px', borderRadius: 999, cursor: 'pointer',
+          fontFamily: 'inherit', fontSize: 13, fontWeight: 800, whiteSpace: 'nowrap',
+          border: active ? '2px solid #111111' : '2px solid #E0DBCD',
+          background: active ? '#111111' : '#FFFFFF',
+          color: active ? '#FFD400' : '#141414',
+          transition: 'all 0.15s ease',
+        },
+      };
+    });
+
+    const projects = visible.map(p => ({
+      ...p,
+      slotId: 'case-' + p.id,
+      placeholder: p.name + ' — hero shot',
+      specLine: p.gsm + ' ' + p.fabric.split(',')[0].toLowerCase() + ' · ' + p.print.toLowerCase() + ' · ' + p.qty + ' pcs · ' + p.days + ' days',
+      open: (e) => {
+        if (e && e.target && e.target.closest && e.target.closest('image-slot')) return;
+        this.setState({ selected: p.id });
+      },
+    }));
+
+    const sel = all.find(p => p.id === this.state.selected) || null;
+    const caseOpen = !!sel;
+
+    const backdrop = (open, z) => ({
+      position: 'fixed', inset: 0, zIndex: z, background: 'rgba(0,0,0,0.5)',
+      opacity: open ? 1 : 0, pointerEvents: open ? 'auto' : 'none',
+      transition: 'opacity 0.25s ease',
+    });
+    const sheet = (open, z, maxW) => ({
+      position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: z,
+      background: '#FFFFFF', borderRadius: '20px 20px 0 0',
+      maxWidth: maxW, margin: '0 auto', maxHeight: '86vh', overflowY: 'auto',
+      transform: open ? 'translateY(0)' : 'translateY(105%)',
+      transition: 'transform 0.32s cubic-bezier(0.2,0.8,0.2,1)',
+      boxShadow: '0 -8px 40px rgba(0,0,0,0.18)',
+    });
+
+    return {
+      ...this.navVals('portfolio'),
+      chips,
+      projects,
+      isEmpty: visible.length === 0,
+      barStyle: {
+        position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 90,
+        display: 'flex', gap: 10,
+        padding: '10px 14px calc(10px + env(safe-area-inset-bottom)) 14px',
+        background: 'rgba(251,250,247,0.92)', backdropFilter: 'blur(10px)',
+        borderTop: '1px solid #E7E2D5',
+        transform: this.state.scrolled ? 'translateY(0)' : 'translateY(110%)',
+        transition: 'transform 0.35s cubic-bezier(0.2,0.8,0.2,1)',
+      },
+      chatBackdropStyle: backdrop(this.state.chatOpen, 95),
+      chatSheetStyle: {
+        position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 96,
+        background: '#FFFFFF', borderRadius: '20px 20px 0 0',
+        padding: '14px 18px calc(22px + env(safe-area-inset-bottom)) 18px',
+        maxWidth: 560, margin: '0 auto',
+        transform: this.state.chatOpen ? 'translateY(0)' : 'translateY(105%)',
+        transition: 'transform 0.32s cubic-bezier(0.2,0.8,0.2,1)',
+        boxShadow: '0 -8px 40px rgba(0,0,0,0.18)',
+      },
+      openChat: () => this.setState({ chatOpen: true }),
+      closeChat: () => this.setState({ chatOpen: false }),
+      caseBackdropStyle: backdrop(caseOpen, 97),
+      caseSheetStyle: sheet(caseOpen, 98, 640),
+      closeCase: () => this.setState({ selected: null }),
+      selName: sel ? sel.name : '',
+      selCat: sel ? sel.cat : '',
+      selSolved: sel ? sel.solved : '',
+      selQuoteUrl: sel ? 'Quick%20Quote.dc.html?style=' + (sel.styleKey === 'premium' ? 'premium' : 'classic-240') + '&qty=' + sel.qty + '&colors=' + sel.colors + '&from=' + encodeURIComponent(sel.name) : 'Quick%20Quote.dc.html',
+      selExpandedUrl: sel ? 'Portfolio%20Expanded.dc.html?id=' + sel.id : 'Portfolio.dc.html',
+      selPhotos: sel ? Array.from({ length: sel.photos }, (_, i) => ({
+        slotId: 'case-' + sel.id + '-ph' + (i + 1),
+        placeholder: sel.name + ' — photo ' + (i + 1) + ' of ' + sel.photos,
+      })) : [],
+      selSpecs: sel ? [
+        { label: 'Fabric', value: sel.fabric + ', ' + sel.gsm },
+        { label: 'Cut', value: sel.cut },
+        { label: 'Print method', value: sel.print },
+        { label: 'Qty produced', value: sel.qty + ' pcs' },
+        { label: 'Turnaround', value: sel.days + ' days' },
+        { label: 'Packing', value: 'Etiketa + ziploc (free)' },
+      ] : [],
+    };
+  }
+}
+</script>
+</body>
+</html>

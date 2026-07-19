@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <title>My Sorbetes — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    @keyframes dfade { from { opacity:0; transform:translateY(6px);} to { opacity:1; transform:none;} }
+    input { font-family: inherit; }
+  </style>
+</helmet>
+
+<div style="min-height:100vh;background:#FBFAF7;font-family:'Archivo',Helvetica,Arial,sans-serif;color:#141414;-webkit-font-smoothing:antialiased">
+
+  <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+    <header style="position:sticky;top:0;z-index:40;background:#111111">
+      <div style="max-width:900px;margin:0 auto;padding:0 16px;height:58px;display:flex;align-items:center;gap:12px">
+        <div onClick="{{ exit }}" style="display:flex;align-items:center;gap:10px;cursor:pointer">
+          <img src="uploads/logo.jpg" alt="Sorbetes" style="width:32px;height:32px;border-radius:50%;display:block" />
+          <span style="color:#fff;font-weight:900;font-size:15px;letter-spacing:.05em;text-transform:uppercase">Sorbetes</span>
+        </div>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:flex-end">
+          <span onClick="{{ goPublicStory }}" style="cursor:pointer;font-size:13px;font-weight:600;color:#DADADA;white-space:nowrap">Our Story</span>
+          <span onClick="{{ goPublicServices }}" style="cursor:pointer;font-size:13px;font-weight:600;color:#DADADA;white-space:nowrap">Services</span>
+          <span onClick="{{ goPublicPortfolio }}" style="cursor:pointer;font-size:13px;font-weight:600;color:#DADADA;white-space:nowrap">Portfolio</span>
+          <span style="width:1px;height:18px;background:#3A3A3A"></span>
+          <div style="position:relative;width:36px;height:36px;border-radius:50%;background:#1D1D1D;display:grid;place-items:center">
+            <span style="color:#fff;font-size:15px">🔔</span>
+            <span style="position:absolute;top:4px;right:5px;width:8px;height:8px;border-radius:50%;background:#FFD400"></span>
+          </div>
+          <div onClick="{{ goAccount }}" style="cursor:pointer;width:32px;height:32px;border-radius:50%;background:#FFD400;color:#111;display:grid;place-items:center;font-weight:900;font-size:13px">JD</div>
+        </div>
+      </div>
+    </header>
+    <main style="padding-bottom:88px;animation:dfade .3s ease">
+      <section style="max-width:900px;margin:0 auto;padding:24px 16px">
+        <h1 style="margin:0 0 4px;font-size:clamp(24px,5vw,32px);font-weight:900;text-transform:uppercase;letter-spacing:-0.01em">Hey, Juan 👋</h1>
+        <p style="margin:0 0 20px;font-size:14px;color:#7A766C">Here's where things stand.</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:26px">
+          <sc-for list="{{ stats }}" as="s" hint-placeholder-count="3">
+            <div style="background:#fff;border:1px solid #E7E2D5;border-radius:14px;padding:16px">
+              <div style="font-size:24px;font-weight:900">{{ s.value }}</div>
+              <div style="font-size:12px;font-weight:700;color:#7A766C;text-transform:uppercase;letter-spacing:.04em">{{ s.label }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;align-items:baseline;margin-bottom:12px">
+          <h2 style="margin:0;font-size:18px;font-weight:900;text-transform:uppercase">Active orders</h2>
+          <span onClick="{{ goOrders }}" style="margin-left:auto;font-size:13px;font-weight:800;color:#111;cursor:pointer;border-bottom:2px solid #FFD400">See all</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:30px">
+          <sc-for list="{{ activeOrders }}" as="o" hint-placeholder-count="2">
+            <div onClick="{{ o.go }}" style="cursor:pointer;background:#fff;border:1px solid #E7E2D5;border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px">
+              <div style="display:flex;flex-direction:column;gap:2px;flex:1">
+                <span style="font-size:15px;font-weight:800">Order #{{ o.num }}</span>
+                <span style="font-size:13px;color:#7A766C">{{ o.spec }}</span>
+              </div>
+              <span style="{{ o.badgeStyle }}">{{ o.status }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="background:#111;border-radius:16px;padding:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+          <div style="flex:1;min-width:200px">
+            <div style="font-size:12px;font-weight:900;color:#FFD400;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Founder's Club</div>
+            <div style="font-size:16px;font-weight:800;color:#fff">Regular tier · 340 points</div>
+          </div>
+          <span onClick="{{ goClub }}" style="cursor:pointer;background:#FFD400;color:#111;font-weight:900;font-size:13px;padding:11px 18px;border-radius:999px;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap">View rewards</span>
+        </div>
+      </section>
+    </main>
+    <div onClick="{{ goChat }}" style="position:fixed;right:20px;bottom:84px;width:54px;height:54px;border-radius:50%;background:#FFD400;display:grid;place-items:center;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,0.25);font-size:22px;z-index:45">💬</div>
+  </sc-if>
+
+  <sc-if value="{{ isOrders }}" hint-placeholder-val="{{ false }}">
+    <header style="padding:16px;display:flex;align-items:center;gap:14px">
+      <div onClick="{{ goHome }}" style="cursor:pointer;width:36px;height:36px;border-radius:50%;background:#F0EDE4;display:grid;place-items:center;color:#111;font-size:16px">←</div>
+      <span style="font-size:18px;font-weight:900;text-transform:uppercase">My Orders</span>
+    </header>
+    <div style="overflow-x:auto">
+      <div style="max-width:640px;margin:0 auto;padding:0 16px 14px;display:flex;gap:8px;width:max-content;min-width:100%">
+        <sc-for list="{{ orderChips }}" as="c" hint-placeholder-count="4">
+          <div onClick="{{ c.pick }}" style="{{ c.style }}">{{ c.label }}</div>
+        </sc-for>
+      </div>
+    </div>
+    <main style="padding-bottom:88px;animation:dfade .3s ease">
+      <div style="max-width:640px;margin:0 auto;padding:0 16px;display:flex;flex-direction:column;gap:10px">
+        <sc-for list="{{ orders }}" as="o" hint-placeholder-count="5">
+          <div onClick="{{ o.go }}" style="cursor:pointer;background:#fff;border:1px solid #E7E2D5;border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px">
+            <div style="display:flex;flex-direction:column;gap:2px;flex:1">
+              <span style="font-size:15px;font-weight:800">Order #{{ o.num }}</span>
+              <span style="font-size:13px;color:#7A766C">{{ o.spec }}</span>
+              <span style="font-size:12px;color:#A8A398">Placed {{ o.date }}</span>
+            </div>
+            <span style="{{ o.badgeStyle }}">{{ o.status }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </main>
+  </sc-if>
+
+  <sc-if value="{{ isOrderDetail }}" hint-placeholder-val="{{ false }}">
+    <header style="padding:16px;display:flex;align-items:center;gap:14px">
+      <div onClick="{{ goOrders }}" style="cursor:pointer;width:36px;height:36px;border-radius:50%;background:#F0EDE4;display:grid;place-items:center;color:#111;font-size:16px">←</div>
+      <span style="font-size:18px;font-weight:900;text-transform:uppercase">Order #{{ num }}</span>
+    </header>
+    <main style="padding-bottom:40px;animation:dfade .3s ease">
+      <div style="max-width:560px;margin:0 auto;padding:0 16px;display:flex;flex-direction:column;gap:20px">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span style="{{ badgeStyle }}">{{ status }}</span>
+          <span style="font-size:13px;color:#7A766C">Placed {{ date }}</span>
+          <sc-if value="{{ designNote }}" hint-placeholder-val="">
+            <span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:#8f7300;background:#FFF3C4;border:1px solid #EAD08A;padding:4px 9px;border-radius:999px">Design: {{ designNote }}</span>
+          </sc-if>
+        </div>
+        <div style="{{ csWrapStyle }}">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="width:9px;height:9px;border-radius:50%;background:{{ csAccent }};flex:none"></span>
+            <span style="font-size:12px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:{{ csAccent }}">Current status &middot; {{ csTitle }}</span>
+          </div>
+          <span style="font-size:14px;color:#2A2723;line-height:1.55">{{ csDesc }}</span>
+        </div>
+        <div onClick="{{ goTrack }}" style="cursor:pointer;background:#111;color:#fff;text-align:center;font-weight:900;font-size:14px;padding:14px;border-radius:999px;text-transform:uppercase;letter-spacing:.03em">Track this order</div>
+        <sc-if value="{{ needsCustomerInfo }}" hint-placeholder-val="{{ false }}">
+          <div style="border:2px solid #E0A32E;border-radius:16px;overflow:hidden">
+            <div style="background:#FFF3C4;padding:13px 16px">
+              <div style="font-size:11px;font-weight:900;letter-spacing:.09em;text-transform:uppercase;color:#8f7300">Action needed from you</div>
+              <div style="font-size:12.5px;color:#6b5a1e;margin-top:3px">The seller needs more info before continuing. Add the missing details below.</div>
+            </div>
+            <sc-if value="{{ hasSellerNote }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:12px 16px;background:#FCFBF7;border-bottom:1px solid #EEEAE0;display:flex;gap:10px">
+                <span style="width:28px;height:28px;flex:none;border-radius:50%;background:#111;color:#FFD400;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900">S</span>
+                <div style="display:flex;flex-direction:column;gap:2px">
+                  <span style="font-size:11px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:#7A766C">Seller&rsquo;s note</span>
+                  <span style="font-size:13.5px;color:#2A2723;line-height:1.5">{{ sellerNote }}</span>
+                  <sc-if value="{{ hasSellerNoteFiles }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
+                      <sc-for list="{{ sellerNoteFiles }}" as="f" hint-placeholder-count="0">
+                        <sc-if value="{{ f.isImage }}" hint-placeholder-val="{{ false }}">
+                          <sc-if value="{{ f.url }}" hint-placeholder-val="{{ false }}">
+                            <img src="{{ f.url }}" alt="{{ f.name }}" loading="lazy" decoding="async" style="width:84px;height:84px;border-radius:10px;object-fit:cover;border:1px solid #E7E2D5" />
+                          </sc-if>
+                        </sc-if>
+                        <sc-if value="{{ f.isDoc }}" hint-placeholder-val="{{ true }}">
+                          <span style="display:inline-flex;align-items:center;gap:6px;background:#F0ECE0;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;color:#3c392f">&#128206; {{ f.name }}</span>
+                        </sc-if>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+            </sc-if>
+            <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;background:#fff">
+              <textarea value="{{ infoDraft }}" onInput="{{ onInfoDraft }}" placeholder="e.g. final artwork link, exact Pantone colors, size breakdown, deadline…" style="min-height:92px;border:2px solid #E0DBCD;border-radius:12px;padding:12px 14px;font-size:14px;font-family:inherit;outline:none;resize:vertical"></textarea>
+              <label style="position:relative;display:flex;align-items:center;gap:12px;border:2px dashed #D8D2C0;border-radius:12px;padding:14px;cursor:pointer;background:#FCFBF7">
+                <span style="width:38px;height:38px;flex:none;border-radius:10px;background:#111;color:#FFD400;display:flex;align-items:center;justify-content:center;font-size:18px">&#8682;</span>
+                <span style="display:flex;flex-direction:column;gap:1px">
+                  <span style="font-size:13.5px;font-weight:800;color:#141414">Attach files</span>
+                  <span style="font-size:12px;color:#7A766C">Photos, artwork, PDFs — anything the seller needs</span>
+                </span>
+                <input type="file" multiple onChange="{{ onInfoFiles }}" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden" />
+              </label>
+              <sc-if value="{{ hasInfoFiles }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <sc-for list="{{ infoFiles }}" as="f" hint-placeholder-count="0">
+                    <div style="display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #E7E2D5;border-radius:10px;padding:8px 10px">
+                      <sc-if value="{{ f.isImage }}" hint-placeholder-val="{{ false }}">
+                        <sc-if value="{{ f.url }}" hint-placeholder-val="{{ false }}">
+                          <img src="{{ f.url }}" alt="{{ f.name }}" loading="lazy" decoding="async" style="width:40px;height:40px;flex:none;border-radius:8px;object-fit:cover;border:1px solid #E7E2D5" />
+                        </sc-if>
+                      </sc-if>
+                      <sc-if value="{{ f.isDoc }}" hint-placeholder-val="{{ true }}">
+                        <span style="width:40px;height:40px;flex:none;border-radius:8px;background:#F0ECE0;display:flex;align-items:center;justify-content:center;font-size:16px">&#128206;</span>
+                      </sc-if>
+                      <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px">
+                        <span style="font-size:13px;font-weight:700;color:#141414;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ f.name }}</span>
+                        <span style="font-size:11.5px;color:#8A867C">{{ f.size }}</span>
+                      </span>
+                      <button onClick="{{ f.remove }}" style="flex:none;background:none;border:none;padding:4px;font-family:inherit;font-size:12px;font-weight:800;color:#A6392C;cursor:pointer">Remove</button>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ infoErr }}" hint-placeholder-val=""><div style="font-size:12.5px;font-weight:700;color:#A6392C">{{ infoErr }}</div></sc-if>
+              <button onClick="{{ submitInfo }}" style="align-self:flex-start;background:#111;color:#fff;border:none;font-family:inherit;font-weight:900;font-size:13.5px;padding:12px 22px;border-radius:999px;cursor:pointer;text-transform:uppercase;letter-spacing:.03em">Send to seller &rarr;</button>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ needsSampleReview }}" hint-placeholder-val="{{ false }}">
+          <div style="border:2px solid #111;border-radius:16px;overflow:hidden">
+            <div style="background:#111;color:#fff;padding:13px 16px">
+              <div style="font-size:11px;font-weight:900;letter-spacing:.09em;text-transform:uppercase;color:#FFD400">Your sample is ready</div>
+              <div style="font-size:12.5px;color:rgba(255,255,255,0.72);margin-top:3px">Review the sample, then approve to proceed or request changes.</div>
+            </div>
+            <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;background:#fff">
+              <sc-if value="{{ hasSampleRevisionNote }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:12px 13px;background:#FCFBF7;border:1px solid #E7E2D5;border-radius:12px;display:flex;gap:10px">
+                  <span style="width:28px;height:28px;flex:none;border-radius:50%;background:#111;color:#FFD400;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900">S</span>
+                  <div style="display:flex;flex-direction:column;gap:2px">
+                    <span style="font-size:11px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:#7A766C">Seller&rsquo;s note on this sample</span>
+                    <span style="font-size:13.5px;color:#2A2723;line-height:1.5">{{ sampleRevisionNote.text }}</span>
+                    <sc-if value="{{ sampleRevisionNote.hasFiles }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
+                        <sc-for list="{{ sampleRevisionNote.files }}" as="f" hint-placeholder-count="0">
+                          <sc-if value="{{ f.isImage }}" hint-placeholder-val="{{ false }}">
+                            <sc-if value="{{ f.url }}" hint-placeholder-val="{{ false }}">
+                              <img src="{{ f.url }}" alt="{{ f.name }}" loading="lazy" decoding="async" style="width:84px;height:84px;border-radius:10px;object-fit:cover;border:1px solid #E7E2D5" />
+                            </sc-if>
+                          </sc-if>
+                          <sc-if value="{{ f.isDoc }}" hint-placeholder-val="{{ true }}">
+                            <span style="display:inline-flex;align-items:center;gap:6px;background:#F0ECE0;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;color:#3c392f">&#128206; {{ f.name }}</span>
+                          </sc-if>
+                        </sc-for>
+                      </div>
+                    </sc-if>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ sampleIdle }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                  <button onClick="{{ approveSample }}" style="flex:1;min-width:150px;background:#1c8a4a;color:#fff;border:none;font-family:inherit;font-weight:900;font-size:13.5px;padding:13px;border-radius:999px;cursor:pointer;text-transform:uppercase;letter-spacing:.03em">&#10003; Approve sample</button>
+                  <button onClick="{{ openChanges }}" style="flex:1;min-width:150px;background:#fff;color:#111;border:2px solid #111;font-family:inherit;font-weight:900;font-size:13.5px;padding:13px;border-radius:999px;cursor:pointer;text-transform:uppercase;letter-spacing:.03em">Request changes</button>
+                </div>
+                <span style="font-size:12px;color:#7A766C;line-height:1.5">Approving asks for the 60% downpayment to start bulk production.</span>
+              </sc-if>
+              <sc-if value="{{ sampleChanges }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:#7A766C">What should change?</div>
+                <textarea value="{{ sampleNote }}" onInput="{{ onSampleNote }}" placeholder="e.g. logo 1cm higher, change red to maroon, tighten the collar…" style="min-height:84px;border:2px solid #E0DBCD;border-radius:12px;padding:12px 14px;font-size:14px;font-family:inherit;outline:none;resize:vertical"></textarea>
+                <sc-if value="{{ sampleErr }}" hint-placeholder-val=""><div style="font-size:12.5px;font-weight:700;color:#A6392C">{{ sampleErr }}</div></sc-if>
+                <div style="display:flex;gap:10px">
+                  <button onClick="{{ cancelChanges }}" style="flex:none;background:transparent;color:#111;border:2px solid #E0DBCD;font-family:inherit;font-weight:800;font-size:13.5px;padding:12px 20px;border-radius:999px;cursor:pointer">Cancel</button>
+                  <button onClick="{{ sendChanges }}" style="flex:1;background:#111;color:#fff;border:none;font-family:inherit;font-weight:900;font-size:13.5px;padding:12px;border-radius:999px;cursor:pointer;text-transform:uppercase;letter-spacing:.03em">Send change request &rarr;</button>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ needsPayment }}" hint-placeholder-val="{{ false }}">
+          <div style="border:2px solid #111;border-radius:16px;overflow:hidden">
+            <div style="background:#111;color:#fff;padding:13px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+              <div>
+                <div style="font-size:11px;font-weight:900;letter-spacing:.09em;text-transform:uppercase;color:#FFD400">{{ payLabel }} — pay now</div>
+                <div style="font-size:12.5px;color:rgba(255,255,255,0.72);margin-top:3px">Send payment, then upload your proof below.</div>
+              </div>
+              <span style="font-size:20px;font-weight:900;color:#FFD400;white-space:nowrap">₱{{ payAmount }}</span>
+            </div>
+            <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;background:#fff">
+              <sc-if value="{{ hasPayReject }}" hint-placeholder-val="{{ false }}">
+                <div style="background:#F5EDEA;border:1px solid #E3C4B8;border-radius:10px;padding:11px 13px;display:flex;gap:9px">
+                  <span style="width:24px;height:24px;flex:none;border-radius:50%;background:#A6392C;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900">!</span>
+                  <div style="display:flex;flex-direction:column;gap:1px">
+                    <span style="font-size:11px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;color:#A6392C">Payment needs to be re-sent</span>
+                    <span style="font-size:13px;color:#5c2f26;line-height:1.5">{{ payNote }}</span>
+                    <sc-if value="{{ hasPayNoteFiles }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
+                        <sc-for list="{{ payNoteFiles }}" as="f" hint-placeholder-count="0">
+                          <sc-if value="{{ f.isImage }}" hint-placeholder-val="{{ false }}">
+                            <sc-if value="{{ f.url }}" hint-placeholder-val="{{ false }}">
+                              <img src="{{ f.url }}" alt="{{ f.name }}" loading="lazy" decoding="async" style="width:84px;height:84px;border-radius:10px;object-fit:cover;border:1px solid #E7E2D5" />
+                            </sc-if>
+                          </sc-if>
+                          <sc-if value="{{ f.isDoc }}" hint-placeholder-val="{{ true }}">
+                            <span style="display:inline-flex;align-items:center;gap:6px;background:#F0ECE0;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;color:#3c392f">&#128206; {{ f.name }}</span>
+                          </sc-if>
+                        </sc-for>
+                      </div>
+                    </sc-if>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ hasPayFyi }}" hint-placeholder-val="{{ false }}">
+                <div style="background:#FCFBF7;border:1px solid #E7E2D5;border-radius:10px;padding:11px 13px;display:flex;gap:9px">
+                  <span style="width:24px;height:24px;flex:none;border-radius:50%;background:#111;color:#FFD400;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900">S</span>
+                  <div style="display:flex;flex-direction:column;gap:1px">
+                    <span style="font-size:11px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;color:#7A766C">Why this fee applies</span>
+                    <span style="font-size:13px;color:#2A2723;line-height:1.5">{{ payNote }}</span>
+                    <sc-if value="{{ hasPayNoteFiles }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
+                        <sc-for list="{{ payNoteFiles }}" as="f" hint-placeholder-count="0">
+                          <sc-if value="{{ f.isImage }}" hint-placeholder-val="{{ false }}">
+                            <sc-if value="{{ f.url }}" hint-placeholder-val="{{ false }}">
+                              <img src="{{ f.url }}" alt="{{ f.name }}" loading="lazy" decoding="async" style="width:84px;height:84px;border-radius:10px;object-fit:cover;border:1px solid #E7E2D5" />
+                            </sc-if>
+                          </sc-if>
+                          <sc-if value="{{ f.isDoc }}" hint-placeholder-val="{{ true }}">
+                            <span style="display:inline-flex;align-items:center;gap:6px;background:#F0ECE0;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;color:#3c392f">&#128206; {{ f.name }}</span>
+                          </sc-if>
+                        </sc-for>
+                      </div>
+                    </sc-if>
+                  </div>
+                </div>
+              </sc-if>
+              <div style="font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:#7A766C">Payment method</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button onClick="{{ pickGcash }}" style="{{ gcashStyle }}">GCash</button>
+                <button onClick="{{ pickMaya }}" style="{{ mayaStyle }}">Maya</button>
+                <button onClick="{{ pickBank }}" style="{{ bankStyle }}">Bank transfer</button>
+              </div>
+              <div style="font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:#7A766C;margin-top:2px">Proof of payment</div>
+              <label style="position:relative;display:flex;align-items:center;gap:12px;border:2px dashed #D8D2C0;border-radius:12px;padding:14px;cursor:pointer;background:#FCFBF7">
+                <span style="width:38px;height:38px;flex:none;border-radius:10px;background:#111;color:#FFD400;display:flex;align-items:center;justify-content:center;font-size:18px">&#8682;</span>
+                <span style="display:flex;flex-direction:column;gap:1px">
+                  <span style="font-size:13.5px;font-weight:800;color:#141414">Upload screenshot / receipt</span>
+                  <span style="font-size:12px;color:#7A766C">GCash / Maya screenshot or bank slip</span>
+                </span>
+                <input type="file" multiple onChange="{{ onPayProof }}" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden" />
+              </label>
+              <sc-if value="{{ hasPayProof }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <sc-for list="{{ payProof }}" as="f" hint-placeholder-count="0">
+                    <div style="display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #E7E2D5;border-radius:10px;padding:8px 10px">
+                      <sc-if value="{{ f.isImage }}" hint-placeholder-val="{{ false }}">
+                        <sc-if value="{{ f.url }}" hint-placeholder-val="{{ false }}">
+                          <img src="{{ f.url }}" alt="{{ f.name }}" loading="lazy" decoding="async" style="width:40px;height:40px;flex:none;border-radius:8px;object-fit:cover;border:1px solid #E7E2D5" />
+                        </sc-if>
+                      </sc-if>
+                      <sc-if value="{{ f.isDoc }}" hint-placeholder-val="{{ true }}">
+                        <span style="width:40px;height:40px;flex:none;border-radius:8px;background:#F0ECE0;display:flex;align-items:center;justify-content:center;font-size:16px">&#128206;</span>
+                      </sc-if>
+                      <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px">
+                        <span style="font-size:13px;font-weight:700;color:#141414;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ f.name }}</span>
+                        <span style="font-size:11.5px;color:#8A867C">{{ f.size }}</span>
+                      </span>
+                      <button onClick="{{ f.remove }}" style="flex:none;background:none;border:none;padding:4px;font-family:inherit;font-size:12px;font-weight:800;color:#A6392C;cursor:pointer">Remove</button>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ payErr }}" hint-placeholder-val=""><div style="font-size:12.5px;font-weight:700;color:#A6392C">{{ payErr }}</div></sc-if>
+              <button onClick="{{ submitProof }}" style="align-self:flex-start;background:#111;color:#fff;border:none;font-family:inherit;font-weight:900;font-size:13.5px;padding:12px 22px;border-radius:999px;cursor:pointer;text-transform:uppercase;letter-spacing:.03em">Submit proof of payment &rarr;</button>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ paymentUnderReview }}" hint-placeholder-val="{{ false }}">
+          <div style="border:2px solid #2A5C8F;border-radius:16px;padding:14px 16px;background:#EAF0F6;display:flex;gap:12px;align-items:flex-start">
+            <span style="width:34px;height:34px;flex:none;border-radius:50%;background:#2A5C8F;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px">&#8987;</span>
+            <div>
+              <div style="font-size:11px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:#2A5C8F">{{ payLabel }} — under review</div>
+              <div style="font-size:13px;color:#385a7c;margin-top:3px;line-height:1.5">We received your proof of payment. The seller is verifying it — you&rsquo;ll get an update shortly.</div>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ isLiveOrder }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:14px;border:2px dashed #B45309;border-radius:16px;background:repeating-linear-gradient(135deg,#FBF3E6,#FBF3E6 11px,#F6EAD6 11px,#F6EAD6 22px);padding:12px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span style="font-size:14px">&#128736;</span>
+              <span style="font-size:10.5px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#B45309">Simulation tool — not shown in the final prototype</span>
+            </div>
+            <div style="border:2px solid #111;border-radius:12px;overflow:hidden">
+              <div style="background:#111;color:#fff;padding:13px 16px">
+                <div style="font-size:11px;font-weight:900;letter-spacing:.09em;text-transform:uppercase;color:#FFD400">Seller / factory simulation</div>
+                <div style="font-size:12.5px;color:rgba(255,255,255,0.72);margin-top:3px">Current state: <strong style="color:#fff">{{ sellerStateLabel }}</strong></div>
+              </div>
+            <div style="padding:14px 16px;display:flex;flex-direction:column;gap:8px;background:#fff">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="font-size:10px;font-weight:900;letter-spacing:.07em;text-transform:uppercase;color:#A8A398">4 separate threads — each keeps only its own latest message</div>
+                <sc-for list="{{ threadSlots }}" as="t" hint-placeholder-count="4">
+                  <div style="border:1px solid #E7E2D5;border-radius:10px;padding:9px 11px;background:{{ t.bg }}">
+                    <div style="font-size:9.5px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#7A766C;margin-bottom:5px">{{ t.label }}</div>
+                    <sc-if value="{{ t.hasNote }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:flex;flex-direction:column;gap:3px">
+                        <div style="display:flex;align-items:center;gap:8px">
+                          <span style="font-size:9.5px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:999px;{{ t.note.whoStyle }}">{{ t.note.who }}</span>
+                          <span style="font-size:11px;color:#9A9488">{{ t.note.at }}</span>
+                        </div>
+                        <span style="font-size:13px;color:#2A2723;line-height:1.45">{{ t.note.text }}</span>
+                        <sc-if value="{{ t.note.hasFiles }}" hint-placeholder-val="{{ false }}">
+                          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:2px">
+                            <sc-for list="{{ t.note.files }}" as="f" hint-placeholder-count="0">
+                              <sc-if value="{{ f.isImage }}" hint-placeholder-val="{{ false }}">
+                                <sc-if value="{{ f.url }}" hint-placeholder-val="{{ false }}">
+                                  <img src="{{ f.url }}" alt="{{ f.name }}" loading="lazy" decoding="async" style="width:64px;height:64px;border-radius:8px;object-fit:cover;border:1px solid #E7E2D5" />
+                                </sc-if>
+                              </sc-if>
+                              <sc-if value="{{ f.isDoc }}" hint-placeholder-val="{{ true }}">
+                                <span style="display:inline-flex;align-items:center;gap:6px;background:#F0ECE0;border-radius:8px;padding:5px 9px;font-size:11px;font-weight:700;color:#3c392f">&#128206; {{ f.name }}</span>
+                              </sc-if>
+                            </sc-for>
+                          </div>
+                        </sc-if>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ t.hasNote }}" hint-placeholder-val="{{ true }}">
+                      <span style="font-size:12px;color:#B0AB9F">No messages in this thread yet.</span>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+              <sc-if value="{{ hasSubmittedProof }}" hint-placeholder-val="{{ false }}">
+                <div style="border:1px solid #E7E2D5;border-radius:12px;padding:12px;background:#FCFBF7;display:flex;flex-direction:column;gap:9px">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+                    <span style="font-size:11px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:#7A766C">Customer&rsquo;s proof of payment</span>
+                    <span style="font-size:12px;font-weight:800;color:#111;background:#FFD400;padding:3px 9px;border-radius:999px">{{ submittedProof.method }}</span>
+                  </div>
+                  <sc-for list="{{ submittedProof.files }}" as="f" hint-placeholder-count="1">
+                    <div style="display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #E7E2D5;border-radius:10px;padding:8px 10px">
+                      <sc-if value="{{ f.isImage }}" hint-placeholder-val="{{ false }}">
+                        <sc-if value="{{ f.url }}" hint-placeholder-val="{{ false }}">
+                          <img src="{{ f.url }}" alt="{{ f.name }}" loading="lazy" decoding="async" style="width:44px;height:44px;flex:none;border-radius:8px;object-fit:cover;border:1px solid #E7E2D5" />
+                        </sc-if>
+                      </sc-if>
+                      <sc-if value="{{ f.isDoc }}" hint-placeholder-val="{{ true }}">
+                        <span style="width:44px;height:44px;flex:none;border-radius:8px;background:#F0ECE0;display:flex;align-items:center;justify-content:center;font-size:17px">&#128206;</span>
+                      </sc-if>
+                      <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px">
+                        <span style="font-size:13px;font-weight:700;color:#141414;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ f.name }}</span>
+                        <span style="font-size:11.5px;color:#8A867C">{{ f.size }}</span>
+                      </span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <textarea value="{{ sellerNoteDraft }}" onInput="{{ onSellerNote }}" placeholder="Note to customer (optional) — e.g. what info is missing, or reason for revision…" style="min-height:64px;border:2px solid #E0DBCD;border-radius:10px;padding:11px 13px;font-size:13.5px;font-family:inherit;outline:none;resize:vertical"></textarea>
+              <sc-if value="{{ hasSellerAttachFiles }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-wrap:wrap;gap:8px">
+                  <sc-for list="{{ sellerAttachFiles }}" as="f" hint-placeholder-count="0">
+                    <div style="position:relative">
+                      <sc-if value="{{ f.isImage }}" hint-placeholder-val="{{ false }}">
+                        <sc-if value="{{ f.url }}" hint-placeholder-val="{{ false }}">
+                          <img src="{{ f.url }}" alt="{{ f.name }}" loading="lazy" decoding="async" style="width:52px;height:52px;border-radius:8px;object-fit:cover;border:1px solid #E7E2D5" />
+                        </sc-if>
+                      </sc-if>
+                      <sc-if value="{{ f.isDoc }}" hint-placeholder-val="{{ true }}">
+                        <span style="width:52px;height:52px;border-radius:8px;background:#F0ECE0;display:flex;align-items:center;justify-content:center;font-size:16px">&#128206;</span>
+                      </sc-if>
+                      <button onClick="{{ f.remove }}" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#A6392C;color:#fff;border:none;font-size:11px;line-height:1;cursor:pointer">&times;</button>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <label style="align-self:flex-start;display:inline-flex;align-items:center;gap:7px;border:2px solid #E0DBCD;border-radius:9px;padding:8px 13px;cursor:pointer;position:relative;font-size:12.5px;font-weight:800;color:#3c392f;background:#FCFBF7">
+                <span style="font-size:15px">&#8682;</span> Attach file to this update
+                <input type="file" multiple onChange="{{ onSellerAttach }}" style="position:absolute;width:1px;height:1px;opacity:0" />
+              </label>
+              <sc-for list="{{ sellerActions }}" as="a" hint-placeholder-count="1">
+                <button onClick="{{ a.act }}" style="{{ a.style }}">{{ a.label }} &rarr;</button>
+              </sc-for>
+              <sc-if value="{{ orderComplete }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:13px;font-weight:800;color:#2F7D4A;text-align:center;padding:6px">&#10003; Order complete — full lifecycle simulated</div>
+              </sc-if>
+              <sc-if value="{{ sellerWaiting }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:13px;color:#6b675e;text-align:center;padding:10px;background:#F6F3EC;border-radius:10px;line-height:1.5">&#9203; {{ sellerWaitingMsg }}</div>
+              </sc-if>
+              <div style="font-size:11.5px;color:#A8A398;text-align:center;margin-top:2px">Each action advances the state machine; the tracker &amp; badge update live.</div>
+            </div>
+            </div>
+          </div>
+        </sc-if>
+        <div>
+          <div style="font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:#7A766C;margin-bottom:10px">Order details</div>
+          <div style="background:#fff;border:1px solid #E7E2D5;border-radius:14px;overflow:hidden">
+            <sc-for list="{{ rows }}" as="r" hint-placeholder-count="4">
+              <div style="display:flex;justify-content:space-between;gap:16px;padding:13px 16px;border-top:1px solid #EEEAE0;font-size:14px">
+                <span style="color:#7A766C;font-weight:600">{{ r.label }}</span>
+                <span style="font-weight:800;text-align:right">{{ r.value }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="background:#111;border-radius:14px;padding:18px;display:flex;justify-content:space-between;align-items:baseline">
+          <span style="font-size:12px;color:#9A9A9A;text-transform:uppercase;letter-spacing:.05em">Total paid</span>
+          <span style="font-size:20px;font-weight:900;color:#FFD400">₱{{ total }}</span>
+        </div>
+        <span onClick="{{ goChat }}" style="cursor:pointer;text-align:center;font-size:13px;font-weight:700;color:#111;border-bottom:2px solid #FFD400;align-self:center">Need help with this order? Chat with us</span>
+      </div>
+    </main>
+  </sc-if>
+
+  <sc-if value="{{ isTrack }}" hint-placeholder-val="{{ false }}">
+    <header style="padding:16px;display:flex;align-items:center;gap:14px">
+      <div onClick="{{ goOrderDetail }}" style="cursor:pointer;width:36px;height:36px;border-radius:50%;background:#F0EDE4;display:grid;place-items:center;color:#111;font-size:16px">←</div>
+      <span style="font-size:18px;font-weight:900;text-transform:uppercase">Track · #{{ num }}</span>
+    </header>
+    <main style="padding-bottom:40px;animation:dfade .3s ease">
+      <div style="max-width:560px;margin:0 auto;padding:0 16px;display:flex;flex-direction:column;gap:18px">
+        <div style="background:#111;color:#fff;border-radius:16px;padding:20px 22px">
+          <div style="font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,0.55)">Current status</div>
+          <div style="font-family:'Archivo';font-weight:900;font-size:22px;margin-top:6px;line-height:1.1">{{ status }}</div>
+        </div>
+        <div style="background:#fff;border:1px solid #E7E2D5;border-radius:16px;padding:22px 24px">
+          <div style="font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7A766C;margin-bottom:16px">State machine</div>
+          <sc-for list="{{ trackSteps }}" as="d" hint-placeholder-count="8">
+            <div style="display:flex;gap:14px">
+              <div style="display:flex;flex-direction:column;align-items:center">
+                <span style="width:14px;height:14px;border-radius:50%;background:{{ d.dot }};flex-shrink:0"></span>
+                <span style="width:2px;flex:1;background:{{ d.line }};min-height:20px"></span>
+              </div>
+              <div style="padding-bottom:14px">
+                <div style="font-weight:700;font-size:14.5px;color:{{ d.color }}">{{ d.t }}</div>
+                <div style="font-size:12.5px;color:#7A766C;margin-top:1px">{{ d.d }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </main>
+  </sc-if>
+
+  <sc-if value="{{ isChat }}" hint-placeholder-val="{{ false }}">
+    <div style="min-height:100vh;display:flex;flex-direction:column">
+      <header style="padding:16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #E7E2D5">
+        <div onClick="{{ goHome }}" style="cursor:pointer;width:36px;height:36px;border-radius:50%;background:#F0EDE4;display:grid;place-items:center;color:#111;font-size:16px">←</div>
+        <div style="width:34px;height:34px;border-radius:50%;background:#111;color:#FFD400;display:grid;place-items:center;font-weight:900;font-size:13px">S</div>
+        <div style="display:flex;flex-direction:column">
+          <span style="font-size:15px;font-weight:800">Sorbetes Support</span>
+          <span style="font-size:12px;color:#4A9E5C">● Online</span>
+        </div>
+      </header>
+      <main style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px">
+        <sc-for list="{{ messages }}" as="m" hint-placeholder-count="3">
+          <div style="{{ m.rowStyle }}"><div style="{{ m.bubbleStyle }}">{{ m.text }}</div></div>
+        </sc-for>
+        <sc-if value="{{ showTyping }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;justify-content:flex-start"><div style="background:#fff;border:1px solid #E7E2D5;border-radius:16px 16px 16px 4px;padding:12px 16px;font-size:13px;color:#7A766C">Sorbetes Support is typing…</div></div>
+        </sc-if>
+      </main>
+      <div style="border-top:1px solid #E7E2D5;padding:12px 16px calc(12px + env(safe-area-inset-bottom)) 16px;display:flex;gap:10px">
+        <input type="text" value="{{ draft }}" onChange="{{ onDraft }}" onKeyDown="{{ onKeyDown }}" placeholder="Type a message…" style="flex:1;border:2px solid #E0DBCD;border-radius:999px;padding:12px 16px;font-size:14px;outline:none" />
+        <button onClick="{{ send }}" style="background:#111;color:#FFD400;border:none;font-weight:900;font-size:14px;padding:0 20px;border-radius:999px;cursor:pointer">Send</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+    <header style="padding:16px;display:flex;align-items:center;gap:14px">
+      <div onClick="{{ goHome }}" style="cursor:pointer;width:36px;height:36px;border-radius:50%;background:#F0EDE4;display:grid;place-items:center;color:#111;font-size:16px">←</div>
+      <span style="font-size:18px;font-weight:900;text-transform:uppercase">Settings</span>
+    </header>
+    <div style="overflow-x:auto">
+      <div style="max-width:640px;margin:0 auto;padding:0 16px 14px;display:flex;gap:8px;width:max-content;min-width:100%">
+        <sc-for list="{{ settingsNav }}" as="s" hint-placeholder-count="5">
+          <div onClick="{{ s.go }}" style="{{ s.style }}">{{ s.label }}</div>
+        </sc-for>
+      </div>
+    </div>
+    <main style="padding-bottom:88px;animation:dfade .3s ease">
+
+      <sc-if value="{{ isAccount }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:480px;margin:0 auto;padding:0 16px;display:flex;flex-direction:column;gap:20px">
+          <sc-if value="{{ accSaved }}" hint-placeholder-val="{{ false }}">
+            <div style="background:#FFFBF0;border:1px solid #FFD400;color:#6A5A00;font-size:13px;font-weight:700;padding:10px 14px;border-radius:10px">Profile updated successfully.</div>
+          </sc-if>
+          <div style="display:flex;align-items:center;gap:14px">
+            <div style="width:56px;height:56px;border-radius:50%;background:#FFD400;display:grid;place-items:center;font-weight:900;font-size:20px">JD</div>
+            <div><div style="font-size:17px;font-weight:800">{{ name }}</div><div style="font-size:13px;color:#7A766C">{{ brand }}</div></div>
+          </div>
+          <sc-if value="{{ isEditing }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <input type="text" value="{{ name }}" onChange="{{ onName }}" placeholder="Full name" style="border:2px solid #E0DBCD;border-radius:10px;padding:13px 14px;font-size:14px;outline:none" />
+              <input type="text" value="{{ brand }}" onChange="{{ onBrand }}" placeholder="Brand name" style="border:2px solid #E0DBCD;border-radius:10px;padding:13px 14px;font-size:14px;outline:none" />
+              <input type="email" value="{{ email }}" onChange="{{ onEmail }}" placeholder="Email" style="border:2px solid #E0DBCD;border-radius:10px;padding:13px 14px;font-size:14px;outline:none" />
+              <input type="tel" value="{{ phone }}" onChange="{{ onPhone }}" placeholder="Phone" style="border:2px solid #E0DBCD;border-radius:10px;padding:13px 14px;font-size:14px;outline:none" />
+              <div style="display:flex;gap:10px">
+                <button onClick="{{ cancelEdit }}" style="flex:1;background:transparent;color:#111;border:2px solid #E0DBCD;font-family:inherit;font-weight:800;font-size:14px;padding:13px;border-radius:999px;cursor:pointer">Cancel</button>
+                <button onClick="{{ save }}" style="flex:1;background:#111;color:#fff;border:none;font-family:inherit;font-weight:900;font-size:14px;padding:13px;border-radius:999px;cursor:pointer;text-transform:uppercase;letter-spacing:.03em">Save changes</button>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ isViewing }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="background:#fff;border:1px solid #E7E2D5;border-radius:14px;overflow:hidden">
+                <sc-for list="{{ fields }}" as="f" hint-placeholder-count="4">
+                  <div style="display:flex;justify-content:space-between;gap:16px;padding:13px 16px;border-top:1px solid #EEEAE0;font-size:14px">
+                    <span style="color:#7A766C;font-weight:600">{{ f.label }}</span>
+                    <span style="font-weight:800">{{ f.value }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <button onClick="{{ startEdit }}" style="align-self:flex-start;background:none;border:none;padding:0;font-family:inherit;font-size:13px;font-weight:800;color:#111;border-bottom:2px solid #FFD400;cursor:pointer">Edit profile</button>
+            </div>
+          </sc-if>
+          <div style="border-top:1px solid #E7E2D5;padding-top:16px;display:flex;flex-direction:column;gap:14px;align-items:flex-start">
+            <button onClick="{{ logout }}" style="background:none;border:none;padding:0;font-family:inherit;font-size:13px;font-weight:800;color:#111;cursor:pointer">Log out</button>
+            <button onClick="{{ openDelete }}" style="background:none;border:none;padding:0;font-family:inherit;font-size:13px;font-weight:700;color:#A6392C;cursor:pointer">Delete account</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isAddress }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:480px;margin:0 auto;padding:0 16px;display:flex;flex-direction:column;gap:18px">
+          <sc-if value="{{ addrIsList }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <sc-if value="{{ addrEmpty }}" hint-placeholder-val="{{ false }}">
+                <div style="background:#fff;border:1px solid #E7E2D5;border-radius:14px;padding:16px;font-size:13px;color:#7A766C">No saved address yet. Add one here or during checkout — they share the same list.</div>
+              </sc-if>
+              <sc-for list="{{ addresses }}" as="a" hint-placeholder-count="0">
+                <div style="background:#fff;border:1px solid #E7E2D5;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:6px">
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <span style="font-size:14px;font-weight:800">{{ a.label }}</span>
+                    <sc-if value="{{ a.isDefault }}" hint-placeholder-val="{{ false }}">
+                      <span style="background:#FFD400;color:#111;font-size:10px;font-weight:900;padding:3px 8px;border-radius:999px;text-transform:uppercase">Default</span>
+                    </sc-if>
+                  </div>
+                  <span style="font-size:13px;font-weight:700;color:#141414">{{ a.recipient }}</span>
+                  <span style="font-size:13px;color:#4A4740;line-height:1.5">{{ a.full }}</span>
+                  <div style="display:flex;gap:14px;margin-top:6px">
+                    <button onClick="{{ a.addrEdit }}" style="background:none;border:none;padding:0;font-family:inherit;font-size:12px;font-weight:800;color:#111;cursor:pointer">Edit</button>
+                    <button onClick="{{ a.addrRemove }}" style="background:none;border:none;padding:0;font-family:inherit;font-size:12px;font-weight:800;color:#A6392C;cursor:pointer">Remove</button>
+                  </div>
+                </div>
+              </sc-for>
+              <button onClick="{{ addrNew }}" style="background:transparent;color:#111;border:2px dashed #D8D2C0;font-family:inherit;font-weight:800;font-size:14px;padding:14px;border-radius:14px;cursor:pointer">+ Add new address</button>
+            </div>
+          </sc-if>
+          <sc-if value="{{ addrIsForm }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <h2 style="margin:0;font-size:17px;font-weight:900;text-transform:uppercase">{{ addrFormTitle }}</h2>
+              <input type="text" value="{{ addrDraft.label }}" onInput="{{ onAddrLabel }}" placeholder="Label (e.g. Home, HQ)" style="border:2px solid #E0DBCD;border-radius:10px;padding:13px 14px;font-size:14px;outline:none" />
+              <input type="text" value="{{ addrDraft.recipient }}" onInput="{{ onAddrRecipient }}" placeholder="Recipient — full name" style="border:2px solid #E0DBCD;border-radius:10px;padding:13px 14px;font-size:14px;outline:none" />
+              <input type="text" value="{{ addrDraft.street }}" onInput="{{ onAddrStreet }}" placeholder="House no., street, barangay" style="border:2px solid #E0DBCD;border-radius:10px;padding:13px 14px;font-size:14px;outline:none" />
+              <input type="text" value="{{ addrDraft.city }}" onInput="{{ onAddrCity }}" placeholder="City / municipality" style="border:2px solid #E0DBCD;border-radius:10px;padding:13px 14px;font-size:14px;outline:none" />
+              <input type="text" value="{{ addrDraft.phone }}" onInput="{{ onAddrPhone }}" placeholder="Mobile number (09XX XXX XXXX)" style="border:2px solid #E0DBCD;border-radius:10px;padding:13px 14px;font-size:14px;outline:none" />
+              <sc-if value="{{ addrErr }}" hint-placeholder-val=""><div style="font-size:12.5px;font-weight:700;color:#A6392C">{{ addrErr }}</div></sc-if>
+              <div style="display:flex;gap:10px;margin-top:4px">
+                <button onClick="{{ addrCancel }}" style="flex:1;background:transparent;color:#111;border:2px solid #E0DBCD;font-family:inherit;font-weight:800;font-size:14px;padding:13px;border-radius:999px;cursor:pointer">Cancel</button>
+                <button onClick="{{ addrSave }}" style="flex:1;background:#111;color:#fff;border:none;font-family:inherit;font-weight:900;font-size:14px;padding:13px;border-radius:999px;cursor:pointer;text-transform:uppercase;letter-spacing:.03em">Save address</button>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ addrIsConfirm }}" hint-placeholder-val="{{ false }}">
+            <div style="background:#fff;border:1px solid #E7E2D5;border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:14px">
+              <span style="font-size:16px;font-weight:900;text-transform:uppercase">Remove this address?</span>
+              <div style="display:flex;gap:10px">
+                <button onClick="{{ addrCancel }}" style="flex:1;background:transparent;color:#111;border:2px solid #E0DBCD;font-family:inherit;font-weight:800;font-size:13px;padding:12px;border-radius:999px;cursor:pointer">Cancel</button>
+                <button onClick="{{ addrConfirmRemove }}" style="flex:1;background:#A6392C;color:#fff;border:none;font-family:inherit;font-weight:800;font-size:13px;padding:12px;border-radius:999px;cursor:pointer">Remove</button>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isPassword }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:420px;margin:0 auto;padding:0 16px;display:flex;flex-direction:column;gap:18px">
+          <sc-if value="{{ pwDone }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center;padding-top:20px">
+              <div style="width:54px;height:54px;border-radius:50%;background:#FFD400;display:grid;place-items:center;font-size:24px;font-weight:900">✓</div>
+              <div><h1 style="margin:0 0 6px;font-size:22px;font-weight:900;text-transform:uppercase">Password changed</h1><p style="margin:0;font-size:14px;color:#7A766C">Use your new password next time you log in.</p></div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ pwForm }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <h1 style="margin:0;font-size:22px;font-weight:900;text-transform:uppercase">Change password</h1>
+              <input type="password" placeholder="Current password" style="border:2px solid #E0DBCD;border-radius:10px;padding:13px 14px;font-size:14px;outline:none" />
+              <input type="password" value="{{ pw1 }}" onChange="{{ onPw1 }}" placeholder="New password" style="border:2px solid #E0DBCD;border-radius:10px;padding:13px 14px;font-size:14px;outline:none" />
+              <input type="password" value="{{ pw2 }}" onChange="{{ onPw2 }}" placeholder="Confirm new password" style="border:2px solid #E0DBCD;border-radius:10px;padding:13px 14px;font-size:14px;outline:none" />
+              <sc-if value="{{ pwMismatch }}" hint-placeholder-val="{{ false }}">
+                <div style="background:#FBE9E7;border:1px solid #E6A499;color:#A6392C;font-size:13px;font-weight:700;padding:10px 14px;border-radius:10px">Passwords don't match, or are too short (min. 8 characters).</div>
+              </sc-if>
+              <button onClick="{{ pwSubmit }}" style="background:#111;color:#fff;border:none;font-family:inherit;font-weight:900;font-size:15px;padding:15px;border-radius:999px;cursor:pointer;text-transform:uppercase;letter-spacing:.03em">Update password</button>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isClub }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:520px;margin:0 auto;padding:0 16px;display:flex;flex-direction:column;gap:22px">
+          <div style="background:#111;border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:14px">
+            <span style="background:#FFD400;color:#111;align-self:flex-start;font-size:11px;font-weight:900;padding:5px 10px;border-radius:4px;text-transform:uppercase">Regular tier</span>
+            <div style="font-size:32px;font-weight:900;color:#fff">340 points</div>
+            <div>
+              <div style="height:8px;background:#2A2A2A;border-radius:999px;overflow:hidden"><div style="width:68%;height:100%;background:#FFD400"></div></div>
+              <div style="font-size:12px;color:#9A9A9A;margin-top:6px">160 points to Founder tier (500 pts)</div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:#7A766C;margin-bottom:10px">Your perks</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <sc-for list="{{ perks }}" as="p" hint-placeholder-count="3">
+                <div style="background:#fff;border:1px solid #E7E2D5;border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:10px">
+                  <span style="font-size:15px">{{ p.icon }}</span><span style="font-size:14px;font-weight:700">{{ p.label }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isRewards }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:520px;margin:0 auto;padding:0 16px;display:flex;flex-direction:column;gap:22px">
+          <sc-if value="{{ isRedeemed }}" hint-placeholder-val="{{ false }}">
+            <div style="background:#FFFBF0;border:1px solid #FFD400;color:#6A5A00;font-size:13px;font-weight:700;padding:10px 14px;border-radius:10px">Reward redeemed! We'll apply it to your next order.</div>
+          </sc-if>
+          <div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:32px;font-weight:900">340</span><span style="font-size:14px;font-weight:700;color:#7A766C">points available</span></div>
+          <div>
+            <div style="font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:#7A766C;margin-bottom:10px">Redeem</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <sc-for list="{{ redemptions }}" as="r" hint-placeholder-count="3">
+                <div style="background:#fff;border:1px solid #E7E2D5;border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px">
+                  <div style="display:flex;flex-direction:column;gap:2px;flex:1"><span style="font-size:14px;font-weight:800">{{ r.label }}</span><span style="font-size:12px;color:#7A766C">{{ r.cost }} points</span></div>
+                  <button onClick="{{ r.redeem }}" style="{{ r.style }}">{{ r.btnLabel }}</button>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:#7A766C;margin-bottom:10px">History</div>
+            <div style="background:#fff;border:1px solid #E7E2D5;border-radius:14px;overflow:hidden">
+              <sc-for list="{{ history }}" as="h" hint-placeholder-count="4">
+                <div style="display:flex;justify-content:space-between;gap:16px;padding:12px 16px;border-top:1px solid #EEEAE0;font-size:13px">
+                  <span style="color:#4A4740;font-weight:600">{{ h.label }}</span><span style="font-weight:800;color:#2F7D4A">{{ h.points }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+    </main>
+  </sc-if>
+
+  <sc-if value="{{ deleteOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeDelete }}" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:20px;z-index:90">
+      <div onClick="{{ stop }}" style="background:#fff;border-radius:18px;padding:24px;max-width:360px;width:100%;display:flex;flex-direction:column;gap:14px">
+        <span style="font-size:18px;font-weight:900;text-transform:uppercase">Delete account?</span>
+        <p style="margin:0;font-size:14px;color:#4A4740;line-height:1.5">This removes your order history and Founder's Club points. This can't be undone.</p>
+        <div style="display:flex;gap:10px">
+          <button onClick="{{ closeDelete }}" style="flex:1;background:transparent;color:#111;border:2px solid #E0DBCD;font-family:inherit;font-weight:800;font-size:13px;padding:12px;border-radius:999px;cursor:pointer">Cancel</button>
+          <button onClick="{{ closeDelete }}" style="flex:1;background:#A6392C;color:#fff;border:none;font-family:inherit;font-weight:800;font-size:13px;padding:12px;border-radius:999px;cursor:pointer">Delete</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showTabs }}" hint-placeholder-val="{{ true }}">
+    <nav style="position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #E7E2D5;display:flex;padding:8px 8px calc(8px + env(safe-area-inset-bottom)) 8px;z-index:50">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+        <div onClick="{{ t.go }}" style="{{ t.style }}"><span style="font-size:18px">{{ t.icon }}</span><span style="font-size:10px;font-weight:800;text-transform:uppercase">{{ t.label }}</span></div>
+      </sc-for>
+    </nav>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:430,&quot;height&quot;:900},&quot;onExit&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onLogout&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onStory&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onServices&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onPortfolio&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}">
+class Component extends DCLogic {
+  componentDidMount(){
+    if(this.props.initialRoute){ this.setState({ route: this.props.initialRoute, num: this.props.initialNum || this.state.num }); }
+  }
+  state = {
+    route: 'home', num: '10482',
+    ordersFilter: 'All',
+    draft: '', typing: false,
+    messages: [
+      { from: 'bot', text: 'Hi Juan! How can we help with your order today?' },
+      { from: 'user', text: 'Hi, when will Order #10482 be ready?' },
+      { from: 'bot', text: 'Order #10482 is currently in the printing stage — estimated ready to ship in 3 days. Want me to notify you the moment it ships?' },
+    ],
+    accMode: 'view', accSaved: false, deleteOpen: false,
+    name: 'Juan Dela Cruz', brand: 'Kanto Klub', email: 'juan@kantoklub.ph', phone: '+63 917 000 0000',
+    addrView: 'list', addrEditIdx: -1, addrRemoveIdx: -1, addrErr: '',
+    addrDraft: { label: '', recipient: '', street: '', city: '', phone: '' },
+    infoDraft: '', infoErr: '', infoFiles: [], sellerNoteDraft: '',
+    payMethod: '', payProof: [], payErr: '',
+    sellerAttachFiles: [],
+    sampleMode: 'idle', sampleNote: '', sampleErr: '',
+    pw1: '', pw2: '', pwDone: false, pwMismatch: false,
+    redeemedKey: null,
+  };
+
+  componentWillUnmount() { clearTimeout(this._t); }
+
+  go = (route, extra) => { this.setState({ route, ...(extra || {}) }); try { window.scrollTo({ top: 0 }); } catch (e) {} };
+
+  ordersData() {
+    const extra = (this.props.orders || []).map(o => ({ num: o.num, spec: o.spec, date: o.date, status: o.status }));
+    return [
+      ...extra,
+      { num: '10482', spec: 'Classic Tee · 150 pcs', date: 'Jul 2', status: 'In production' },
+      { num: '10399', spec: 'Premium Tee · 80 pcs', date: 'Jun 28', status: 'Ready to ship' },
+      { num: '10201', spec: 'Corporate Uniform · 300 pcs', date: 'Jun 10', status: 'Delivered' },
+      { num: '10098', spec: 'Classic Tee · 100 pcs', date: 'May 22', status: 'Delivered' },
+      { num: '9977', spec: 'Hoodie · 50 pcs', date: 'Apr 30', status: 'Cancelled' },
+    ];
+  }
+
+  detailData() {
+    const base = {
+      '10482': { spec: 'Classic Tee · CVC 240 GSM', qty: 150, status: 'In production', date: 'Jul 2, 2026', print: 'Silkscreen · 2 colors', total: 43500 },
+      '10399': { spec: 'Premium Tee · 280 GSM', qty: 80, status: 'Ready to ship', date: 'Jun 28, 2026', print: 'Silkscreen · 1 color', total: 25600 },
+      '10201': { spec: 'Corporate Uniform · CVC 240 GSM', qty: 300, status: 'Delivered', date: 'Jun 10, 2026', print: 'Embroidery', total: 87000 },
+      '10098': { spec: 'Classic Tee · CVC 240 GSM', qty: 100, status: 'Delivered', date: 'May 22, 2026', print: 'Silkscreen · 1 color', total: 29000 },
+      '9977': { spec: 'Hoodie', qty: 50, status: 'Cancelled', date: 'Apr 30, 2026', print: 'Silkscreen · 1 color', total: 0 },
+    };
+    (this.props.orders || []).forEach(o => { base[o.num] = { spec: o.productSpec || o.spec, qty: o.qty, status: o.status, date: o.dateLong || o.date, print: o.print, total: o.total || 0, designNote: o.designNote || null }; });
+    return base;
+  }
+
+  badge(status) {
+    const map = {
+      'In production': ['#FFD400', '#111111'],
+      'In review': ['#FFF3C4', '#8f7300'],
+      'Needs input': ['#F5EDEA', '#A8562A'],
+      'Sample': ['#EAF0F6', '#2A5C8F'],
+      'Sample review': ['#EAF0F6', '#2A5C8F'],
+      'Downpayment': ['#FFF3C4', '#8f7300'],
+      'Ready to ship': ['#111111', '#FFD400'],
+      'Delivered': ['#EAF6EC', '#2F7D4A'],
+      'Cancelled': ['#F5EDEA', '#A8A398'],
+    };
+    const [bg, fg] = map[status] || ['#EEEAE0', '#4A4740'];
+    return { background: bg, color: fg, fontSize: 11, fontWeight: 900, padding: '5px 10px', borderRadius: 999, textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' };
+  }
+
+  sellerRawLabel(raw) {
+    return ({
+      waiting_for_seller: 'Waiting for seller review',
+      waiting_for_user: 'Waiting for customer info',
+      sample_fee_to_pay: 'Sample fee \u2014 awaiting payment',
+      sample_fee_review: 'Sample fee \u2014 under review',
+      sample_production: 'Sample in production',
+      sample_approval: 'Sample \u2014 awaiting customer review',
+      sample_revision_review: 'Change request \u2014 decide revision type',
+      downpayment_to_pay: '60% downpayment \u2014 awaiting payment',
+      downpayment_review: 'Downpayment \u2014 under review',
+      in_production: 'In production',
+      ready_to_ship: 'Ready to ship',
+      delivered: 'Delivered',
+    })[raw] || 'Order received';
+  }
+
+  payBtnStyle(active) {
+    return active
+      ? 'flex:1;min-width:96px;background:#111;color:#fff;border:2px solid #111;font-family:inherit;font-weight:800;font-size:13px;padding:11px;border-radius:10px;cursor:pointer'
+      : 'flex:1;min-width:96px;background:#fff;color:#111;border:2px solid #E0DBCD;font-family:inherit;font-weight:800;font-size:13px;padding:11px;border-radius:10px;cursor:pointer';
+  }
+
+  customerStatusInfo(isLiveOrder, liveRaw, demoStatus) {
+    const key = isLiveOrder ? liveRaw : ({ 'In review':'waiting_for_seller','Needs input':'waiting_for_user','Sample':'sample_production','Sample review':'sample_approval','Downpayment':'downpayment_to_pay','In production':'in_production','Ready to ship':'ready_to_ship','Delivered':'delivered','Cancelled':'cancelled' }[demoStatus] || 'waiting_for_seller');
+    const info = {
+      waiting_for_seller: ['In review', 'We\u2019re reviewing your order \u2014 checking your quote and design details. No action needed from you yet.', 'neutral'],
+      waiting_for_user: ['Needs your input', 'The seller needs more info before continuing. Please fill in the \u201cAction needed from you\u201d box below.', 'warn'],
+      sample_fee_to_pay: ['Sample fee \u2014 to pay', 'Please pay the sample fee to start your sample. Use the payment box below.', 'warn'],
+      sample_fee_review: ['Sample fee \u2014 under review', 'We received your proof of payment and are verifying it. Hang tight!', 'info'],
+      sample_production: ['Sample in production', 'Your sample is being made. We\u2019ll let you know once it\u2019s ready to review.', 'info'],
+      sample_approval: ['Sample ready to review', 'Your sample is ready \u2014 please review it and approve, or request changes.', 'warn'],
+      sample_revision_review: ['Change request sent', 'Thanks \u2014 the seller is reviewing your requested changes and will let you know if a new sample fee applies.', 'info'],
+      downpayment_to_pay: ['60% downpayment \u2014 to pay', 'Please pay the 60% downpayment to start bulk production. Use the payment box below.', 'warn'],
+      downpayment_review: ['Downpayment \u2014 under review', 'We received your proof of payment and are verifying it. Hang tight!', 'info'],
+      in_production: ['In production', 'Your order is being produced. Track progress anytime here.', 'info'],
+      ready_to_ship: ['Ready to ship', 'Your order is done and ready \u2014 we\u2019ll coordinate delivery or pickup with you.', 'info'],
+      delivered: ['Delivered', 'Delivered \u2014 salamat! The 40% balance is settled on pickup/delivery.', 'done'],
+      cancelled: ['Cancelled', 'This order was cancelled.', 'neutral'],
+    };
+    return info[key] || info.waiting_for_seller;
+  }
+
+  sellerNextActions(raw) {
+    const A = (label, next, tone, kind) => ({ label, next, tone: tone || 'go', kind: kind || null });
+    const map = {
+      waiting_for_seller: [ A('Confirm quote \u2014 request sample fee', 'sample_fee_to_pay'), A('Request more info from customer', 'waiting_for_user', 'warn') ],
+      waiting_for_user: [ A('Info received \u2014 resume review', 'waiting_for_seller') ],
+      sample_fee_to_pay: [],
+      sample_fee_review: [ A('Verify payment \u2014 start sample', 'sample_production'), A('Payment issue \u2014 ask customer to re-send', 'sample_fee_to_pay', 'warn', 'reject') ],
+      sample_production: [ A('Sample ready for review', 'sample_approval') ],
+      sample_approval: [],
+      sample_revision_review: [ A('Minor revision \u2014 remake sample (no fee)', 'sample_production', 'warn'), A('Major revision \u2014 charge new sample fee', 'sample_fee_to_pay', 'warn', 'newFee') ],
+      downpayment_to_pay: [],
+      downpayment_review: [ A('Verify downpayment \u2014 start production', 'in_production'), A('Payment issue \u2014 ask customer to re-send', 'downpayment_to_pay', 'warn', 'reject') ],
+      in_production: [ A('Mark ready to ship', 'ready_to_ship') ],
+      ready_to_ship: [ A('Mark delivered \u2014 collect 40% balance', 'delivered') ],
+      delivered: [],
+    };
+    return map[raw] || map.waiting_for_seller;
+  }
+
+  tabDefs(active) {
+    const defs = [
+      { key: 'home', label: 'Home', icon: '🏠', go: () => this.go('home') },
+      { key: 'orders', label: 'Orders', icon: '📦', go: () => this.go('orders') },
+      { key: 'chat', label: 'Chat', icon: '💬', go: () => this.go('chat') },
+      { key: 'account', label: 'Account', icon: '👤', go: () => this.go('account') },
+    ];
+    return defs.map(t => ({ ...t, style: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '6px 4px', cursor: 'pointer', color: t.key === active ? '#111111' : '#B3AD9E' } }));
+  }
+
+  settingsNavDefs(active) {
+    const defs = [
+      { key: 'account', label: 'Account', go: () => this.go('account') },
+      { key: 'address', label: 'Address', go: () => this.go('address') },
+      { key: 'password', label: 'Password', go: () => this.go('password') },
+      { key: 'club', label: 'Founder\u2019s Club', go: () => this.go('club') },
+      { key: 'rewards', label: 'Rewards', go: () => this.go('rewards') },
+    ];
+    return defs.map(d => ({ ...d, style: { flexShrink: 0, padding: '9px 14px', borderRadius: 999, cursor: 'pointer', fontSize: 13, fontWeight: 800, whiteSpace: 'nowrap', border: d.key === active ? '2px solid #111111' : '2px solid #E0DBCD', background: d.key === active ? '#111111' : '#FFFFFF', color: d.key === active ? '#FFD400' : '#141414' } }));
+  }
+
+  _send() {
+    const text = this.state.draft.trim();
+    if (!text) return;
+    this.setState(s => ({ messages: [...s.messages, { from: 'user', text }], draft: '', typing: true }));
+    this._t = setTimeout(() => {
+      this.setState(s => ({ typing: false, messages: [...s.messages, { from: 'bot', text: 'Got it — I\u2019ll flag this to your account handler and follow up here within the hour.' }] }));
+    }, 1400);
+  }
+
+  renderVals() {
+    const r = this.state.route;
+    const isSettings = ['account', 'address', 'password', 'club', 'rewards'].includes(r);
+    const activeTab = r === 'home' ? 'home' : (['orders', 'orderDetail', 'track'].includes(r) ? 'orders' : (r === 'chat' ? 'chat' : 'account'));
+
+    // orders list + chips
+    const cats = ['All', 'In production', 'Ready to ship', 'Delivered'];
+    const all = this.ordersData();
+    const f = this.state.ordersFilter;
+    const visible = f === 'All' ? all : all.filter(o => o.status === f);
+    const orderChips = cats.map(c => ({ label: c, pick: () => this.setState({ ordersFilter: c }), style: { flexShrink: 0, padding: '9px 14px', borderRadius: 999, cursor: 'pointer', fontSize: 13, fontWeight: 800, whiteSpace: 'nowrap', border: f === c ? '2px solid #111111' : '2px solid #E0DBCD', background: f === c ? '#111111' : '#FFFFFF', color: f === c ? '#FFD400' : '#141414' } }));
+    const orders = visible.map(o => ({ ...o, badgeStyle: this.badge(o.status), go: () => this.go('orderDetail', { num: o.num }) }));
+
+    // active orders (home)
+    const liveNums = new Set((this.props.orders || []).map(o => o.num));
+    const activeStatuses = ['In review', 'Needs input', 'Sample', 'Sample review', 'Downpayment', 'In production', 'Ready to ship'];
+    const activeOrders = all.filter(o => liveNums.has(o.num) || activeStatuses.includes(o.status)).map(o => ({ num: o.num, spec: o.spec, status: o.status, badgeStyle: this.badge(o.status), go: () => this.go('orderDetail', { num: o.num }) }));
+
+    // order detail
+    const num = this.state.num;
+    const o = this.detailData()[num] || this.detailData()['10482'];
+
+    // seller/factory simulation (live order only)
+    const liveId = this.props.liveOrderId;
+    const isLiveOrder = !!liveId && num === liveId;
+    const liveRaw = this.props.liveStatus || 'waiting_for_seller';
+    const sellerActions = isLiveOrder ? this.sellerNextActions(liveRaw).map(a => ({
+      label: a.label,
+      act: () => { const note = this.state.sellerNoteDraft.trim(); const fl = this.state.sellerAttachFiles.map(f => ({ name: f.name, size: f.size, isImage: f.isImage, url: f.url })); if (this.props.onSellerAction) this.props.onSellerAction(a.next, note, fl, a.kind); this.setState({ sellerNoteDraft: '', sellerAttachFiles: [] }); },
+      style: { width: '100%', textAlign: 'left', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 800, fontSize: 13.5, lineHeight: 1.3, padding: '13px 15px', borderRadius: 12, background: a.tone === 'warn' ? '#FFF3C4' : '#111111', color: a.tone === 'warn' ? '#8f7300' : '#FFD400' },
+    })) : [];
+    const sellerStateLabel = this.sellerRawLabel(liveRaw);
+    const orderComplete = liveRaw === 'delivered';
+    const needsCustomerInfo = isLiveOrder && liveRaw === 'waiting_for_user';
+    const needsSampleReview = isLiveOrder && liveRaw === 'sample_approval';
+    const cs = this.customerStatusInfo(isLiveOrder, liveRaw, o.status);
+    const csTone = { neutral:['#F3F0E7','#6b675e','#D8D2C0'], info:['#EAF0F6','#2A5C8F','#BcCfe0'], warn:['#FFF3C4','#8f7300','#EAD08A'], done:['#EAF6EC','#2F7D4A','#BFE3C8'] }[cs[2]] || ['#F3F0E7','#6b675e','#D8D2C0'];
+    // customer payment (live order in a *_to_pay state) + under-review state
+    const needsPayment = isLiveOrder && (liveRaw === 'sample_fee_to_pay' || liveRaw === 'downpayment_to_pay');
+    const paymentUnderReview = isLiveOrder && (liveRaw === 'sample_fee_review' || liveRaw === 'downpayment_review');
+    const payAmount = liveRaw === 'sample_fee_to_pay' ? 1000 : Math.round((o.total || 0) * 0.6);
+    const payLabel = (liveRaw === 'sample_fee_to_pay' || liveRaw === 'sample_fee_review') ? 'Sample fee' : '60% downpayment';
+    // Four independent discussion threads — each phase keeps its own last message, never bleeding into another.
+    const fullLog = this.props.sellerNoteLog || [];
+    const infoThread = fullLog.filter(n => n.to === 'waiting_for_user');
+    const sampleRevisionThread = fullLog.filter(n => n.to === 'sample_production' || n.to === 'sample_revision_review');
+    const sampleFeeThread = fullLog.filter(n => n.to === 'sample_fee_to_pay' || n.to === 'sample_fee_review');
+    const downpaymentThread = fullLog.filter(n => n.to === 'downpayment_to_pay' || n.to === 'downpayment_review');
+    const payThreadEntry = liveRaw === 'sample_fee_to_pay' ? (sampleFeeThread[0] || null) : (liveRaw === 'downpayment_to_pay' ? (downpaymentThread[0] || null) : null);
+    const threadCard = (n) => !n ? null : { text: n.text, at: n.at, who: n.by === 'customer' ? 'You' : 'Seller', whoStyle: n.by === 'customer' ? 'background:#111;color:#FFD400' : 'background:#EAF0F6;color:#2A5C8F', kind: n.kind || null, files: (n.files || []).map(f => ({ name: f.name, size: f.size, isImage: f.isImage, isDoc: !f.isImage, url: f.url })), hasFiles: (n.files || []).length > 0 };
+    const threadCardSeller = (n) => !n ? null : { text: n.text, at: n.at, who: n.by === 'customer' ? 'Customer' : 'You', whoStyle: n.by === 'customer' ? 'background:#FFD400;color:#111' : 'background:#333;color:#fff', files: (n.files || []).map(f => ({ name: f.name, size: f.size, isImage: f.isImage, isDoc: !f.isImage, url: f.url })), hasFiles: (n.files || []).length > 0 };
+
+    // track timeline
+    const stages = [
+      ['Order received', 'Seller reviewing quote & design'],
+      ['Sample fee — \u20b11,000', 'Separate fee, not credited'],
+      ['Sample production', 'Physical sample being made'],
+      ['Sample approved', 'You signed off on the sample'],
+      ['60% downpayment', 'Production greenlit'],
+      ['In production', 'Mass production on our floor'],
+      ['Ready to ship', 'Packed with etiketa + ziploc'],
+      ['Delivered', 'Collect 40% balance at pickup'],
+    ];
+    const curMap = { 'In review': 0, 'Needs input': 0, 'Sample': 2, 'Sample review': 3, 'Downpayment': 4, 'In production': 5, 'Ready to ship': 6, 'Delivered': 7, 'Cancelled': 0 };
+    const cur = curMap[o.status] != null ? curMap[o.status] : 5;
+    const trackSteps = stages.map((s, i) => ({ t: s[0], d: s[1], dot: i < cur ? '#1c8a4a' : (i === cur ? '#FFD400' : 'rgba(18,18,18,0.18)'), line: i < cur ? '#1c8a4a' : 'rgba(18,18,18,0.14)', color: i <= cur ? '#111111' : 'rgba(18,18,18,0.4)' }));
+
+    // rewards
+    const rewardDefs = [
+      { key: 'd150', label: '\u20b1150 off your next order', cost: 150 },
+      { key: 'd300', label: '\u20b1300 off your next order', cost: 300 },
+      { key: 'freeship', label: 'Free delivery, next order', cost: 400 },
+    ];
+    const points = 340;
+    const redemptions = rewardDefs.map(rd => {
+      const canAfford = points >= rd.cost;
+      const redeemed = this.state.redeemedKey === rd.key;
+      return { label: rd.label, cost: rd.cost, btnLabel: redeemed ? 'Redeemed' : 'Redeem', redeem: () => { if (canAfford && !redeemed) this.setState({ redeemedKey: rd.key }); }, style: { background: redeemed ? '#EAF6EC' : (canAfford ? '#111111' : '#EEEAE0'), color: redeemed ? '#2F7D4A' : (canAfford ? '#FFD400' : '#A8A398'), border: 'none', fontFamily: 'inherit', fontWeight: 800, fontSize: 12, padding: '9px 14px', borderRadius: 999, cursor: canAfford && !redeemed ? 'pointer' : 'default', whiteSpace: 'nowrap' } };
+    });
+
+    return {
+      exit: () => { if (this.props.onExit) this.props.onExit(); },
+      logout: () => { if (this.props.onLogout) this.props.onLogout(); },
+      goPublicStory: () => { if (this.props.onStory) this.props.onStory(); },
+      goPublicServices: () => { if (this.props.onServices) this.props.onServices(); },
+      goPublicPortfolio: () => { if (this.props.onPortfolio) this.props.onPortfolio(); },
+      isHome: r === 'home', isOrders: r === 'orders', isOrderDetail: r === 'orderDetail', isTrack: r === 'track', isChat: r === 'chat',
+      isSettings, isAccount: r === 'account', isAddress: r === 'address', isPassword: r === 'password', isClub: r === 'club', isRewards: r === 'rewards',
+      showTabs: r === 'home' || r === 'orders' || isSettings,
+      tabs: this.tabDefs(activeTab),
+      settingsNav: this.settingsNavDefs(r),
+      goHome: () => this.go('home'), goOrders: () => this.go('orders'), goChat: () => this.go('chat'), goAccount: () => this.go('account'),
+      goClub: () => this.go('club'), goRewards: () => this.go('rewards'),
+      goTrack: () => this.go('track'), goOrderDetail: () => this.go('orderDetail'),
+
+      stats: [ { value: String(activeOrders.length), label: 'Active orders' }, { value: '340', label: 'Reward points' }, { value: String(all.length), label: 'Total orders' } ],
+      activeOrders,
+      orderChips, orders,
+
+      // order detail
+      num, status: o.status, date: o.date, badgeStyle: this.badge(o.status), designNote: o.designNote || null,
+      isLiveOrder, sellerActions, sellerStateLabel, orderComplete,
+      sellerWaiting: isLiveOrder && sellerActions.length === 0 && !orderComplete,
+      sellerWaitingMsg: liveRaw === 'sample_approval' ? 'Waiting for the customer to review the sample \u2014 they\u2019ll approve or request changes.' : (liveRaw === 'sample_fee_to_pay' || liveRaw === 'downpayment_to_pay') ? 'Waiting for the customer to pay and upload proof of payment.' : 'Waiting for the customer.',
+      needsCustomerInfo, infoDraft: this.state.infoDraft, infoErr: this.state.infoErr,
+      hasSellerNote: !!infoThread[0], sellerNote: infoThread[0] ? infoThread[0].text : '', sellerNoteFiles: infoThread[0] ? threadCard(infoThread[0]).files : [], hasSellerNoteFiles: !!infoThread[0] && threadCard(infoThread[0]).hasFiles,
+      needsSampleReview, sampleIdle: this.state.sampleMode === 'idle', sampleChanges: this.state.sampleMode === 'changes',
+      hasSampleRevisionNote: !!sampleRevisionThread[0], sampleRevisionNote: threadCard(sampleRevisionThread[0]),
+      sampleNote: this.state.sampleNote, sampleErr: this.state.sampleErr,
+      onSampleNote: (e) => { const v = e.target.value; this.setState({ sampleNote: v, sampleErr: '' }); },
+      approveSample: () => { if (this.props.onCustomerSample) this.props.onCustomerSample('approve'); this.setState({ sampleMode: 'idle', sampleNote: '' }); },
+      openChanges: () => this.setState({ sampleMode: 'changes', sampleErr: '' }),
+      cancelChanges: () => this.setState({ sampleMode: 'idle', sampleErr: '', sampleNote: '' }),
+      sendChanges: () => { if (!this.state.sampleNote.trim()) { this.setState({ sampleErr: 'Tell the seller what to change.' }); return; } if (this.props.onCustomerSample) this.props.onCustomerSample('changes', this.state.sampleNote.trim()); this.setState({ sampleMode: 'idle', sampleNote: '' }); },
+      needsPayment, paymentUnderReview, payLabel, payAmount: payAmount.toLocaleString(),
+      csTitle: cs[0], csDesc: cs[1],
+      csWrapStyle: 'border:1px solid ' + csTone[2] + ';background:' + csTone[0] + ';border-radius:14px;padding:15px 16px;display:flex;flex-direction:column;gap:4px',
+      csAccent: csTone[1],
+      payMethod: this.state.payMethod,
+      payMethodGcash: this.state.payMethod === 'GCash', payMethodBank: this.state.payMethod === 'Bank transfer', payMethodMaya: this.state.payMethod === 'Maya',
+      gcashStyle: this.payBtnStyle(this.state.payMethod === 'GCash'), mayaStyle: this.payBtnStyle(this.state.payMethod === 'Maya'), bankStyle: this.payBtnStyle(this.state.payMethod === 'Bank transfer'),
+      pickGcash: () => this.setState({ payMethod: 'GCash', payErr: '' }), pickBank: () => this.setState({ payMethod: 'Bank transfer', payErr: '' }), pickMaya: () => this.setState({ payMethod: 'Maya', payErr: '' }),
+      payErr: this.state.payErr,
+      payProof: this.state.payProof.map((f, i) => ({ name: f.name, size: f.size, isImage: f.isImage, isDoc: !f.isImage, url: f.url, remove: () => { const cur = this.state.payProof[i]; if (cur && cur.url) URL.revokeObjectURL(cur.url); this.setState(s => ({ payProof: s.payProof.filter((_, j) => j !== i), payErr: '' })); } })),
+      hasPayProof: this.state.payProof.length > 0,
+      onPayProof: (e) => {
+        const picked = Array.from(e.target.files || []).map(file => { const isImage = /^image\//.test(file.type); return { name: file.name, size: (file.size < 1024 ? file.size + ' B' : file.size < 1048576 ? Math.round(file.size / 1024) + ' KB' : (file.size / 1048576).toFixed(1) + ' MB'), isImage, url: isImage ? URL.createObjectURL(file) : null }; });
+        e.target.value = '';
+        if (picked.length) this.setState(s => ({ payProof: [...s.payProof, ...picked], payErr: '' }));
+      },
+      submitProof: () => { if (!this.state.payMethod) { this.setState({ payErr: 'Select a payment method.' }); return; } if (this.state.payProof.length === 0) { this.setState({ payErr: 'Attach a screenshot or receipt of your payment.' }); return; } if (this.props.onCustomerPay) this.props.onCustomerPay({ method: this.state.payMethod, files: this.state.payProof.map(f => ({ name: f.name, size: f.size, isImage: f.isImage, url: f.url })) }); this.setState({ payMethod: '', payProof: [], payErr: '' }); },
+      payThreadNote: payThreadEntry,
+      payNote: payThreadEntry ? payThreadEntry.text : null,
+      payNoteFiles: payThreadEntry ? (payThreadEntry.files || []).map(f => ({ name: f.name, size: f.size, isImage: f.isImage, isDoc: !f.isImage, url: f.url })) : [],
+      hasPayReject: !!(payThreadEntry && payThreadEntry.kind === 'reject'),
+      hasPayFyi: !!(payThreadEntry && payThreadEntry.kind && payThreadEntry.kind !== 'reject'),
+      hasPayNoteFiles: !!(payThreadEntry && (payThreadEntry.files || []).length > 0),
+      submittedProof: (paymentUnderReview && this.props.paymentProof) ? { method: this.props.paymentProof.method, files: (this.props.paymentProof.files || []).map(f => ({ name: f.name, size: f.size, isImage: f.isImage, isDoc: !f.isImage, url: f.url })) } : null,
+      hasSubmittedProof: !!(paymentUnderReview && this.props.paymentProof),
+      sellerNoteDraft: this.state.sellerNoteDraft, onSellerNote: (e) => { const v = e.target.value; this.setState({ sellerNoteDraft: v }); },
+      // seller-sim panel — 4 independent thread slots, each keeps only its own latest message
+      threadSlots: [
+        { label: 'General / info request', note: threadCardSeller(infoThread[0]), hasNote: !!infoThread[0], bg: '#FCFBF7' },
+        { label: 'Sample revision', note: threadCardSeller(sampleRevisionThread[0]), hasNote: !!sampleRevisionThread[0], bg: '#FCFBF7' },
+        { label: 'Sample fee payment', note: threadCardSeller(sampleFeeThread[0]), hasNote: !!sampleFeeThread[0], bg: '#FCFBF7' },
+        { label: 'Downpayment', note: threadCardSeller(downpaymentThread[0]), hasNote: !!downpaymentThread[0], bg: '#FCFBF7' },
+      ],
+      sellerAttachFiles: this.state.sellerAttachFiles.map((f, i) => ({ name: f.name, size: f.size, isImage: f.isImage, isDoc: !f.isImage, url: f.url, remove: () => { const cur = this.state.sellerAttachFiles[i]; if (cur && cur.url) URL.revokeObjectURL(cur.url); this.setState(s => ({ sellerAttachFiles: s.sellerAttachFiles.filter((_, j) => j !== i) })); } })),
+      hasSellerAttachFiles: this.state.sellerAttachFiles.length > 0,
+      onSellerAttach: (e) => { const picked = Array.from(e.target.files || []).map(file => { const isImage = /^image\//.test(file.type); return { name: file.name, size: (file.size < 1024 ? file.size + ' B' : file.size < 1048576 ? Math.round(file.size / 1024) + ' KB' : (file.size / 1048576).toFixed(1) + ' MB'), isImage, url: isImage ? URL.createObjectURL(file) : null }; }); e.target.value = ''; if (picked.length) this.setState(s => ({ sellerAttachFiles: [...s.sellerAttachFiles, ...picked] })); },
+      infoFiles: this.state.infoFiles.map((f, i) => ({ name: f.name, size: f.size, isImage: f.isImage, isDoc: !f.isImage, url: f.url, remove: () => { const cur = this.state.infoFiles[i]; if (cur && cur.url) URL.revokeObjectURL(cur.url); this.setState(s => ({ infoFiles: s.infoFiles.filter((_, j) => j !== i), infoErr: '' })); } })),
+      hasInfoFiles: this.state.infoFiles.length > 0,
+      onInfoDraft: (e) => { const v = e.target.value; this.setState({ infoDraft: v, infoErr: '' }); },
+      onInfoFiles: (e) => {
+        const picked = Array.from(e.target.files || []).map(file => { const isImage = /^image\//.test(file.type); return { name: file.name, size: (file.size < 1024 ? file.size + ' B' : file.size < 1048576 ? Math.round(file.size / 1024) + ' KB' : (file.size / 1048576).toFixed(1) + ' MB'), isImage, url: isImage ? URL.createObjectURL(file) : null }; });
+        e.target.value = '';
+        if (picked.length) this.setState(s => ({ infoFiles: [...s.infoFiles, ...picked], infoErr: '' }));
+      },
+      submitInfo: () => { const hasText = this.state.infoDraft.trim(); const hasFiles = this.state.infoFiles.length > 0; if (!hasText && !hasFiles) { this.setState({ infoErr: 'Add a note or attach a file for the seller.' }); return; } const fl = this.state.infoFiles.map(f => ({ name: f.name, size: f.size, isImage: f.isImage, url: f.url })); if (this.props.onCustomerInfo) this.props.onCustomerInfo(hasText, fl); this.setState({ infoDraft: '', infoFiles: [] }); },
+      rows: [ { label: 'Product', value: o.spec }, { label: 'Quantity', value: o.qty + ' pcs' }, { label: 'Print', value: o.print }, { label: 'Packing', value: 'Etiketa + ziploc (free)' } ],
+      total: o.total.toLocaleString(),
+      trackSteps,
+
+      // chat
+      messages: this.state.messages.map(m => ({ text: m.text, rowStyle: { display: 'flex', justifyContent: m.from === 'user' ? 'flex-end' : 'flex-start' }, bubbleStyle: { maxWidth: '78%', padding: '12px 16px', fontSize: 14, lineHeight: 1.45, borderRadius: m.from === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px', background: m.from === 'user' ? '#111111' : '#FFFFFF', color: m.from === 'user' ? '#FFD400' : '#141414', border: m.from === 'user' ? 'none' : '1px solid #E7E2D5' } })),
+      showTyping: this.state.typing, draft: this.state.draft,
+      onDraft: (e) => this.setState({ draft: e.target.value }),
+      onKeyDown: (e) => { if (e.key === 'Enter') this._send(); },
+      send: () => this._send(),
+
+      // account
+      name: this.state.name, brand: this.state.brand, email: this.state.email, phone: this.state.phone,
+      accSaved: this.state.accSaved, isEditing: this.state.accMode === 'edit', isViewing: this.state.accMode === 'view',
+      fields: [ { label: 'Full name', value: this.state.name }, { label: 'Brand name', value: this.state.brand }, { label: 'Email', value: this.state.email }, { label: 'Phone', value: this.state.phone } ],
+      onName: (e) => this.setState({ name: e.target.value }), onBrand: (e) => this.setState({ brand: e.target.value }), onEmail: (e) => this.setState({ email: e.target.value }), onPhone: (e) => this.setState({ phone: e.target.value }),
+      startEdit: () => this.setState({ accMode: 'edit', accSaved: false }), cancelEdit: () => this.setState({ accMode: 'view' }), save: () => this.setState({ accMode: 'view', accSaved: true }),
+      deleteOpen: this.state.deleteOpen, openDelete: () => this.setState({ deleteOpen: true }), closeDelete: () => this.setState({ deleteOpen: false }), stop: (e) => e.stopPropagation(),
+
+      // address — shared with the order flow via props (same list, same format)
+      addrIsList: this.state.addrView === 'list', addrIsForm: this.state.addrView === 'form', addrIsConfirm: this.state.addrView === 'confirm',
+      addresses: (this.props.addrList || []).map((a, i) => ({
+        label: a.label, recipient: a.recipient,
+        full: a.street + ' \u00b7 ' + a.city + ' \u00b7 ' + a.phone,
+        isDefault: i === 0,
+        addrEdit: () => this.setState({ addrView: 'form', addrEditIdx: i, addrErr: '', addrDraft: { label: a.label || '', recipient: a.recipient || '', street: a.street || '', city: a.city || '', phone: a.phone || '' } }),
+        addrRemove: () => this.setState({ addrView: 'confirm', addrRemoveIdx: i }),
+      })),
+      addrEmpty: (this.props.addrList || []).length === 0,
+      addrFormTitle: this.state.addrEditIdx >= 0 ? 'Edit address' : 'Add address',
+      addrDraft: this.state.addrDraft, addrErr: this.state.addrErr,
+      onAddrLabel: (e) => { const v = e.target.value; this.setState(s => ({ addrDraft: { ...s.addrDraft, label: v } })); },
+      onAddrRecipient: (e) => { const v = e.target.value; this.setState(s => ({ addrDraft: { ...s.addrDraft, recipient: v } })); },
+      onAddrStreet: (e) => { const v = e.target.value; this.setState(s => ({ addrDraft: { ...s.addrDraft, street: v } })); },
+      onAddrCity: (e) => { const v = e.target.value; this.setState(s => ({ addrDraft: { ...s.addrDraft, city: v } })); },
+      onAddrPhone: (e) => { const v = e.target.value; this.setState(s => ({ addrDraft: { ...s.addrDraft, phone: v } })); },
+      addrNew: () => this.setState({ addrView: 'form', addrEditIdx: -1, addrErr: '', addrDraft: { label: '', recipient: '', street: '', city: '', phone: '' } }),
+      addrCancel: () => this.setState({ addrView: 'list', addrEditIdx: -1, addrRemoveIdx: -1, addrErr: '' }),
+      addrSave: () => { const d = this.state.addrDraft; if (!d.recipient.trim() || !d.street.trim() || !d.city.trim() || !d.phone.trim()) { this.setState({ addrErr: 'Fill in recipient, street, city, and mobile number.' }); return; } const addr = { label: (d.label.trim() || 'Delivery address'), recipient: d.recipient.trim(), street: d.street.trim(), city: d.city.trim(), phone: d.phone.trim() }; if (this.props.onSaveAddress) this.props.onSaveAddress(addr, this.state.addrEditIdx); this.setState({ addrView: 'list', addrEditIdx: -1, addrErr: '' }); },
+      addrConfirmRemove: () => { if (this.props.onRemoveAddress) this.props.onRemoveAddress(this.state.addrRemoveIdx); this.setState({ addrView: 'list', addrRemoveIdx: -1 }); },
+
+      // password
+      pwForm: !this.state.pwDone, pwDone: this.state.pwDone, pw1: this.state.pw1, pw2: this.state.pw2, pwMismatch: this.state.pwMismatch,
+      onPw1: (e) => this.setState({ pw1: e.target.value, pwMismatch: false }), onPw2: (e) => this.setState({ pw2: e.target.value, pwMismatch: false }),
+      pwSubmit: () => { if (this.state.pw1.length < 8 || this.state.pw1 !== this.state.pw2) { this.setState({ pwMismatch: true }); return; } this.setState({ pwDone: true }); },
+
+      // club + rewards
+      perks: [ { icon: '💸', label: '5% reorder discount' }, { icon: '⏱️', label: 'Priority production slotting' }, { icon: '🧵', label: 'Access to member-only fabric drops' } ],
+      isRedeemed: !!this.state.redeemedKey, redemptions,
+      history: [ { label: 'Order #10399 — earned', points: '+80' }, { label: 'Order #10201 — earned', points: '+87' }, { label: 'Order #10098 — earned', points: '+29' }, { label: 'Welcome bonus', points: '+50' } ],
+    };
+  }
+}
+</script>
+</body>
+</html>

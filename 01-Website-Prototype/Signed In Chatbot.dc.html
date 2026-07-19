@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <title>Chat support — Sorbetes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; background: #FBFAF7; font-family: 'Archivo', Helvetica, Arial, sans-serif; color: #141414; min-height: 100vh; }
+    * { box-sizing: border-box; }
+    input { font-family: inherit; }
+  </style>
+</helmet>
+
+<div style="min-height: 100vh; display: flex; flex-direction: column;">
+  <header style="padding: 16px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #E7E2D5;">
+    <a href="Home Signed In.dc.html" aria-label="Back" style="width: 36px; height: 36px; border-radius: 50%; background: #F0EDE4; display: grid; place-items: center; text-decoration: none; color: #111111; font-size: 16px;">←</a>
+    <div style="width: 34px; height: 34px; border-radius: 50%; background: #111111; color: #FFD400; display: grid; place-items: center; font-weight: 900; font-size: 13px;">S</div>
+    <div style="display: flex; flex-direction: column;">
+      <span style="font-size: 15px; font-weight: 800;">Sorbetes Support</span>
+      <span style="font-size: 12px; color: #4A9E5C;">● Online</span>
+    </div>
+  </header>
+
+  <main style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+    <sc-for list="{{ messages }}" as="m" hint-placeholder-count="4">
+      <div style="{{ m.rowStyle }}">
+        <div style="{{ m.bubbleStyle }}">{{ m.text }}</div>
+      </div>
+    </sc-for>
+    <sc-if value="{{ showTyping }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; justify-content: flex-start;">
+        <div style="background: #FFFFFF; border: 1px solid #E7E2D5; border-radius: 16px 16px 16px 4px; padding: 12px 16px; font-size: 13px; color: #7A766C;">Sorbetes Support is typing…</div>
+      </div>
+    </sc-if>
+  </main>
+
+  <div style="border-top: 1px solid #E7E2D5; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)) 16px; display: flex; gap: 10px;">
+    <input type="text" value="{{ draft }}" onChange="{{ onDraft }}" onKeyDown="{{ onKeyDown }}" placeholder="Type a message…" style="flex: 1; border: 2px solid #E0DBCD; border-radius: 999px; padding: 12px 16px; font-size: 14px; outline: none;">
+    <button onClick="{{ send }}" style="background: #111111; color: #FFD400; border: none; font-family: inherit; font-weight: 900; font-size: 14px; padding: 0 20px; border-radius: 999px; cursor: pointer;">Send</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    draft: '',
+    typing: false,
+    messages: [
+      { from: 'bot', text: 'Hi Juan! How can we help with your order today?' },
+      { from: 'user', text: 'Hi, when will Order #10482 be ready?' },
+      { from: 'bot', text: 'Order #10482 is currently in the printing stage \u2014 estimated ready to ship in 3 days. Want me to notify you the moment it ships?' },
+    ],
+  };
+
+  componentWillUnmount() { clearTimeout(this._t); }
+
+  renderVals() {
+    const rowStyle = (mine) => ({ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start' });
+    const bubbleStyle = (mine) => ({
+      maxWidth: '78%', padding: '12px 16px', fontSize: 14, lineHeight: 1.45,
+      borderRadius: mine ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+      background: mine ? '#111111' : '#FFFFFF',
+      color: mine ? '#FFD400' : '#141414',
+      border: mine ? 'none' : '1px solid #E7E2D5',
+    });
+
+    return {
+      messages: this.state.messages.map(m => ({
+        ...m, rowStyle: rowStyle(m.from === 'user'), bubbleStyle: bubbleStyle(m.from === 'user'),
+      })),
+      showTyping: this.state.typing,
+      draft: this.state.draft,
+      onDraft: (e) => this.setState({ draft: e.target.value }),
+      onKeyDown: (e) => { if (e.key === 'Enter') this._send(); },
+      send: () => this._send(),
+    };
+  }
+
+  _send() {
+    const text = this.state.draft.trim();
+    if (!text) return;
+    this.setState(s => ({ messages: [...s.messages, { from: 'user', text }], draft: '', typing: true }));
+    this._t = setTimeout(() => {
+      this.setState(s => ({
+        typing: false,
+        messages: [...s.messages, { from: 'bot', text: 'Got it \u2014 I\u2019ll flag this to your account handler and follow up here within the hour.' }],
+      }));
+    }, 1400);
+  }
+}
+</script>
+</body>
+</html>

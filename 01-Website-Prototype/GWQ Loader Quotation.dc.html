@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <title>Generating your quote — Sorbetes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; background: #FBFAF7; font-family: 'Archivo', Helvetica, Arial, sans-serif; color: #141414; min-height: 100vh; }
+    * { box-sizing: border-box; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</helmet>
+
+<div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px 16px;">
+  <sc-if value="{{ loading }}" hint-placeholder-val="{{ true }}">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 20px; text-align: center;">
+      <div style="width: 56px; height: 56px; border-radius: 50%; border: 5px solid #EEEAE0; border-top-color: #FFD400; animation: spin 0.9s linear infinite;"></div>
+      <div>
+        <h1 style="margin: 0 0 6px 0; font-size: 22px; font-weight: 900; text-transform: uppercase;">Building your quote</h1>
+        <p style="margin: 0; font-size: 14px; color: #7A766C;">Matching your answers to fabric, print, and pricing…</p>
+      </div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ ready }}" hint-placeholder-val="{{ false }}">
+    <div style="width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 20px; text-align: center;">
+      <div style="width: 56px; height: 56px; border-radius: 50%; background: #FFD400; display: grid; place-items: center; font-size: 24px; font-weight: 900; margin: 0 auto;">✓</div>
+      <div>
+        <h1 style="margin: 0 0 6px 0; font-size: 26px; font-weight: 900; text-transform: uppercase;">Your quote is ready</h1>
+        <p style="margin: 0; font-size: 14px; color: #7A766C;">Based on your answers, here's a starting estimate.</p>
+      </div>
+      <div style="background: #111111; border-radius: 18px; padding: 24px; display: flex; flex-direction: column; gap: 12px; text-align: left;">
+        <div style="display: flex; align-items: baseline; gap: 8px;">
+          <span style="font-size: 40px; font-weight: 900; color: #FFD400;">₱{{ perPc }}</span>
+          <span style="font-size: 14px; font-weight: 700; color: #FFFFFF;">/pc</span>
+        </div>
+        <div style="font-size: 13px; color: #9A9A9A;">{{ garment }} · {{ qty }} pcs · {{ colors }}</div>
+      </div>
+      <a href="GWQ Product Details.dc.html" style="background: #FFD400; color: #111111; text-decoration: none; font-weight: 900; font-size: 15px; padding: 15px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em;">Review order details</a>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { loading: true };
+
+  componentDidMount() {
+    this._t = setTimeout(() => this.setState({ loading: false }), 1400);
+  }
+
+  componentWillUnmount() { clearTimeout(this._t); }
+
+  readAnswers() {
+    try { return JSON.parse(localStorage.getItem('sorbetes_gwq_answers') || '{}'); }
+    catch { return {}; }
+  }
+
+  renderVals() {
+    const a = this.readAnswers();
+    const weightBase = { 'Light (150\u2013180 GSM)': 270, 'Standard (200\u2013220 GSM)': 290, 'Heavy (240\u2013280 GSM)': 320 };
+    const colorExtra = { '1 color': 0, '2 colors': 20, '3 colors': 40 };
+    const base = weightBase[a.weight] || 290;
+    const extra = colorExtra[a.colors] || 0;
+    const qtyMap = { '50\u201399 pcs': 75, '100\u2013299 pcs': 150, '300\u2013499 pcs': 350, '500+ pcs': 550 };
+    return {
+      loading: this.state.loading,
+      ready: !this.state.loading,
+      perPc: base + extra,
+      garment: a.garment || 'Custom Tee',
+      qty: qtyMap[a.qty] || 100,
+      colors: a.colors || '1 color',
+    };
+  }
+}
+</script>
+</body>
+</html>

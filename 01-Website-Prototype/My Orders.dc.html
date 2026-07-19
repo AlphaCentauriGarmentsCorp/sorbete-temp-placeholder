@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <title>My Orders — Sorbetes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; background: #FBFAF7; font-family: 'Archivo', Helvetica, Arial, sans-serif; color: #141414; min-height: 100vh; }
+    * { box-sizing: border-box; }
+  </style>
+</helmet>
+
+<div style="min-height: 100vh; display: flex; flex-direction: column; padding-bottom: 70px;">
+  <header style="padding: 16px; display: flex; align-items: center; gap: 14px;">
+    <a href="Home Signed In.dc.html" aria-label="Back" style="width: 36px; height: 36px; border-radius: 50%; background: #F0EDE4; display: grid; place-items: center; text-decoration: none; color: #111111; font-size: 16px;">←</a>
+    <span style="font-size: 18px; font-weight: 900; text-transform: uppercase;">My Orders</span>
+  </header>
+
+  <div class="chips-row" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+    <div style="max-width: 640px; margin: 0 auto; padding: 0 16px 14px 16px; display: flex; gap: 8px; width: max-content; min-width: 100%;">
+      <sc-for list="{{ chips }}" as="c" hint-placeholder-count="4">
+        <button onClick="{{ c.pick }}" style="{{ c.style }}">{{ c.label }}</button>
+      </sc-for>
+    </div>
+  </div>
+
+  <main style="flex: 1;">
+    <div style="max-width: 640px; margin: 0 auto; padding: 0 16px; display: flex; flex-direction: column; gap: 10px;">
+      <sc-for list="{{ orders }}" as="o" hint-placeholder-count="5">
+        <a href="{{ o.href }}" style="text-decoration: none; color: inherit; background: #FFFFFF; border: 1px solid #E7E2D5; border-radius: 14px; padding: 16px; display: flex; align-items: center; gap: 14px;">
+          <div style="display: flex; flex-direction: column; gap: 2px; flex: 1;">
+            <span style="font-size: 15px; font-weight: 800;">Order #{{ o.num }}</span>
+            <span style="font-size: 13px; color: #7A766C;">{{ o.spec }}</span>
+            <span style="font-size: 12px; color: #A8A398;">Placed {{ o.date }}</span>
+          </div>
+          <span style="{{ o.badgeStyle }}">{{ o.status }}</span>
+        </a>
+      </sc-for>
+    </div>
+  </main>
+
+  <nav style="position: fixed; left: 0; right: 0; bottom: 0; background: #FFFFFF; border-top: 1px solid #E7E2D5; display: flex; padding: 8px 8px calc(8px + env(safe-area-inset-bottom)) 8px;">
+    <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+      <a href="{{ t.href }}" style="{{ t.style }}">
+        <span style="font-size: 18px;">{{ t.icon }}</span>
+        <span style="font-size: 10px; font-weight: 800; text-transform: uppercase;">{{ t.label }}</span>
+      </a>
+    </sc-for>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { filter: 'All' };
+
+  tabDefs(active) {
+    const defs = [
+      { key: 'home', label: 'Home', icon: '🏠', href: 'Home Signed In.dc.html' },
+      { key: 'orders', label: 'Orders', icon: '📦', href: 'My Orders.dc.html' },
+      { key: 'chat', label: 'Chat', icon: '💬', href: 'Signed In Chatbot.dc.html' },
+      { key: 'account', label: 'Account', icon: '👤', href: 'Account.dc.html' },
+    ];
+    return defs.map(t => ({
+      ...t,
+      style: {
+        flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+        padding: '6px 4px', textDecoration: 'none',
+        color: t.key === active ? '#111111' : '#B3AD9E',
+      },
+    }));
+  }
+
+  data() {
+    return [
+      { num: '10482', spec: 'Classic Tee \u00B7 150 pcs', date: 'Jul 2', status: 'In production' },
+      { num: '10399', spec: 'Premium Tee \u00B7 80 pcs', date: 'Jun 28', status: 'Ready to ship' },
+      { num: '10201', spec: 'Corporate Uniform \u00B7 300 pcs', date: 'Jun 10', status: 'Delivered' },
+      { num: '10098', spec: 'Classic Tee \u00B7 100 pcs', date: 'May 22', status: 'Delivered' },
+      { num: '9977', spec: 'Hoodie \u00B7 50 pcs', date: 'Apr 30', status: 'Cancelled' },
+    ];
+  }
+
+  renderVals() {
+    const cats = ['All', 'In production', 'Ready to ship', 'Delivered'];
+    const all = this.data();
+    const filter = this.state.filter;
+    const visible = filter === 'All' ? all : all.filter(o => o.status === filter);
+
+    const chips = cats.map(c => {
+      const active = filter === c;
+      return {
+        label: c,
+        pick: () => this.setState({ filter: c }),
+        style: {
+          flexShrink: 0, padding: '9px 14px', borderRadius: 999, cursor: 'pointer',
+          fontFamily: 'inherit', fontSize: 13, fontWeight: 800, whiteSpace: 'nowrap',
+          border: active ? '2px solid #111111' : '2px solid #E0DBCD',
+          background: active ? '#111111' : '#FFFFFF',
+          color: active ? '#FFD400' : '#141414',
+        },
+      };
+    });
+
+    const badgeColor = {
+      'In production': ['#FFD400', '#111111'],
+      'Ready to ship': ['#111111', '#FFD400'],
+      'Delivered': ['#EAF6EC', '#2F7D4A'],
+      'Cancelled': ['#F5EDEA', '#A8A398'],
+    };
+    const orders = visible.map(o => {
+      const [bg, fg] = badgeColor[o.status] || ['#EEEAE0', '#4A4740'];
+      return {
+        ...o,
+        href: 'My Orders Info.dc.html?id=' + o.num,
+        badgeStyle: {
+          background: bg, color: fg, fontSize: 11, fontWeight: 900, padding: '5px 10px',
+          borderRadius: 999, textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap',
+        },
+      };
+    });
+
+    return { tabs: this.tabDefs('orders'), chips, orders };
+  }
+}
+</script>
+</body>
+</html>

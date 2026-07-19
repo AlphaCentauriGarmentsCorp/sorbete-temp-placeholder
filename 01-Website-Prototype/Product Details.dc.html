@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <title>Product details — Sorbetes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; background: #FBFAF7; font-family: 'Archivo', Helvetica, Arial, sans-serif; color: #141414; min-height: 100vh; }
+    * { box-sizing: border-box; }
+  </style>
+</helmet>
+
+<div style="min-height: 100vh; display: flex; flex-direction: column;">
+  <header style="padding: 16px; display: flex; align-items: center; gap: 14px;">
+    <a href="Get Quote.html" aria-label="Back" style="width: 36px; height: 36px; border-radius: 50%; background: #F0EDE4; display: grid; place-items: center; text-decoration: none; color: #111111; font-size: 16px;">←</a>
+    <span style="font-size: 13px; font-weight: 800; color: #7A766C; text-transform: uppercase; letter-spacing: 0.05em;">Fill Form Directly · Step 2 of 4</span>
+  </header>
+
+  <main style="flex: 1; display: flex; justify-content: center; padding: 10px 16px 60px 16px;">
+    <div style="width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 20px;">
+      <h1 style="margin: 0; font-size: clamp(26px, 5.5vw, 36px); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em;">Product details</h1>
+      <p style="margin: 0; font-size: 14px; color: #7A766C;">From your builder spec, plus one more thing to set.</p>
+
+      <div style="background: #FFFFFF; border: 1px solid #E7E2D5; border-radius: 16px; overflow: hidden;">
+        <sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+          <div style="display: flex; justify-content: space-between; gap: 16px; padding: 13px 18px; border-top: 1px solid #EEEAE0; font-size: 14px;">
+            <span style="color: #7A766C; font-weight: 600;">{{ r.label }}</span>
+            <span style="font-weight: 800; text-align: right;">{{ r.value }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;">Custom woven label location</div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <sc-for list="{{ wovenOptions }}" as="opt" hint-placeholder-count="4">
+            <button onClick="{{ opt.pick }}" style="{{ opt.style }}">{{ opt.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+
+      <a href="Fill Form Directly Upload Files.dc.html" style="background: #111111; color: #FFFFFF; text-decoration: none; text-align: center; font-weight: 900; font-size: 15px; padding: 15px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em;">Continue to file upload</a>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { woven: 'Neck (standard)' };
+
+  readSummary() {
+    try { return JSON.parse(localStorage.getItem('sorbetes_fillform_summary') || '{}'); }
+    catch { return {}; }
+  }
+
+  renderVals() {
+    const s = this.readSummary();
+    const lines = s.lines || [];
+    const rows = lines.length ? lines : [{ label: 'Spec', value: 'Build your spec on the previous screen' }];
+    rows.push({ label: 'Quantity', value: (s.qty || 50) + ' pcs' });
+    rows.push({ label: 'Per piece', value: '\u20B1' + (s.perPc || 290) });
+
+    const options = ['Neck (standard)', 'Left chest', 'Hem', 'Sleeve', 'No woven label'];
+    const wovenOptions = options.map(opt => {
+      const picked = this.state.woven === opt;
+      return {
+        label: opt,
+        pick: () => this.setState({ woven: opt }),
+        style: {
+          textAlign: 'left', padding: '13px 16px', borderRadius: 12, cursor: 'pointer',
+          fontFamily: 'inherit', fontWeight: 700, fontSize: 14,
+          border: picked ? '2px solid #111111' : '2px solid #E0DBCD',
+          background: picked ? '#111111' : '#FFFFFF',
+          color: picked ? '#FFD400' : '#141414',
+        },
+      };
+    });
+
+    return { rows, wovenOptions };
+  }
+}
+</script>
+</body>
+</html>

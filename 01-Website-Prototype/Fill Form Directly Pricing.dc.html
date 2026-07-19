@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <title>Pricing — Sorbetes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; background: #FBFAF7; font-family: 'Archivo', Helvetica, Arial, sans-serif; color: #141414; min-height: 100vh; }
+    * { box-sizing: border-box; }
+  </style>
+</helmet>
+
+<div style="min-height: 100vh; display: flex; flex-direction: column;">
+  <header style="padding: 16px; display: flex; align-items: center; gap: 14px;">
+    <a href="Fill Form Directly Upload Files.dc.html" aria-label="Back" style="width: 36px; height: 36px; border-radius: 50%; background: #F0EDE4; display: grid; place-items: center; text-decoration: none; color: #111111; font-size: 16px;">←</a>
+    <span style="font-size: 13px; font-weight: 800; color: #7A766C; text-transform: uppercase; letter-spacing: 0.05em;">Fill Form Directly · Step 4 of 4</span>
+  </header>
+
+  <main style="flex: 1; display: flex; justify-content: center; padding: 10px 16px 60px 16px;">
+    <div style="width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 20px;">
+      <h1 style="margin: 0; font-size: clamp(26px, 5.5vw, 36px); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em;">Your pricing</h1>
+
+      <div style="background: #111111; border-radius: 18px; padding: 24px; display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: flex; align-items: baseline; gap: 8px;">
+          <span style="font-size: 44px; font-weight: 900; color: #FFD400;">₱{{ perPc }}</span>
+          <span style="font-size: 14px; font-weight: 700; color: #FFFFFF;">/pc</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; border-top: 1px solid #2E2E2E; padding-top: 12px;">
+          <span style="font-size: 13px; color: #9A9A9A; text-transform: uppercase; letter-spacing: 0.05em;">Total · {{ qty }} pcs</span>
+          <span style="font-size: 22px; font-weight: 900; color: #FFFFFF;">₱{{ total }}</span>
+        </div>
+      </div>
+
+      <button onClick="{{ toggleExpand }}" style="background: none; border: none; padding: 0; font-family: inherit; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 14px; font-weight: 800;">{{ expandLabel }}</span>
+        <span style="font-size: 14px; color: #7A766C;">{{ expandIcon }}</span>
+      </button>
+
+      <sc-if value="{{ expanded }}" hint-placeholder-val="{{ false }}">
+        <div style="background: #FFFFFF; border: 1px solid #E7E2D5; border-radius: 14px; overflow: hidden;">
+          <sc-for list="{{ breakdown }}" as="b" hint-placeholder-count="4">
+            <div style="display: flex; justify-content: space-between; gap: 16px; padding: 12px 16px; border-top: 1px solid #EEEAE0; font-size: 14px;">
+              <span style="color: #7A766C; font-weight: 600;">{{ b.label }}</span>
+              <span style="font-weight: 800;">{{ b.value }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <div style="font-size: 12px; color: #9A958A;">Includes free etiketa + free ziploc packing. 50% deposit starts production.</div>
+
+      <a href="Payment.dc.html?src=fillform" style="background: #FFD400; color: #111111; text-decoration: none; text-align: center; font-weight: 900; font-size: 15px; padding: 16px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em;">Proceed to payment</a>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { expanded: false };
+
+  readSummary() {
+    try { return JSON.parse(localStorage.getItem('sorbetes_fillform_summary') || '{}'); }
+    catch { return {}; }
+  }
+
+  renderVals() {
+    const s = this.readSummary();
+    const perPc = s.perPc || 290;
+    const qty = s.qty || 50;
+    const total = perPc * qty;
+    const breakdown = (s.lines || []).map(l => ({ label: l.label, value: l.value }));
+    breakdown.push({ label: 'Etiketa + ziploc', value: 'Free' });
+
+    return {
+      perPc, qty, total: total.toLocaleString(),
+      expanded: this.state.expanded,
+      expandLabel: this.state.expanded ? 'Hide breakdown' : 'Show full breakdown',
+      expandIcon: this.state.expanded ? '\u2212' : '+',
+      toggleExpand: () => this.setState(s => ({ expanded: !s.expanded })),
+      breakdown,
+    };
+  }
+}
+</script>
+</body>
+</html>

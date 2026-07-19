@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <title>Walk-in order — Sorbetes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; background: #FBFAF7; font-family: 'Archivo', Helvetica, Arial, sans-serif; color: #141414; min-height: 100vh; }
+    * { box-sizing: border-box; }
+    input, textarea { font-family: inherit; }
+  </style>
+</helmet>
+
+<div style="min-height: 100vh; display: flex; flex-direction: column;">
+  <header style="padding: 16px; display: flex; align-items: center; gap: 14px;">
+    <a href="Choose Between Options.dc.html" aria-label="Exit" style="width: 36px; height: 36px; border-radius: 50%; background: #F0EDE4; display: grid; place-items: center; text-decoration: none; color: #111111; font-size: 16px; font-weight: 800;">✕</a>
+    <span style="font-size: 13px; font-weight: 800; color: #7A766C; text-transform: uppercase; letter-spacing: 0.05em;">Walk-in order · Step {{ stepNum }} of {{ stepTotal }}</span>
+  </header>
+
+  <main style="flex: 1; display: flex; justify-content: center; padding: 10px 16px 60px 16px;">
+    <div style="width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 20px;">
+
+      <!-- STEP 1: garment select -->
+      <sc-if value="{{ isGarmentStep }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+          <h1 style="margin: 0; font-size: clamp(26px, 5.5vw, 36px); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em;">What are you ordering today?</h1>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+            <button onClick="{{ pickTshirt }}" style="{{ tshirtStyle }}">
+              <span style="font-size: 30px; font-weight: 900;">T</span>
+              <span style="font-size: 15px; font-weight: 800;">T-shirt</span>
+            </button>
+            <button onClick="{{ pickHoodie }}" style="{{ hoodieStyle }}">
+              <span style="font-size: 30px; font-weight: 900;">H</span>
+              <span style="font-size: 15px; font-weight: 800;">Hoodie</span>
+            </button>
+          </div>
+          <button onClick="{{ toStep2 }}" style="{{ nextBtnStyle }}">Continue</button>
+        </div>
+      </sc-if>
+
+      <!-- STEP 2: mockup info (t-shirt only) or details (hoodie) -->
+      <sc-if value="{{ isDetailsStep }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 18px;">
+          <h1 style="margin: 0; font-size: clamp(24px, 5vw, 32px); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em;">{{ detailsTitle }}</h1>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <input type="text" value="{{ mockupLabel }}" onChange="{{ onMockupLabel }}" placeholder="Design name / label" style="border: 2px solid #E0DBCD; border-radius: 10px; padding: 13px 14px; font-size: 14px; outline: none;">
+            <textarea rows="3" value="{{ mockupNotes }}" onChange="{{ onMockupNotes }}" placeholder="Describe the print or attach a reference when you visit" style="border: 2px solid #E0DBCD; border-radius: 10px; padding: 13px 14px; font-size: 14px; outline: none; resize: vertical;"></textarea>
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <span style="font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;">Quantity</span>
+              <button onClick="{{ qtyDown }}" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #111111; background: #FFFFFF; font-size: 18px; font-weight: 800; cursor: pointer; font-family: inherit;">−</button>
+              <span style="font-size: 20px; font-weight: 900; min-width: 60px; text-align: center;">{{ qty }}</span>
+              <button onClick="{{ qtyUp }}" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #111111; background: #FFFFFF; font-size: 18px; font-weight: 800; cursor: pointer; font-family: inherit;">+</button>
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button onClick="{{ back }}" style="background: transparent; color: #111111; border: 2px solid #E0DBCD; font-family: inherit; font-weight: 800; font-size: 14px; padding: 13px 20px; border-radius: 999px; cursor: pointer;">Back</button>
+            <button onClick="{{ toStep3 }}" style="flex: 1; background: #111111; color: #FFFFFF; border: none; font-family: inherit; font-weight: 900; font-size: 15px; padding: 14px; border-radius: 999px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.03em;">Continue</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- STEP 3: confirmation -->
+      <sc-if value="{{ isConfirmStep }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 18px;">
+          <h1 style="margin: 0; font-size: clamp(24px, 5vw, 32px); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em;">Confirm your order</h1>
+          <div style="background: #FFFFFF; border: 1px solid #E7E2D5; border-radius: 16px; overflow: hidden;">
+            <sc-for list="{{ confirmRows }}" as="r" hint-placeholder-count="4">
+              <div style="display: flex; justify-content: space-between; gap: 16px; padding: 13px 18px; border-top: 1px solid #EEEAE0; font-size: 14px;">
+                <span style="color: #7A766C; font-weight: 600;">{{ r.label }}</span>
+                <span style="font-weight: 800; text-align: right;">{{ r.value }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="background: #111111; border-radius: 16px; padding: 20px; display: flex; justify-content: space-between; align-items: baseline;">
+            <span style="font-size: 13px; color: #9A9A9A; text-transform: uppercase; letter-spacing: 0.05em;">Estimated total</span>
+            <span style="font-size: 26px; font-weight: 900; color: #FFD400;">₱{{ total }}</span>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button onClick="{{ back }}" style="background: transparent; color: #111111; border: 2px solid #E0DBCD; font-family: inherit; font-weight: 800; font-size: 14px; padding: 13px 20px; border-radius: 999px; cursor: pointer;">Back</button>
+            <button onClick="{{ proceedToPayment }}" style="flex: 1; text-align: center; background: #FFD400; color: #111111; border: none; font-family: inherit; font-weight: 900; font-size: 15px; padding: 14px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em; cursor: pointer;">Proceed to payment</button>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { step: 1, garment: 'T-shirt', mockupLabel: '', mockupNotes: '', qty: 50 };
+
+  renderVals() {
+    const step = this.state.step;
+    const garment = this.state.garment;
+    const perPc = garment === 'Hoodie' ? 650 : 290;
+    const total = perPc * this.state.qty;
+
+    const gStyle = (active) => ({
+      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+      padding: '28px 16px', borderRadius: 16, cursor: 'pointer', fontFamily: 'inherit',
+      border: active ? '2px solid #111111' : '2px solid #E0DBCD',
+      background: active ? '#111111' : '#FFFFFF',
+      color: active ? '#FFD400' : '#141414',
+    });
+
+    return {
+      stepNum: step, stepTotal: 3,
+      isGarmentStep: step === 1,
+      isDetailsStep: step === 2,
+      isConfirmStep: step === 3,
+      tshirtStyle: gStyle(garment === 'T-shirt'),
+      hoodieStyle: gStyle(garment === 'Hoodie'),
+      pickTshirt: () => this.setState({ garment: 'T-shirt' }),
+      pickHoodie: () => this.setState({ garment: 'Hoodie' }),
+      nextBtnStyle: {
+        background: '#111111', color: '#FFFFFF', border: 'none', fontFamily: 'inherit',
+        fontWeight: 900, fontSize: 15, padding: '15px', borderRadius: 999, cursor: 'pointer',
+        textTransform: 'uppercase', letterSpacing: '0.03em',
+      },
+      toStep2: () => this.setState({ step: 2 }),
+      toStep3: () => this.setState({ step: 3 }),
+      back: () => this.setState(s => ({ step: Math.max(1, s.step - 1) })),
+      detailsTitle: garment === 'T-shirt' ? 'Mockup info' : 'Order details',
+      mockupLabel: this.state.mockupLabel,
+      onMockupLabel: (e) => this.setState({ mockupLabel: e.target.value }),
+      mockupNotes: this.state.mockupNotes,
+      onMockupNotes: (e) => this.setState({ mockupNotes: e.target.value }),
+      qty: this.state.qty,
+      qtyUp: () => this.setState(s => ({ qty: s.qty + 10 })),
+      qtyDown: () => this.setState(s => ({ qty: Math.max(50, s.qty - 10) })),
+      confirmRows: [
+        { label: 'Garment', value: garment },
+        { label: 'Design / label', value: this.state.mockupLabel || '\u2014' },
+        { label: 'Notes', value: this.state.mockupNotes || '\u2014' },
+        { label: 'Quantity', value: this.state.qty + ' pcs' },
+        { label: 'Per piece', value: '\u20B1' + perPc },
+      ],
+      total: total.toLocaleString(),
+      proceedToPayment: () => {
+        try {
+          localStorage.setItem('sorbetes_walkin_summary', JSON.stringify({
+            garment, label: this.state.mockupLabel, notes: this.state.mockupNotes,
+            qty: this.state.qty, perPc, total, source: 'Walk-in Form',
+          }));
+        } catch (e) {}
+        window.location.href = 'Payment.dc.html?src=walkin';
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>

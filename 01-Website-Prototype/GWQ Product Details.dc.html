@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <title>Order details — Sorbetes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; background: #FBFAF7; font-family: 'Archivo', Helvetica, Arial, sans-serif; color: #141414; min-height: 100vh; }
+    * { box-sizing: border-box; }
+  </style>
+</helmet>
+
+<div style="min-height: 100vh; display: flex; flex-direction: column;">
+  <header style="padding: 16px; display: flex; align-items: center; gap: 14px;">
+    <a href="GWQ.dc.html" aria-label="Back" style="width: 36px; height: 36px; border-radius: 50%; background: #F0EDE4; display: grid; place-items: center; text-decoration: none; color: #111111; font-size: 16px;">←</a>
+    <span style="font-size: 13px; font-weight: 800; color: #7A766C; text-transform: uppercase; letter-spacing: 0.05em;">Guided Walkthrough · Step 2 of 4</span>
+  </header>
+
+  <main style="flex: 1; display: flex; justify-content: center; padding: 10px 16px 60px 16px;">
+    <div style="width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 20px;">
+      <h1 style="margin: 0; font-size: clamp(26px, 5.5vw, 36px); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em;">Review your spec</h1>
+      <p style="margin: 0; font-size: 14px; color: #7A766C;">Double-check before we lock in your pricing.</p>
+
+      <div style="background: #FFFFFF; border: 1px solid #E7E2D5; border-radius: 16px; overflow: hidden;">
+        <sc-for list="{{ rows }}" as="r" hint-placeholder-count="10">
+          <div style="display: flex; justify-content: space-between; gap: 16px; padding: 14px 18px; border-top: 1px solid #EEEAE0; font-size: 14px;">
+            <span style="color: #7A766C; font-weight: 600;">{{ r.label }}</span>
+            <span style="font-weight: 800; text-align: right;">{{ r.value }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <a href="GWQ.dc.html" style="align-self: flex-start; font-size: 13px; font-weight: 700; color: #111111; text-decoration: none; border-bottom: 2px solid #FFD400;">Edit answers</a>
+
+      <a href="GWQ Uploaded Files.dc.html" style="background: #111111; color: #FFFFFF; text-decoration: none; text-align: center; font-weight: 900; font-size: 15px; padding: 15px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em;">Continue to file upload</a>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  readAnswers() {
+    try { return JSON.parse(localStorage.getItem('sorbetes_gwq_answers') || '{}'); }
+    catch { return {}; }
+  }
+
+  renderVals() {
+    const a = this.readAnswers();
+    const rows = [
+      { label: 'Garment', value: a.garment || '\u2014' },
+      { label: 'Primary use', value: a.use || '\u2014' },
+      { label: 'Fabric weight', value: a.weight || '\u2014' },
+      { label: 'Fabric blend', value: a.blend || '\u2014' },
+      { label: 'Fit / cut', value: a.fit || '\u2014' },
+      { label: 'Print method', value: a.print || '\u2014' },
+      { label: 'Print colors', value: a.colors || '\u2014' },
+      { label: 'Print placement', value: a.placement || '\u2014' },
+      { label: 'Woven label', value: a.woven || '\u2014' },
+      { label: 'Quantity', value: a.qty || '\u2014' },
+      { label: 'Timeline', value: a.timeline || '\u2014' },
+    ];
+    return { rows };
+  }
+}
+</script>
+</body>
+</html>

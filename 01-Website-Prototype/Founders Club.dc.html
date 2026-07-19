@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <title>Founder's Club — Sorbetes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; background: #FBFAF7; font-family: 'Archivo', Helvetica, Arial, sans-serif; color: #141414; }
+    * { box-sizing: border-box; }
+  </style>
+</helmet>
+
+<header data-screen-label="Nav" style="position: sticky; top: 0; z-index: 80; background: #111111;">
+  <div style="max-width: 1100px; margin: 0 auto; padding: 0 16px; height: 58px; display: flex; align-items: center; gap: 12px;">
+    <a href="Home.dc.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
+      <img src="uploads/Logo%20too.jpg" alt="Sorbetes logo" style="width: 34px; height: 34px; border-radius: 50%; display: block;">
+      <span style="color: #FFFFFF; font-weight: 900; font-size: 17px; letter-spacing: 0.05em; text-transform: uppercase;">Sorbetes</span>
+    </a>
+    <sc-if value="{{ isDesktopNav }}" hint-placeholder-val="{{ false }}">
+      <nav style="margin-left: auto; display: flex; align-items: center; gap: 16px;">
+        <sc-for list="{{ navLinks }}" as="l" hint-placeholder-count="6">
+          <a href="{{ l.href }}" style="{{ l.style }}">{{ l.label }}</a>
+        </sc-for>
+        <span style="width: 1px; height: 18px; background: #3A3A3A;"></span>
+        <a href="#" style="color: #DADADA; font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap;">Log in</a>
+        <a href="Quick%20Quote.dc.html" style="color: #FFD400; font-size: 13px; font-weight: 800; text-decoration: none; padding: 8px 13px; border: 1.5px solid #FFD400; border-radius: 999px; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.03em;">Get instant quote</a>
+        <a href="#" style="background: #FFD400; color: #111111; font-size: 13px; font-weight: 800; text-decoration: none; padding: 9px 14px; border-radius: 999px; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.03em;">Start an order</a>
+      </nav>
+    </sc-if>
+    <sc-if value="{{ isMobileNav }}" hint-placeholder-val="{{ true }}">
+      <button onClick="{{ openMenu }}" aria-label="Open menu" style="margin-left: auto; width: 42px; height: 42px; border-radius: 10px; border: 1px solid #3A3A3A; background: transparent; color: #FFFFFF; font-size: 18px; cursor: pointer; display: grid; place-items: center;">☰</button>
+    </sc-if>
+  </div>
+</header>
+
+<div data-screen-label="Trust strip" style="background: #FFD400; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+  <div style="max-width: 1100px; margin: 0 auto; padding: 7px 16px; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; color: #111111;">
+    Direct factory — Quezon City &nbsp;·&nbsp; in-house production &nbsp;·&nbsp; min. 50 pcs &nbsp;·&nbsp; Classic Tee from ₱290/pc
+  </div>
+</div>
+
+<section data-screen-label="Club hero" style="background: #111111;">
+  <div style="max-width: 1100px; margin: 0 auto; padding: 48px 16px 40px 16px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px;">
+    <span style="background: #FFD400; color: #111111; font-size: 11px; font-weight: 900; padding: 5px 10px; border-radius: 4px; letter-spacing: 0.08em; text-transform: uppercase;">Founder's Club</span>
+    <h1 style="margin: 0; font-size: clamp(32px, 7vw, 56px); font-weight: 900; color: #FFFFFF; line-height: 1.02; letter-spacing: -0.02em; text-transform: uppercase; max-width: 700px;">For brands who reorder.</h1>
+    <p style="margin: 0; font-size: 16px; line-height: 1.55; color: #B9B9B9; max-width: 520px;">Every reorder earns points toward discounts, priority production slots, and early access to new fabrics.</p>
+    <a href="#" style="margin-top: 8px; background: #FFD400; color: #111111; text-decoration: none; font-weight: 900; font-size: 15px; padding: 15px 26px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em;">Join the club</a>
+  </div>
+</section>
+
+<section data-screen-label="Tiers" style="background: #FBFAF7;">
+  <div style="max-width: 1100px; margin: 0 auto; padding: 48px 16px;">
+    <h2 style="margin: 0 0 22px 0; font-size: clamp(24px, 4.5vw, 34px); font-weight: 900; text-transform: uppercase;">Membership tiers</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+      <sc-for list="{{ tiers }}" as="t" hint-placeholder-count="3">
+        <div style="background: #FFFFFF; border: 2px solid {{ t.border }}; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 10px;">
+          <span style="font-size: 12px; font-weight: 900; letter-spacing: 0.06em; text-transform: uppercase; color: #7A766C;">{{ t.threshold }}</span>
+          <span style="font-size: 22px; font-weight: 900; text-transform: uppercase;">{{ t.name }}</span>
+          <span style="font-size: 14px; line-height: 1.5; color: #4A4740;">{{ t.perk }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="CTA band" style="background: #FFD400;">
+  <div style="max-width: 1100px; margin: 0 auto; padding: 44px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 20px; justify-content: space-between;">
+    <h2 style="margin: 0; font-size: clamp(24px, 4.5vw, 36px); font-weight: 900; text-transform: uppercase; max-width: 520px;">See exactly how points work.</h2>
+    <a href="Founders Club Guide.dc.html" style="background: #111111; color: #FFFFFF; text-decoration: none; font-weight: 900; font-size: 15px; padding: 15px 24px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap;">Read the guide</a>
+  </div>
+</section>
+
+<footer style="background: #111111; border-top: 1px solid #2A2A2A;">
+  <div style="max-width: 1100px; margin: 0 auto; padding: 18px 16px 110px 16px; display: flex; align-items: center; gap: 10px;">
+    <img src="uploads/Logo%20too.jpg" alt="" style="width: 24px; height: 24px; border-radius: 50%;">
+    <span style="color: #8A8A8A; font-size: 12px;">© 2026 Sorbetes Apparel Studio · Quezon City, PH</span>
+  </div>
+</footer>
+
+<div data-screen-label="Sticky action bar" style="{{ barStyle }}">
+  <a href="Get%20Quote.html" style="flex: 1; background: #FFD400; color: #111111; text-decoration: none; font-weight: 900; font-size: 14px; padding: 15px 8px; border-radius: 999px; text-align: center; text-transform: uppercase; letter-spacing: 0.02em;">Get quote</a>
+  <button onClick="{{ openChat }}" style="flex: 1; background: #111111; color: #FFFFFF; font-family: inherit; font-weight: 800; font-size: 14px; padding: 15px 8px; border-radius: 999px; border: 1px solid #3A3A3A; cursor: pointer;">Chat with us</button>
+</div>
+
+<div data-screen-label="Menu sheet" style="{{ menuBackdropStyle }}" onClick="{{ closeMenu }}"></div>
+<div style="{{ menuSheetStyle }}">
+  <div style="width: 40px; height: 4px; background: #D8D4C8; border-radius: 999px; margin: 0 auto 10px auto;"></div>
+  <sc-for list="{{ menuLinks }}" as="l" hint-placeholder-count="6">
+    <a href="{{ l.href }}" style="{{ l.style }}">{{ l.label }}</a>
+  </sc-for>
+  <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 16px;">
+    <a href="#" style="background: #FFD400; color: #111111; text-decoration: none; text-align: center; font-weight: 900; font-size: 15px; padding: 15px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em;">Start an order</a>
+    <a href="Quick%20Quote.dc.html" style="background: #111111; color: #FFFFFF; text-decoration: none; text-align: center; font-weight: 800; font-size: 15px; padding: 15px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em;">Get instant quote</a>
+    <a href="#" style="background: transparent; color: #111111; text-decoration: none; text-align: center; font-weight: 800; font-size: 14px; padding: 13px; border-radius: 999px; border: 2px solid #E0DBCD;">Log in</a>
+  </div>
+</div>
+
+<div data-screen-label="Chat sheet" style="{{ chatBackdropStyle }}" onClick="{{ closeChat }}"></div>
+<div style="{{ chatSheetStyle }}">
+  <div style="width: 40px; height: 4px; background: #D8D4C8; border-radius: 999px; margin: 0 auto 14px auto;"></div>
+  <div style="font-size: 17px; font-weight: 900; text-transform: uppercase; margin-bottom: 4px;">Chat with us</div>
+  <div style="font-size: 13px; color: #7A766C; margin-bottom: 16px;">Usually replies within the hour, 9am–6pm.</div>
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+    <a href="https://m.me/sorbetesmfg" style="display: flex; align-items: center; gap: 12px; background: #0084FF; color: #FFFFFF; text-decoration: none; font-weight: 800; font-size: 15px; padding: 14px 16px; border-radius: 12px;"><span style="width: 26px; height: 26px; border-radius: 50%; background: #FFFFFF; color: #0084FF; display: grid; place-items: center; font-size: 13px; font-weight: 900;">M</span>Messenger</a>
+    <a href="viber://chat?number=%2B639000000000" style="display: flex; align-items: center; gap: 12px; background: #7360F2; color: #FFFFFF; text-decoration: none; font-weight: 800; font-size: 15px; padding: 14px 16px; border-radius: 12px;"><span style="width: 26px; height: 26px; border-radius: 50%; background: #FFFFFF; color: #7360F2; display: grid; place-items: center; font-size: 13px; font-weight: 900;">V</span>Viber</a>
+    <a href="https://wa.me/639000000000" style="display: flex; align-items: center; gap: 12px; background: #25D366; color: #FFFFFF; text-decoration: none; font-weight: 800; font-size: 15px; padding: 14px 16px; border-radius: 12px;"><span style="width: 26px; height: 26px; border-radius: 50%; background: #FFFFFF; color: #25D366; display: grid; place-items: center; font-size: 13px; font-weight: 900;">W</span>WhatsApp</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { scrolled: false, chatOpen: false, navMobile: false, menuOpen: false };
+
+  componentDidMount() {
+    this._onScroll = () => {
+      const s = window.scrollY > 40;
+      if (s !== this.state.scrolled) this.setState({ scrolled: s });
+    };
+    window.addEventListener('scroll', this._onScroll, { passive: true });
+    this._onScroll();
+    this._onNavResize = () => {
+      const m = window.innerWidth < 1080;
+      if (m !== this.state.navMobile) this.setState({ navMobile: m });
+    };
+    window.addEventListener('resize', this._onNavResize);
+    this._onNavResize();
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('scroll', this._onScroll);
+    window.removeEventListener('resize', this._onNavResize);
+  }
+
+  navVals(active) {
+    const m = this.state.navMobile;
+    const open = this.state.menuOpen;
+    const linkDefs = [
+      { label: 'Our Story', href: 'Our Story.dc.html', key: 'story' },
+      { label: 'Services', href: 'Our Services.dc.html', key: 'services' },
+      { label: 'Portfolio', href: 'Portfolio.dc.html', key: 'portfolio' },
+      { label: 'Guides', href: 'Guide.dc.html', key: 'guides' },
+      { label: 'Founder\u2019s Club', href: 'Founders Club.dc.html', key: 'club' },
+      { label: 'Contact', href: 'Get in Touch.dc.html', key: 'contact' },
+    ];
+    return {
+      isDesktopNav: !m,
+      isMobileNav: m,
+      navLinks: linkDefs.map(l => ({ ...l, style: {
+        color: l.key === active ? '#FFD400' : '#DADADA',
+        fontSize: 13, fontWeight: l.key === active ? 800 : 600,
+        textDecoration: 'none', whiteSpace: 'nowrap',
+      } })),
+      menuLinks: linkDefs.map(l => ({ ...l, style: {
+        display: 'block', padding: '13px 0', borderBottom: '1px solid #EEEAE0',
+        color: '#141414', fontSize: 17, fontWeight: 800, textDecoration: 'none',
+        textTransform: 'uppercase', letterSpacing: '0.02em',
+      } })),
+      openMenu: () => this.setState({ menuOpen: true }),
+      closeMenu: () => this.setState({ menuOpen: false }),
+      menuBackdropStyle: {
+        position: 'fixed', inset: 0, zIndex: 93, background: 'rgba(0,0,0,0.5)',
+        opacity: open ? 1 : 0, pointerEvents: open ? 'auto' : 'none',
+        transition: 'opacity 0.25s ease',
+      },
+      menuSheetStyle: {
+        position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 94,
+        background: '#FFFFFF', borderRadius: '20px 20px 0 0',
+        padding: '14px 20px calc(22px + env(safe-area-inset-bottom)) 20px',
+        maxWidth: 560, margin: '0 auto', maxHeight: '86vh', overflowY: 'auto',
+        transform: open ? 'translateY(0)' : 'translateY(105%)',
+        transition: 'transform 0.32s cubic-bezier(0.2,0.8,0.2,1)',
+        boxShadow: '0 -8px 40px rgba(0,0,0,0.18)',
+      },
+      barStyle: {
+        position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 90,
+        display: 'flex', gap: 10,
+        padding: '10px 14px calc(10px + env(safe-area-inset-bottom)) 14px',
+        background: 'rgba(251,250,247,0.92)', backdropFilter: 'blur(10px)',
+        borderTop: '1px solid #E7E2D5',
+        transform: this.state.scrolled ? 'translateY(0)' : 'translateY(110%)',
+        transition: 'transform 0.35s cubic-bezier(0.2,0.8,0.2,1)',
+      },
+      chatBackdropStyle: {
+        position: 'fixed', inset: 0, zIndex: 95, background: 'rgba(0,0,0,0.5)',
+        opacity: this.state.chatOpen ? 1 : 0, pointerEvents: this.state.chatOpen ? 'auto' : 'none',
+        transition: 'opacity 0.25s ease',
+      },
+      chatSheetStyle: {
+        position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 96,
+        background: '#FFFFFF', borderRadius: '20px 20px 0 0',
+        padding: '14px 18px calc(22px + env(safe-area-inset-bottom)) 18px',
+        maxWidth: 560, margin: '0 auto',
+        transform: this.state.chatOpen ? 'translateY(0)' : 'translateY(105%)',
+        transition: 'transform 0.32s cubic-bezier(0.2,0.8,0.2,1)',
+        boxShadow: '0 -8px 40px rgba(0,0,0,0.18)',
+      },
+      openChat: () => this.setState({ chatOpen: true }),
+      closeChat: () => this.setState({ chatOpen: false }),
+    };
+  }
+
+  renderVals() {
+    return {
+      ...this.navVals('club'),
+      tiers: [
+        { name: 'Starter', threshold: '1st order', perk: 'Points on every peso spent. Access to member-only fabric drops.', border: '#E7E2D5' },
+        { name: 'Regular', threshold: '3+ reorders', perk: '5% reorder discount and priority slotting in the production queue.', border: '#FFD400' },
+        { name: 'Founder', threshold: '10+ reorders', perk: '10% reorder discount, dedicated account handler, first access to new fabrics.', border: '#111111' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

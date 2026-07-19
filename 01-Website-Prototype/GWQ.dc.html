@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <title>Guided Walkthrough — Sorbetes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; background: #FBFAF7; font-family: 'Archivo', Helvetica, Arial, sans-serif; color: #141414; min-height: 100vh; }
+    * { box-sizing: border-box; }
+  </style>
+</helmet>
+
+<div style="min-height: 100vh; display: flex; flex-direction: column;">
+  <header style="padding: 16px; display: flex; align-items: center; gap: 14px;">
+    <a href="Choose Between Options.dc.html" aria-label="Exit" style="width: 36px; height: 36px; border-radius: 50%; background: #F0EDE4; display: grid; place-items: center; text-decoration: none; color: #111111; font-size: 16px; font-weight: 800;">✕</a>
+    <div style="flex: 1; height: 6px; background: #EEEAE0; border-radius: 999px; overflow: hidden;">
+      <div style="{{ progressBarStyle }}"></div>
+    </div>
+    <span style="font-size: 12px; font-weight: 800; color: #7A766C; white-space: nowrap;">{{ progressLabel }}</span>
+  </header>
+
+  <main style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 10px 16px 60px 16px;">
+    <div style="width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 22px;">
+      <div>
+        <span style="font-size: 12px; font-weight: 900; color: #7A766C; text-transform: uppercase; letter-spacing: 0.06em;">Question {{ qNum }} of {{ qTotal }}</span>
+        <h1 style="margin: 8px 0 0 0; font-size: clamp(24px, 5vw, 34px); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; line-height: 1.1;">{{ qTitle }}</h1>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <sc-for list="{{ options }}" as="opt" hint-placeholder-count="4">
+          <button onClick="{{ opt.pick }}" style="{{ opt.style }}">
+            <span style="font-size: 16px; font-weight: 800;">{{ opt.label }}</span>
+            <sc-if value="{{ opt.picked }}" hint-placeholder-val="{{ false }}">
+              <span style="margin-left: auto; font-size: 16px;">✓</span>
+            </sc-if>
+          </button>
+        </sc-for>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 6px;">
+        <sc-if value="{{ showBack }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ back }}" style="background: transparent; color: #111111; border: 2px solid #E0DBCD; font-family: inherit; font-weight: 800; font-size: 14px; padding: 13px 20px; border-radius: 999px; cursor: pointer;">Back</button>
+        </sc-if>
+        <button onClick="{{ next }}" style="{{ nextStyle }}">{{ nextLabel }}</button>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { step: 0, answers: {} };
+
+  questions() {
+    return [
+      { id: 'garment', title: 'What are you ordering?', options: ['T-shirt', 'Hoodie', 'Polo shirt', 'Jersey'] },
+      { id: 'use', title: "What's the primary use?", options: ['Streetwear brand', 'Corporate uniform', 'Event / org merch', 'Personal or other'] },
+      { id: 'hasDesign', title: 'Do you already have a design ready?', options: ['Yes, I have a file', 'No, not yet'] },
+      { id: 'wantHelp', title: 'Want us to help create the design?', options: ['Yes, please help', 'No, I\u2019ll figure it out'], showIf: (a) => a.hasDesign === 'No, not yet' },
+      { id: 'weight', title: 'Preferred fabric weight?', options: ['Light (150\u2013180 GSM)', 'Standard (200\u2013220 GSM)', 'Heavy (240\u2013280 GSM)'] },
+      { id: 'blend', title: 'Fabric blend preference?', options: ['CVC blend', '100% cotton', 'Drifit polyester'] },
+      { id: 'fit', title: 'Garment fit / cut?', options: ['Regular', 'Oversized', 'Slim'] },
+      { id: 'print', title: 'Print method?', options: ['Silkscreen', 'Discharge', 'Sublimation', 'Embroidery'] },
+      { id: 'colors', title: 'How many print colors?', options: ['1 color', '2 colors', '3 colors'] },
+      { id: 'placement', title: 'Print placement?', options: ['Front only', 'Front + back', 'Full custom placement'] },
+      { id: 'woven', title: 'Need a custom woven label?', options: ['Yes', 'No, standard etiketa is fine'] },
+      { id: 'qty', title: 'Estimated quantity?', options: ['50\u201399 pcs', '100\u2013299 pcs', '300\u2013499 pcs', '500+ pcs'] },
+      { id: 'timeline', title: 'Target delivery timeline?', options: ['Standard (7\u201315 days)', 'Rush (+fee)', 'Flexible, no rush'] },
+    ];
+  }
+
+  activeQuestions() {
+    return this.questions().filter(q => !q.showIf || q.showIf(this.state.answers));
+  }
+
+  renderVals() {
+    const active = this.activeQuestions();
+    const step = Math.min(this.state.step, active.length - 1);
+    const q = active[step];
+    const total = active.length;
+    const answered = this.state.answers[q.id];
+
+    const pick = (val) => this.setState(s => ({ answers: { ...s.answers, [q.id]: val } }));
+    const options = q.options.map(opt => {
+      const picked = answered === opt;
+      return {
+        label: opt,
+        picked,
+        pick: () => pick(opt),
+        style: {
+          display: 'flex', alignItems: 'center', width: '100%', textAlign: 'left',
+          padding: '16px 18px', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
+          border: picked ? '2px solid #111111' : '2px solid #E0DBCD',
+          background: picked ? '#111111' : '#FFFFFF',
+          color: picked ? '#FFD400' : '#141414',
+          transition: 'all 0.15s ease',
+        },
+      };
+    });
+
+    const isLast = step === total - 1;
+    const canAdvance = !!answered;
+
+    return {
+      qNum: step + 1,
+      qTotal: total,
+      qTitle: q.title,
+      options,
+      progressBarStyle: {
+        height: '100%', width: Math.round(((step + 1) / total) * 100) + '%',
+        background: '#FFD400', borderRadius: 999, transition: 'width 0.25s ease',
+      },
+      progressLabel: (step + 1) + ' / ' + total,
+      showBack: step > 0,
+      back: () => this.setState(s => ({ step: Math.max(0, s.step - 1) })),
+      nextLabel: isLast ? 'See my quote' : 'Next',
+      nextStyle: {
+        flex: 1, background: canAdvance ? '#111111' : '#D8D2C0', color: '#FFFFFF',
+        border: 'none', fontFamily: 'inherit', fontWeight: 900, fontSize: 15,
+        padding: '14px', borderRadius: 999, cursor: canAdvance ? 'pointer' : 'not-allowed',
+        textTransform: 'uppercase', letterSpacing: '0.03em',
+      },
+      next: () => {
+        if (!canAdvance) return;
+        if (isLast) {
+          localStorage.setItem('sorbetes_gwq_answers', JSON.stringify(this.state.answers));
+          window.location.href = 'GWQ Loader Quotation.dc.html';
+        } else {
+          this.setState(s => ({ step: s.step + 1 }));
+        }
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>
