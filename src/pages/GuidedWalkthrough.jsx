@@ -18,6 +18,8 @@ import {
   PRINT_COLOR_OPTIONS, PRINT_CHOICES, PLACEMENTS, hemsFor, showFor, showsPrice,
   styleById, peso, quoteTotals, MIN_QTY,
 } from '../data/orderConfig.js'
+
+const fabricLabel = (value) => (FABRICS.find((f) => f.value === value) || {}).label || value
 import '../design/GuidedWalkthrough.css'
 
 const SCRUB_SRC = '/scrub-tee.mp4'
@@ -190,23 +192,40 @@ export default function GuidedWalkthrough() {
         </p>
       </div>
 
-      {/* scroll-scrub track: tall spacer + sticky stage/panel */}
+      {/* scroll-scrub track: tall spacer + sticky text / stage / options */}
       <div ref={trackRef} className="gw-track" style={{ height: `${N * PART_VH}vh` }}>
         <div className="gw-stick">
-          <div className="gw-stage">
-            <div ref={zoomRef} className="gw-zoom">
-              <video ref={videoRef} src={SCRUB_SRC} muted playsInline preload="auto" />
-            </div>
-            <div className="gw-stage-cap">Preview reacts to fit &amp; part · front view</div>
+          <div className="gw-part-meta">
+            <span className="gw-sec">{active.section}</span>
+            <h2 className="gw-part-title">{active.label}</h2>
+            <p className="gw-part-hint">{active.hint}</p>
           </div>
 
-          <aside className="gw-panel">
-            <div className="gw-part-meta">
-              <span className="gw-sec">{active.section}</span>
-              <h2 className="gw-part-title">{active.label}</h2>
-              <p className="gw-part-hint">{active.hint}</p>
+          <div className="gw-stage-col">
+            <div className="gw-stage">
+              <span className="gw-stage-badge">{styleById(form.style).label}</span>
+              <div ref={zoomRef} className="gw-zoom">
+                <video ref={videoRef} src={SCRUB_SRC} muted playsInline preload="auto" />
+              </div>
+              <div className="gw-stage-cap">Scroll to explore · 360° view</div>
             </div>
 
+            <div className="gw-spec">
+              <div className="gw-spec-label">Live preview spec</div>
+              <div className="gw-spec-chips">
+                <span className="gw-chip"><b>Style:</b> {styleById(form.style).label}</span>
+                {sh.fit && <span className="gw-chip"><b>Fit:</b> {form.fit}</span>}
+                <span className="gw-chip"><b>Sizes:</b> {form.size}</span>
+                {sh.collar && <span className="gw-chip"><b>Collar:</b> {form.collar}</span>}
+                {sh.sleeve && <span className="gw-chip"><b>Sleeve:</b> {form.sleeve}</span>}
+                <span className="gw-chip"><b>{sh.isPant ? 'Leg opening' : 'Hem'}:</b> {form.hem}</span>
+                <span className="gw-chip"><b>Fabric:</b> {fabricLabel(form.fabric)}</span>
+                <span className="gw-chip"><b>Color:</b> {form.color}</span>
+              </div>
+            </div>
+          </div>
+
+          <aside className="gw-options">
             {active.key === 'style' && (
               <>
                 <div className="gw-cards">
@@ -308,12 +327,24 @@ export default function GuidedWalkthrough() {
 
       {/* sticky live estimate + see-quote */}
       <div className="gw-bar">
-        <div>
-          <div className="gw-bar-k">Live estimate</div>
-          <div className="gw-bar-v">{peso(t.perPc)} <span>/ pc</span></div>
-          <div className="gw-bar-sub">{peso(t.total)} total · {peso(t.grandTotal)} incl. sample fee</div>
+        <div className="gw-bar-stats">
+          <div>
+            <div className="gw-bar-k">Per piece</div>
+            <div className="gw-bar-v">{peso(t.perPc)}</div>
+          </div>
+          <div>
+            <div className="gw-bar-k">Quantity</div>
+            <div className="gw-bar-v gw-bar-v--sm">{form.qty} pcs</div>
+          </div>
+          <div>
+            <div className="gw-bar-k">Total (incl. sample fee)</div>
+            <div className="gw-bar-v gw-bar-v--sm">{peso(t.grandTotal)}</div>
+          </div>
         </div>
-        <button className="gw-bar-cta" onClick={() => setShowQuote(true)}>See quotation →</button>
+        <div className="gw-bar-actions">
+          <button className="gw-bar-ghost" onClick={() => setShowQuote(true)}>Breakdown</button>
+          <button className="gw-bar-cta" onClick={() => setShowQuote(true)}>See quotation →</button>
+        </div>
       </div>
 
       <Footer />
