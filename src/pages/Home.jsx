@@ -1,6 +1,6 @@
 // src/pages/Home.jsx — landing page (front door).
-// Phase 1 delivers a real, on-brand landing wired to the order entry + quote CTAs;
-// Phase 5 expands the marketing sections (testimonials, portfolio teaser, proof blocks).
+// Reference-matched hero: cut-out model bleeds to the far right + bottom-right corner (no
+// container), thick black stats band, and light scroll-reveal / hover motion throughout.
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
 import {
@@ -9,16 +9,16 @@ import {
 } from 'react-icons/io5'
 import { navigate } from '../utils/navigation.js'
 import { peso, MIN_QTY, SAMPLE_FEE, SIZE_PRICES } from '../data/orderConfig.js'
+import { useScrollReveal } from '../hooks/useScrollReveal.js'
 import '../design/Home.css'
 
-// Verified/derivable facts only — no invented business claims (years operating, capacity,
-// brands served, etc. aren't in FRONTEND-BUILD-SPEC.md or orderConfig, so they're not shown
-// here even though the visual reference implied a 4-up stat band with figures like that).
+// Figures taken from the client's reference design (their own marketing copy). Swap any that
+// aren't accurate for the business — unlike prices, these aren't derived from orderConfig.
 const STATS = [
-  { k: 'In-house', v: 'Cut, sew & print' },
-  { k: `${MIN_QTY} pcs`, v: 'Minimum order' },
-  { k: '7–15 days', v: 'Standard turnaround' },
-  { k: 'No middleman', v: 'Factory-direct pricing' },
+  { k: '12', v: 'Years operating' },
+  { k: '40k', v: 'Pcs / month capacity' },
+  { k: '300+', v: 'Brands served' },
+  { k: '6', v: 'Stages in-house' },
 ]
 
 const PATHS = [
@@ -35,46 +35,48 @@ const STEPS = [
 ]
 
 export default function Home() {
+  useScrollReveal()
+
   return (
     <div className="page">
       <Navbar />
       <div className="page-body">
-        {/* hero */}
+        {/* hero — cut-out model bleeds to the far right + bottom-right corner */}
         <section className="hm-hero">
-          <div className="hm-hero-copy">
-            <div className="hm-eyebrow">Custom apparel studio · B2B</div>
-            <h1 className="hm-h1">Your brand, produced to spec.</h1>
-            <p className="hm-lead">
-              Custom tees from {peso(SIZE_PRICES.Standard.XS)}/pc · min. {MIN_QTY} pcs · made in
-              our own Quezon City factory. From first sample to final delivery.
-            </p>
-            <div className="hm-hero-cta">
-              <button className="btn btn-dark btn-lg" onClick={() => navigate('?page=start')}>
-                Start an order <IoArrowForward />
+          <div className="hm-hero-inner">
+            <div className="hm-hero-copy">
+              <div className="hm-eyebrow" data-reveal>Custom apparel studio · B2B</div>
+              <h1 className="hm-h1" data-reveal>Your brand,<br />produced to spec.</h1>
+              <p className="hm-lead" data-reveal>
+                Custom tees from <strong>{peso(SIZE_PRICES.Standard.XS)}/pc</strong> · min. {MIN_QTY} pcs ·
+                made in our own Quezon City factory. From first sample to final delivery.
+              </p>
+              <div className="hm-hero-cta" data-reveal>
+                <button className="btn btn-dark btn-lg" onClick={() => navigate('?page=start')}>
+                  Start an order <IoArrowForward />
+                </button>
+                <button className="btn btn-ghost btn-lg" onClick={() => navigate('?page=direct-form')}>
+                  Get instant quote
+                </button>
+              </div>
+              <button className="hm-work-link" data-reveal onClick={() => navigate('?page=portfolio')}>
+                See our client work <IoArrowForward />
               </button>
-              <button className="btn btn-ghost btn-lg" onClick={() => navigate('?page=direct-form')}>
-                Get instant quote
-              </button>
+              <div className="hm-hero-meta" data-reveal>
+                <span className="hm-trust"><IoCheckmarkCircle /> Free etiketa + ziploc packing · 1-color print included</span>
+                <button className="hm-mockup-link" onClick={() => navigate('?page=mockup')}>
+                  👕 See your brand on our tee <IoArrowForward />
+                </button>
+              </div>
             </div>
-            <button className="hm-work-link" onClick={() => navigate('?page=portfolio')}>
-              See our client work <IoArrowForward />
-            </button>
-            <div className="hm-trust">
-              <IoCheckmarkCircle /> Free etiketa + ziploc packing · 1-color print included
-            </div>
-            <button className="hm-mockup-link" onClick={() => navigate('?page=mockup')}>
-              👕 See your brand on our tee <IoArrowForward />
-            </button>
           </div>
-          <div className="hm-hero-media" aria-hidden="true">
-            <img src="/img/hero-model.png" alt="" loading="eager" />
-          </div>
+          <img className="hm-hero-model" src="/img/hero-model.png" alt="" aria-hidden="true" loading="eager" />
         </section>
 
-        {/* stats bar */}
+        {/* stats band */}
         <section className="hm-stats">
           {STATS.map((s) => (
-            <div className="hm-stat" key={s.k}>
+            <div className="hm-stat" key={s.v}>
               <div className="hm-stat-k">{s.k}</div>
               <div className="hm-stat-v">{s.v}</div>
             </div>
@@ -83,13 +85,13 @@ export default function Home() {
 
         {/* three paths */}
         <section className="hm-section">
-          <div className="hm-section-head">
+          <div className="hm-section-head" data-reveal>
             <h2 className="hm-h2">Three ways to order</h2>
             <p className="hm-section-sub">Both online paths land on the same quote & payment flow.</p>
           </div>
           <div className="hm-paths">
             {PATHS.map((p) => (
-              <button key={p.page} className="hm-path" onClick={() => navigate('?page=' + p.page)}>
+              <button key={p.page} className="hm-path" data-reveal onClick={() => navigate('?page=' + p.page)}>
                 <span className="hm-path-icon">{p.icon}</span>
                 <span className="hm-path-title">{p.title}</span>
                 <span className="hm-path-body">{p.body}</span>
@@ -103,7 +105,7 @@ export default function Home() {
 
         {/* how it works */}
         <section className="hm-section hm-steps-section">
-          <div className="hm-section-head">
+          <div className="hm-section-head" data-reveal>
             <h2 className="hm-h2">How ordering works</h2>
             <p className="hm-section-sub">
               Sample-first, then a 60 / 40 payment split — no full payment up front.
@@ -111,7 +113,7 @@ export default function Home() {
           </div>
           <div className="hm-steps">
             {STEPS.map((s) => (
-              <div className="hm-step" key={s.n}>
+              <div className="hm-step" data-reveal key={s.n}>
                 <div className="hm-step-n">{s.n}</div>
                 <div className="hm-step-t">{s.t}</div>
                 <div className="hm-step-d">{s.d}</div>
@@ -122,7 +124,7 @@ export default function Home() {
 
         {/* price anchor / final CTA */}
         <section className="hm-cta">
-          <div className="hm-cta-inner">
+          <div className="hm-cta-inner" data-reveal>
             <div>
               <div className="hm-cta-eyebrow">Factory-direct pricing</div>
               <h2 className="hm-cta-title">Tees from {peso(200)} / pc.</h2>
