@@ -1,0 +1,98 @@
+/* src/design/global.css — base reset + design tokens (black / yellow / cream, Archivo). */
+:root {
+  --ink: #111111;
+  --ink-soft: #3c392f;
+  --muted: #6b675e;
+  --muted-2: #8a867c;
+  --line: rgba(18, 18, 18, 0.12);
+  --paper: #fbfaf7;
+  --card: #ffffff;
+  --gold: #ffd400;
+  --gold-ink: #8f7300;
+  --ok: #178a4c;
+  --warn: #b26a00;
+  --danger: #c1272d;
+  --font-display: 'Archivo', Helvetica, Arial, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
+}
+
+img {
+  max-width: 100%;
+}
+
+/* Shared page-shell helpers used across marketing + flow pages. */
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+}
+.page-body {
+  flex: 1;
+}
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* Generic placeholder used by not-yet-built routes during scaffolding. */
+.stub {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 80px 16px 120px;
+  text-align: center;
+}
+.stub-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+.stub h1 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: clamp(30px, 5vw, 46px);
+  margin: 10px 0 12px;
+}
+.stub p {
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.6;
+}
+.stub-links {
+  margin-top: 26px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}

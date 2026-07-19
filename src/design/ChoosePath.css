@@ -1,0 +1,156 @@
+/* src/design/ChoosePath.css */
+.cp-wrap {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 52px 16px 90px;
+}
+.cp-head {
+  max-width: 620px;
+  margin-bottom: 34px;
+}
+.cp-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+.cp-title {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: clamp(30px, 5vw, 46px);
+  line-height: 1.02;
+  margin: 10px 0 12px;
+}
+.cp-lead {
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.cp-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+.cp-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 6px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 26px 26px 24px;
+  cursor: pointer;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+.cp-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--ink);
+  box-shadow: 0 20px 44px rgba(18, 18, 18, 0.1);
+}
+.cp-card-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: var(--ink);
+  color: var(--gold);
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+.cp-card-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+.cp-card-title {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 22px;
+  line-height: 1.1;
+  color: var(--ink);
+}
+.cp-card-body {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+  margin: 4px 0 10px;
+}
+.cp-card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--ink);
+  margin-top: auto;
+}
+.cp-card:hover .cp-card-cta {
+  color: var(--gold-ink);
+}
+
+.cp-walkin {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  text-align: left;
+  margin-top: 18px;
+  background: transparent;
+  border: 1.5px dashed rgba(18, 18, 18, 0.22);
+  border-radius: 18px;
+  padding: 20px 22px;
+  cursor: pointer;
+  transition: border-color 0.16s ease, background 0.16s ease;
+}
+.cp-walkin:hover {
+  border-color: var(--ink);
+  background: rgba(18, 18, 18, 0.02);
+}
+.cp-walkin-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(18, 18, 18, 0.06);
+  color: var(--ink);
+  font-size: 22px;
+  flex: none;
+}
+.cp-walkin-title {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 16px;
+}
+.cp-walkin-body {
+  display: block;
+  font-size: 13.5px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.cp-walkin-arrow {
+  margin-left: auto;
+  font-size: 20px;
+  flex: none;
+  color: var(--muted);
+}
+.cp-walkin:hover .cp-walkin-arrow {
+  color: var(--ink);
+}
+
+@media (max-width: 720px) {
+  .cp-grid {
+    grid-template-columns: 1fr;
+  }
+}
