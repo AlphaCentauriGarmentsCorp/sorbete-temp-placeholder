@@ -43,6 +43,25 @@
   gap: 12px;
   flex-wrap: wrap;
 }
+.hm-work-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 16px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.hm-work-link:hover {
+  color: var(--gold-ink);
+}
 .hm-trust {
   display: flex;
   align-items: center;
@@ -90,31 +109,33 @@
 
 /* ---- stats ---- */
 .hm-stats {
-  max-width: 1200px;
-  margin: 26px auto 0;
-  padding: 0 16px;
+  margin: 26px 0 0;
+  padding: 0;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1px;
-  background: var(--line);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  overflow: hidden;
+  background: var(--ink);
 }
 .hm-stat {
-  background: var(--paper);
-  padding: 20px 18px;
+  padding: 26px 20px;
+  text-align: center;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+.hm-stat:first-child {
+  border-left: none;
 }
 .hm-stat-k {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: 22px;
-  color: var(--ink);
+  font-size: clamp(18px, 2.2vw, 24px);
+  color: var(--gold);
 }
 .hm-stat-v {
-  font-size: 12.5px;
-  color: var(--muted);
-  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 4px;
 }
 
 /* ---- sections ---- */
@@ -276,6 +297,12 @@
   }
   .hm-stats {
     grid-template-columns: repeat(2, 1fr);
+  }
+  .hm-stat:nth-child(2n + 1) {
+    border-left: none;
+  }
+  .hm-stat:nth-child(n + 3) {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
   }
   .hm-paths,
   .hm-steps {

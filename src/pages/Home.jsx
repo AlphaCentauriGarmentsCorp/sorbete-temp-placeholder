@@ -8,9 +8,12 @@ import {
   IoCheckmarkCircle,
 } from 'react-icons/io5'
 import { navigate } from '../utils/navigation.js'
-import { peso, MIN_QTY, SAMPLE_FEE } from '../data/orderConfig.js'
+import { peso, MIN_QTY, SAMPLE_FEE, SIZE_PRICES } from '../data/orderConfig.js'
 import '../design/Home.css'
 
+// Verified/derivable facts only — no invented business claims (years operating, capacity,
+// brands served, etc. aren't in FRONTEND-BUILD-SPEC.md or orderConfig, so they're not shown
+// here even though the visual reference implied a 4-up stat band with figures like that).
 const STATS = [
   { k: 'In-house', v: 'Cut, sew & print' },
   { k: `${MIN_QTY} pcs`, v: 'Minimum order' },
@@ -39,24 +42,23 @@ export default function Home() {
         {/* hero */}
         <section className="hm-hero">
           <div className="hm-hero-copy">
-            <div className="hm-eyebrow">Sorbetes Apparel Studio · B2B custom apparel</div>
-            <h1 className="hm-h1">
-              Your brand,
-              <br />
-              made in-house.
-            </h1>
+            <div className="hm-eyebrow">Custom apparel studio · B2B</div>
+            <h1 className="hm-h1">Your brand, produced to spec.</h1>
             <p className="hm-lead">
-              Custom tees, hoodies, and pants — designed, sewn, and printed under one roof. No
-              middleman, no reseller markup. Build a quote in minutes.
+              Custom tees from {peso(SIZE_PRICES.Standard.XS)}/pc · min. {MIN_QTY} pcs · made in
+              our own Quezon City factory. From first sample to final delivery.
             </p>
             <div className="hm-hero-cta">
-              <button className="btn btn-gold btn-lg" onClick={() => navigate('?page=start')}>
+              <button className="btn btn-dark btn-lg" onClick={() => navigate('?page=start')}>
                 Start an order <IoArrowForward />
               </button>
-              <button className="btn btn-ghost btn-lg" onClick={() => navigate('?page=quick-quote')}>
-                Get a quick quote
+              <button className="btn btn-ghost btn-lg" onClick={() => navigate('?page=direct-form')}>
+                Get instant quote
               </button>
             </div>
+            <button className="hm-work-link" onClick={() => navigate('?page=portfolio')}>
+              See our client work <IoArrowForward />
+            </button>
             <div className="hm-trust">
               <IoCheckmarkCircle /> Free etiketa + ziploc packing · 1-color print included
             </div>
