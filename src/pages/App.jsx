@@ -26,6 +26,17 @@ import Rewards from './Rewards.jsx'
 import Notifications from './Notifications.jsx'
 import Chatbot from './Chatbot.jsx'
 
+// Phase 5 — marketing / content
+import OurStory from './OurStory.jsx'
+import Services from './Services.jsx'
+import Portfolio from './Portfolio.jsx'
+import OrderingGuide from './OrderingGuide.jsx'
+import FabricPrintGuide from './FabricPrintGuide.jsx'
+import FoundersClub from './FoundersClub.jsx'
+import GetInTouch from './GetInTouch.jsx'
+import QuickQuote from './QuickQuote.jsx'
+import Pricing from './Pricing.jsx'
+
 // Subscribe the whole app to route changes with one external store.
 function usePage() {
   return useSyncExternalStore(onNavigate, getPageParam, getPageParam)
@@ -33,17 +44,6 @@ function usePage() {
 
 // Pages not yet built get a branded placeholder so navigation stays live.
 const STUBS = {
-  'our-story': { title: 'Our Story', phase: 5 },
-  services: { title: 'Services', phase: 5 },
-  portfolio: { title: 'Portfolio', phase: 5 },
-  'portfolio-expanded': { title: 'Portfolio — Case Study', phase: 5 },
-  guide: { title: 'Ordering Guide', phase: 5 },
-  'fabric-print-guide': { title: 'Fabric & Print Guide', phase: 5 },
-  'founders-club': { title: "Founder's Club", phase: 5 },
-  'founders-club-guide': { title: "Founder's Club Guide", phase: 5 },
-  'get-in-touch': { title: 'Get in Touch', phase: 5 },
-  'quick-quote': { title: 'Quick Quote', phase: 5 },
-  pricing: { title: 'Pricing', phase: 5 },
   mockup: { title: 'Logo Mockup Tool', phase: 6 },
 }
 
@@ -56,6 +56,17 @@ export default function App() {
   if (page === 'home') return <Home />
   if (page === 'start') return <ChoosePath />
   if (page === 'auth') return <Auth />
+
+  // Marketing / content (Phase 5)
+  if (page === 'our-story') return <OurStory />
+  if (page === 'services') return <Services />
+  if (page === 'portfolio' || page === 'portfolio-expanded') return <Portfolio />
+  if (page === 'guide') return <OrderingGuide />
+  if (page === 'fabric-print-guide') return <FabricPrintGuide />
+  if (page === 'founders-club' || page === 'founders-club-guide') return <FoundersClub />
+  if (page === 'get-in-touch') return <GetInTouch />
+  if (page === 'quick-quote') return <QuickQuote />
+  if (page === 'pricing') return <Pricing />
 
   // Ordering flow (Phase 2) — quote-building is open to guests
   if (page === 'walkthrough') return <GuidedWalkthrough />
