@@ -181,7 +181,6 @@
 }
 .hm-stat:first-child {
   border-left: none;
-  padding-left: max(24px, calc((100vw - 1200px) / 2 + 16px));
 }
 .hm-stat:hover {
   background: rgba(255, 255, 255, 0.03);
@@ -406,9 +405,6 @@
   }
   .hm-stat {
     padding: 30px 20px;
-  }
-  .hm-stat:first-child {
-    padding-left: 20px;
   }
   .hm-stat:nth-child(2n + 1) {
     border-left: none;
