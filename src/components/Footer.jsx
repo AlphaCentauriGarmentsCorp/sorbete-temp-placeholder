@@ -28,6 +28,7 @@ const COLS = [
     links: [
       { label: 'Ordering guide', page: 'guide' },
       { label: 'Fabric & print guide', page: 'fabric-print-guide' },
+      { label: 'Logo mockup tool', page: 'mockup' },
       { label: 'Get in touch', page: 'get-in-touch' },
       { label: 'Quick quote', page: 'quick-quote' },
     ],

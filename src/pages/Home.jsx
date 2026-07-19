@@ -60,6 +60,9 @@ export default function Home() {
             <div className="hm-trust">
               <IoCheckmarkCircle /> Free etiketa + ziploc packing · 1-color print included
             </div>
+            <button className="hm-mockup-link" onClick={() => navigate('?page=mockup')}>
+              👕 See your brand on our tee <IoArrowForward />
+            </button>
           </div>
           <div className="hm-hero-media" aria-hidden="true">
             <img src="/img/hero-model.png" alt="" loading="eager" />

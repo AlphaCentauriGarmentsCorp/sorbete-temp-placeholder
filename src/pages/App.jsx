@@ -6,7 +6,7 @@ import RequireAuth from '../components/RequireAuth.jsx'
 import Home from './Home.jsx'
 import ChoosePath from './ChoosePath.jsx'
 import Auth from './Auth.jsx'
-import Stub from './Stub.jsx'
+import Mockup from './Mockup.jsx'
 
 // Phase 2 — ordering flow
 import GuidedWalkthrough from './GuidedWalkthrough.jsx'
@@ -42,11 +42,6 @@ function usePage() {
   return useSyncExternalStore(onNavigate, getPageParam, getPageParam)
 }
 
-// Pages not yet built get a branded placeholder so navigation stays live.
-const STUBS = {
-  mockup: { title: 'Logo Mockup Tool', phase: 6 },
-}
-
 const gate = (el) => <RequireAuth>{el}</RequireAuth>
 
 export default function App() {
@@ -67,6 +62,7 @@ export default function App() {
   if (page === 'get-in-touch') return <GetInTouch />
   if (page === 'quick-quote') return <QuickQuote />
   if (page === 'pricing') return <Pricing />
+  if (page === 'mockup') return <Mockup />
 
   // Ordering flow (Phase 2) — quote-building is open to guests
   if (page === 'walkthrough') return <GuidedWalkthrough />
@@ -85,12 +81,6 @@ export default function App() {
   if (page === 'rewards') return gate(<Rewards />)
   if (page === 'notifications') return gate(<Notifications />)
   if (page === 'chatbot') return gate(<Chatbot />)
-
-  // Public placeholders (Phase 5 / 6)
-  if (STUBS[page]) {
-    const s = STUBS[page]
-    return <Stub title={s.title} phase={s.phase} />
-  }
 
   // Unknown route → Home (query-param routing has no 404 surface of its own).
   return <Home />
