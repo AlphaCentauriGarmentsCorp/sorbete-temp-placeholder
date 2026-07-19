@@ -2,6 +2,7 @@
 import { useSyncExternalStore } from 'react'
 import { getPageParam, onNavigate } from '../utils/navigation.js'
 import RequireAuth from '../components/RequireAuth.jsx'
+import StickyCTA from '../components/StickyCTA.jsx'
 
 import Home from './Home.jsx'
 import ChoosePath from './ChoosePath.jsx'
@@ -44,9 +45,12 @@ function usePage() {
 
 const gate = (el) => <RequireAuth>{el}</RequireAuth>
 
-export default function App() {
-  const page = usePage()
+// Pages that already carry their own fixed bottom action bar (or, for the walk-in
+// kiosk, intentionally render without Navbar/Footer as a self-contained screen) —
+// stacking the global sticky CTA on top of these would clash or feel redundant.
+const NO_STICKY_CTA = new Set(['direct-form', 'walkthrough', 'walk-in'])
 
+function routePage(page) {
   // Public / built pages
   if (page === 'home') return <Home />
   if (page === 'start') return <ChoosePath />
@@ -84,4 +88,14 @@ export default function App() {
 
   // Unknown route → Home (query-param routing has no 404 surface of its own).
   return <Home />
+}
+
+export default function App() {
+  const page = usePage()
+  return (
+    <>
+      {routePage(page)}
+      {!NO_STICKY_CTA.has(page) && <StickyCTA />}
+    </>
+  )
 }

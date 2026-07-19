@@ -291,6 +291,50 @@
   }
 }
 
+/* ---- global sticky CTA bar (Get Quote + Chat with us) ------------------ */
+.sticky-cta {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 75;
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  background: rgba(251, 250, 247, 0.92);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--line);
+  transform: translateY(110%);
+  transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.sticky-cta--on {
+  transform: translateY(0);
+}
+.sticky-cta-get,
+.sticky-cta-chat {
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 15px 8px;
+  border-radius: 999px;
+  text-align: center;
+}
+.sticky-cta-get {
+  flex: 1.6;
+  background: var(--gold);
+  color: var(--ink);
+}
+.sticky-cta-chat {
+  flex: 1;
+  background: var(--ink);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
 /* ---- chat sheet -------------------------------------------------------- */
 .chat-backdrop {
   position: fixed;
