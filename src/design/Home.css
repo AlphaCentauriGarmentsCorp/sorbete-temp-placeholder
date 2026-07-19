@@ -166,13 +166,20 @@
   50% { transform: translateY(-10px); }
 }
 
-/* ---- stats (thick black band, big gold figures) ---- */
+/* ---- stats (thick black band, big gold figures) ----
+   Band background is full-bleed; the figures themselves stay centered in the
+   same max-width column as the rest of the page, not stretched edge to edge. */
 .hm-stats {
   position: relative;
   z-index: 1;
+  background: var(--ink);
+}
+.hm-stats-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  background: var(--ink);
 }
 .hm-stat {
   padding: 44px 24px 46px;
@@ -400,7 +407,7 @@
     filter: drop-shadow(0 20px 34px rgba(18, 18, 18, 0.18));
     animation: hm-model-in 0.8s ease both;
   }
-  .hm-stats {
+  .hm-stats-inner {
     grid-template-columns: repeat(2, 1fr);
   }
   .hm-stat {

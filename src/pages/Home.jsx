@@ -75,12 +75,14 @@ export default function Home() {
 
         {/* stats band */}
         <section className="hm-stats">
-          {STATS.map((s) => (
-            <div className="hm-stat" key={s.v}>
-              <div className="hm-stat-k">{s.k}</div>
-              <div className="hm-stat-v">{s.v}</div>
-            </div>
-          ))}
+          <div className="hm-stats-inner">
+            {STATS.map((s) => (
+              <div className="hm-stat" key={s.v}>
+                <div className="hm-stat-k">{s.k}</div>
+                <div className="hm-stat-v">{s.v}</div>
+              </div>
+            ))}
+          </div>
         </section>
 
         {/* three paths */}
