@@ -30,3 +30,32 @@ export function clearDraft() {
     /* ignore */
   }
 }
+
+// ---- reorder: seed the Instant builder from a past order ------------------
+const REORDER_KEY = 'sorbetes_reorder'
+
+/** @param seed { form, qty } — stashed by "Reorder", consumed by DirectForm on mount. */
+export function saveReorder(seed) {
+  try {
+    localStorage.setItem(REORDER_KEY, JSON.stringify(seed))
+  } catch {
+    /* ignore */
+  }
+}
+
+export function loadReorder() {
+  try {
+    const raw = localStorage.getItem(REORDER_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
+export function clearReorder() {
+  try {
+    localStorage.removeItem(REORDER_KEY)
+  } catch {
+    /* ignore */
+  }
+}

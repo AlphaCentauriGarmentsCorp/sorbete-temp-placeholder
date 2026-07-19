@@ -3,12 +3,13 @@
 // shared QuoteSummary → placeOrder (sign-in gate). No print-method / fulfillment / upload steps.
 // Ported from design-reference/04-Frontend-Update-React-Code/DirectForm.jsx; changes: chrome
 // import path, and onProceed now routes through the checkout hook instead of a dead link.
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
 import QuoteSummary from './QuoteSummary.jsx'
 import { navigateBack } from '../utils/navigation.js'
 import { useCheckout } from '../hooks/useCheckout.js'
+import { loadReorder, clearReorder } from '../utils/draftOrder.js'
 import {
   STYLES, FITS, SIZES, SIZE_PRICES, COLLARS, SLEEVES, FABRICS, colorsFor, COLOR_HEX,
   PRINT_COLOR_OPTIONS, PRINT_CHOICES, PLACEMENTS, hemsFor, showFor, showsPrice,
@@ -35,10 +36,17 @@ function Card({ title, sub, selected, onClick }) {
 }
 
 export default function DirectForm() {
-  const [form, setForm] = useState(DEFAULT_FORM)
+  // Seed from a "Reorder" if one was stashed (from My Orders / Order details).
+  const [form, setForm] = useState(() => {
+    const r = loadReorder()
+    return r?.form ? { ...DEFAULT_FORM, ...r.form, qty: r.qty || DEFAULT_FORM.qty } : DEFAULT_FORM
+  })
   const [showQuote, setShowQuote] = useState(false)
   const { placeOrder } = useCheckout()
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
+
+  // Consume the reorder seed once so a refresh starts fresh.
+  useEffect(() => { clearReorder() }, [])
 
   const sh = useMemo(() => showFor(form.style, form.printChoice), [form.style, form.printChoice])
   const hasDesign = sh.printDesign

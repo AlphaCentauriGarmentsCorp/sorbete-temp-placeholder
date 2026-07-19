@@ -16,13 +16,22 @@ import WalkInForm from './WalkInForm.jsx'
 import Checkout from './Checkout.jsx'
 import Payment from './Payment.jsx'
 
+// Phase 4 — signed-in dashboard (all gated)
+import MyOrders from './MyOrders.jsx'
+import OrderInfo from './OrderInfo.jsx'
+import TrackOrder from './TrackOrder.jsx'
+import Account from './Account.jsx'
+import Address from './Address.jsx'
+import Rewards from './Rewards.jsx'
+import Notifications from './Notifications.jsx'
+import Chatbot from './Chatbot.jsx'
+
 // Subscribe the whole app to route changes with one external store.
 function usePage() {
   return useSyncExternalStore(onNavigate, getPageParam, getPageParam)
 }
 
 // Pages not yet built get a branded placeholder so navigation stays live.
-// Real components replace these entries phase by phase.
 const STUBS = {
   'our-story': { title: 'Our Story', phase: 5 },
   services: { title: 'Services', phase: 5 },
@@ -38,22 +47,12 @@ const STUBS = {
   mockup: { title: 'Logo Mockup Tool', phase: 6 },
 }
 
-// Auth-gated dashboard routes — Phase 4. Wrapped in RequireAuth (Google sign-in).
-const GATED_STUBS = {
-  'my-orders': { title: 'My Orders', phase: 4 },
-  'my-orders-info': { title: 'Order Details', phase: 4 },
-  'track-order': { title: 'Track Order', phase: 4 },
-  account: { title: 'Account', phase: 4 },
-  address: { title: 'Saved Addresses', phase: 4 },
-  rewards: { title: 'Rewards', phase: 4 },
-  notifications: { title: 'Notifications', phase: 4 },
-  chatbot: { title: 'Support Chat', phase: 4 },
-}
+const gate = (el) => <RequireAuth>{el}</RequireAuth>
 
 export default function App() {
   const page = usePage()
 
-  // Fully built pages
+  // Public / built pages
   if (page === 'home') return <Home />
   if (page === 'start') return <ChoosePath />
   if (page === 'auth') return <Auth />
@@ -65,26 +64,18 @@ export default function App() {
   if (page === 'walk-in') return <WalkInForm />
   if (page === 'payment') return <Payment /> // reachable by online (authed) + walk-in (SMS) orders
 
-  // Order placement resume — requires sign-in (spec §2 gate)
-  if (page === 'checkout') {
-    return (
-      <RequireAuth>
-        <Checkout />
-      </RequireAuth>
-    )
-  }
+  // Sign-in-gated (spec §2): placement resume + dashboard/tracking
+  if (page === 'checkout') return gate(<Checkout />)
+  if (page === 'my-orders') return gate(<MyOrders />)
+  if (page === 'my-orders-info') return gate(<OrderInfo />)
+  if (page === 'track-order') return gate(<TrackOrder />)
+  if (page === 'account') return gate(<Account />)
+  if (page === 'address') return gate(<Address />)
+  if (page === 'rewards') return gate(<Rewards />)
+  if (page === 'notifications') return gate(<Notifications />)
+  if (page === 'chatbot') return gate(<Chatbot />)
 
-  // Auth-gated placeholders
-  if (GATED_STUBS[page]) {
-    const s = GATED_STUBS[page]
-    return (
-      <RequireAuth>
-        <Stub title={s.title} phase={s.phase} />
-      </RequireAuth>
-    )
-  }
-
-  // Public placeholders
+  // Public placeholders (Phase 5 / 6)
   if (STUBS[page]) {
     const s = STUBS[page]
     return <Stub title={s.title} phase={s.phase} />
