@@ -11,7 +11,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
 import QuoteSummary from './QuoteSummary.jsx'
-import { navigateBack } from '../utils/navigation.js'
+import { navigate, navigateBack } from '../utils/navigation.js'
 import { useCheckout } from '../hooks/useCheckout.js'
 import {
   STYLES, FITS, SIZES, SIZE_PRICES, COLLARS, SLEEVES, FABRICS, colorsFor, COLOR_HEX,
@@ -190,6 +190,9 @@ export default function GuidedWalkthrough() {
           Scroll through three sections — apparel, fabric &amp; color, print &amp; design.
           The preview reacts as you choose, and your quote moves live.
         </p>
+        <button className="gw-3d-link" onClick={() => navigate('?page=walkthrough-3d')}>
+          ✦ Try the new <b>3D builder</b> — beta
+        </button>
       </div>
 
       {/* scroll-scrub track: tall spacer + sticky text / stage / options */}

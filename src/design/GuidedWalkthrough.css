@@ -5,6 +5,10 @@
 .gw-back { background: none; border: none; font: inherit; font-weight: 700; color: #6b675e; cursor: pointer; padding: 6px 0; }
 .gw-title { font-family: 'Archivo', sans-serif; font-weight: 900; text-transform: uppercase; font-size: clamp(32px, 5vw, 48px); margin: 8px 0 6px; }
 .gw-lead { color: #4a4740; max-width: 52ch; margin: 0; }
+/* "Try the 3D beta" pill — entry into the immersive prototype */
+.gw-3d-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; background: #111; color: #fff; border: none; cursor: pointer; font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 13px; padding: 9px 16px; border-radius: 999px; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.gw-3d-link:hover { transform: translateY(-1px); box-shadow: 0 10px 26px rgba(18, 18, 18, 0.18); }
+.gw-3d-link b { color: #ffd400; font-weight: 900; }
 
 /* tall track — height set inline (N * PART_VH vh) */
 .gw-track { position: relative; }
