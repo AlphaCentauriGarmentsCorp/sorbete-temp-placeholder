@@ -1,39 +1,52 @@
-// src/pages/GuidedWalkthrough.jsx  — Path A (Online / Guided, scroll-scrub)
-// A sticky video/model stage is scrubbed by scroll position; each "part" zooms the stage to
-// the relevant garment area while its options show on the right. Options come from
-// src/data/orderConfig.js. Ends in QuoteSummary → placeOrder (sign-in gate).
-// Ported from design-reference/04-Frontend-Update-React-Code/GuidedWalkthrough.jsx; changes:
-// chrome import path + onProceed routes through the checkout hook.
+// src/pages/GuidedWalkthrough.jsx  — Path A (Online / Guided)
+// A sticky, live 3D garment stage is choreographed by scroll position: each "part"
+// moves the camera to the relevant garment area (collar, sleeve, hem, chest…) while
+// its options show on the right, and the garment reflects the client's choices
+// (color, print) in real time. Options come from src/data/orderConfig.js.
+// Ends in QuoteSummary → placeOrder (sign-in gate).
 //
-// ASSET: vertical garment clip at /public/scrub-tee.mp4. Frames are driven by scroll —
-// the video is never played, only seeked.
-import { useEffect, useMemo, useRef, useState } from 'react'
+// The 3D stage (GarmentStage) is lazy-loaded so three.js stays out of the main bundle;
+// browsers without WebGL fall back to a flat, still-recoloring SVG garment.
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
 import QuoteSummary from './QuoteSummary.jsx'
-import { navigate, navigateBack } from '../utils/navigation.js'
+import { navigateBack } from '../utils/navigation.js'
 import { useCheckout } from '../hooks/useCheckout.js'
 import {
   STYLES, FITS, SIZES, SIZE_PRICES, COLLARS, SLEEVES, FABRICS, colorsFor, COLOR_HEX,
   PRINT_COLOR_OPTIONS, PRINT_CHOICES, PLACEMENTS, hemsFor, showFor, showsPrice,
   styleById, peso, quoteTotals, MIN_QTY,
 } from '../data/orderConfig.js'
-
-const fabricLabel = (value) => (FABRICS.find((f) => f.value === value) || {}).label || value
 import '../design/GuidedWalkthrough.css'
 
-const SCRUB_SRC = '/scrub-tee.mp4'
+const GarmentStage = lazy(() => import('../components/three/GarmentStage.jsx'))
+
 const PART_VH = 130 // scroll height per part
 
-const smoother = (r) => r * r * r * (r * (r * 6 - 15) + 10)
+function hasWebGL() {
+  try {
+    const c = document.createElement('canvas')
+    return !!(window.WebGLRenderingContext && (c.getContext('webgl') || c.getContext('experimental-webgl')))
+  } catch {
+    return false
+  }
+}
 
-// Per-part zoom focus {s: scale, x/y: transform-origin %}. Collar→neck, sleeve→cuff, hem→bottom.
-const FOCUS = {
-  style:       { s: 1.0, x: 50, y: 32 }, size: { s: 1.0, x: 50, y: 40 },
-  collar:      { s: 2.9, x: 50, y: 13 }, sleeve: { s: 2.3, x: 30, y: 30 },
-  hem:         { s: 2.1, x: 52, y: 56 }, fabric: { s: 1.7, x: 50, y: 40 },
-  color:       { s: 1.7, x: 50, y: 40 }, printChoice: { s: 1.0, x: 50, y: 32 },
-  printColors: { s: 1.8, x: 50, y: 34 }, placement: { s: 1.6, x: 50, y: 36 },
+// Flat garment that still recolors — shown when WebGL is unavailable.
+function TeeFallback({ colorHex, hasPrint }) {
+  return (
+    <svg className="gw-tee-svg" viewBox="0 0 200 210" role="img" aria-label="Garment preview">
+      <path
+        d="M62 40 L40 56 L54 84 L72 74 L72 178 L128 178 L128 74 L146 84 L160 56 L138 40
+           C129 55 112 59 100 59 C88 59 71 55 62 40 Z"
+        fill={colorHex}
+        stroke="rgba(0,0,0,0.18)"
+        strokeWidth="1.5"
+      />
+      {hasPrint && <circle cx="100" cy="118" r="26" fill="none" stroke="rgba(244,242,236,0.9)" strokeWidth="4" />}
+    </svg>
+  )
 }
 
 const DEFAULT_FORM = {
@@ -81,71 +94,36 @@ export default function GuidedWalkthrough() {
 
   const N = parts.length
   const trackRef = useRef(null)
-  const videoRef = useRef(null)
-  const zoomRef = useRef(null)
-  const rafRef = useRef(null)
-  const stepRef = useRef(0)
-  const appliedRef = useRef({ s: 1, x: 50, y: 32 }) // eased values carried across frames
+  // The GarmentStage rig reads scroll each frame and reports the active part back
+  // via onStep; when WebGL is unavailable we drive the same part index off scroll.
+  const supports3D = useMemo(hasWebGL, [])
+  const reduced = useMemo(
+    () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches,
+    [],
+  )
 
-  // Continuous, damped rAF loop. Reads scroll each frame and eases the applied
-  // transform toward the target (no CSS transition — that fought the per-frame writes
-  // and made the zoom lag the scroll). Video is seeked only on meaningful change.
+  // WebGL path: GarmentStage's frame loop reports the active part via onStep.
+  // No-WebGL path: drive the same part index from scroll here.
   useEffect(() => {
-    let running = true
-    const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v))
-    const lerp = (m, n, e) => m + (n - m) * e
-
-    const loop = () => {
-      if (!running) return
-      rafRef.current = requestAnimationFrame(loop) // schedule next up-front
-      if (document.hidden) return
+    if (supports3D) return
+    const onScroll = () => {
       const track = trackRef.current
       if (!track) return
-
       const vh = window.innerHeight
       const rect = track.getBoundingClientRect()
       const denom = rect.height - vh
-      const p = clamp(denom > 0 ? -rect.top / denom : 0, 0, 0.9999)
-
-      // target focus for this scroll position, eased within the active part
-      const pf = p * N
-      const idx = clamp(Math.floor(pf), 0, N - 1)
-      const e = smoother(clamp(pf - idx, 0, 1))
-      const a = FOCUS[parts[idx]?.key] || FOCUS.style
-      const b = FOCUS[parts[Math.min(N - 1, idx + 1)]?.key] || a
-      const tx = { s: lerp(a.s, b.s, e), x: lerp(a.x, b.x, e), y: lerp(a.y, b.y, e) }
-
-      // damped follow → smooth motion decoupled from scroll-event cadence
-      const k = 0.16
-      const ap = appliedRef.current
-      ap.s += (tx.s - ap.s) * k
-      ap.x += (tx.x - ap.x) * k
-      ap.y += (tx.y - ap.y) * k
-
-      const z = zoomRef.current
-      if (z) {
-        z.style.transform = `scale(${ap.s.toFixed(4)})`
-        z.style.transformOrigin = `${ap.x.toFixed(2)}% ${ap.y.toFixed(2)}%`
-      }
-
-      // seek the video (scrub only) — skip sub-frame deltas to avoid decode stutter
-      const v = videoRef.current
-      if (v && v.duration) {
-        const tt = p * v.duration
-        if (Math.abs(v.currentTime - tt) > 1 / 30) {
-          try { v.currentTime = tt } catch { /* not seekable yet */ }
-        }
-      }
-
-      if (idx !== stepRef.current) { stepRef.current = idx; setStep(idx) }
+      const p = Math.max(0, Math.min(0.9999, denom > 0 ? -rect.top / denom : 0))
+      const idx = Math.max(0, Math.min(N - 1, Math.floor(p * N)))
+      setStep((prev) => (prev === idx ? prev : idx))
     }
-
-    rafRef.current = requestAnimationFrame(loop)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
     return () => {
-      running = false
-      if (rafRef.current != null) cancelAnimationFrame(rafRef.current)
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
     }
-  }, [N, parts])
+  }, [supports3D, N])
 
   const pickStyle = (id) => {
     const s = showFor(id, form.printChoice)
@@ -164,6 +142,7 @@ export default function GuidedWalkthrough() {
   const t = quoteTotals({ ...form, hasDesign }, form.qty)
   const active = parts[Math.min(step, N - 1)] || parts[0]
   const priced = showsPrice(form.style)
+  const colorHex = COLOR_HEX[form.color] || '#111111'
 
   if (showQuote) {
     return (
@@ -188,47 +167,43 @@ export default function GuidedWalkthrough() {
         <h1 className="gw-title">Design it as you scroll.</h1>
         <p className="gw-lead">
           Scroll through three sections — apparel, fabric &amp; color, print &amp; design.
-          The preview reacts as you choose, and your quote moves live.
+          Spin the live 3D garment, watch it recolor as you choose, and your quote moves live.
         </p>
-        <button className="gw-3d-link" onClick={() => navigate('?page=walkthrough-3d')}>
-          ✦ Try the new <b>3D builder</b> — beta
-        </button>
       </div>
 
-      {/* scroll-scrub track: tall spacer + sticky text / stage / options */}
+      {/* scroll track: tall spacer + sticky immersive 3D stage + floating inputs */}
       <div ref={trackRef} className="gw-track" style={{ height: `${N * PART_VH}vh` }}>
-        <div className="gw-stick">
-          <div className="gw-part-meta">
-            <span className="gw-sec">{active.section}</span>
-            <h2 className="gw-part-title">{active.label}</h2>
-            <p className="gw-part-hint">{active.hint}</p>
-          </div>
-
-          <div className="gw-stage-col">
-            <div className="gw-stage">
-              <span className="gw-stage-badge">{styleById(form.style).label}</span>
-              <div ref={zoomRef} className="gw-zoom">
-                <video ref={videoRef} src={SCRUB_SRC} muted playsInline preload="auto" />
-              </div>
-              <div className="gw-stage-cap">Scroll to explore · 360° view</div>
+        <div className="gw-im-stage">
+          <div className="gw-im-bg" aria-hidden="true" />
+          {supports3D ? (
+            <Suspense fallback={<div className="gw-stage-loading">Loading 3D…</div>}>
+              <GarmentStage
+                trackRef={trackRef}
+                parts={parts}
+                colorHex={colorHex}
+                hasPrint={hasDesign}
+                reduced={reduced}
+                onStep={setStep}
+              />
+            </Suspense>
+          ) : (
+            <div className="gw-stage-fallback">
+              <TeeFallback colorHex={colorHex} hasPrint={hasDesign} />
             </div>
+          )}
 
-            <div className="gw-spec">
-              <div className="gw-spec-label">Live preview spec</div>
-              <div className="gw-spec-chips">
-                <span className="gw-chip"><b>Style:</b> {styleById(form.style).label}</span>
-                {sh.fit && <span className="gw-chip"><b>Fit:</b> {form.fit}</span>}
-                <span className="gw-chip"><b>Sizes:</b> {form.size}</span>
-                {sh.collar && <span className="gw-chip"><b>Collar:</b> {form.collar}</span>}
-                {sh.sleeve && <span className="gw-chip"><b>Sleeve:</b> {form.sleeve}</span>}
-                <span className="gw-chip"><b>{sh.isPant ? 'Leg opening' : 'Hem'}:</b> {form.hem}</span>
-                <span className="gw-chip"><b>Fabric:</b> {fabricLabel(form.fabric)}</span>
-                <span className="gw-chip"><b>Color:</b> {form.color}</span>
-              </div>
+          <div className="gw-im-hud">
+            <div className="gw-im-part">
+              <span className="gw-sec">{active.section}</span>
+              <h2 className="gw-part-title">{active.label}</h2>
+              <p className="gw-part-hint">{active.hint}</p>
             </div>
-          </div>
+            <div className="gw-im-progress">
+              {String(Math.min(step + 1, N)).padStart(2, '0')} <span>/ {String(N).padStart(2, '0')}</span>
+            </div>
+            {step === 0 && <div className="gw-im-cue">Scroll to explore ↓</div>}
 
-          <aside className="gw-options">
+            <aside className="gw-im-panel">
             {active.key === 'style' && (
               <>
                 <div className="gw-cards">
@@ -323,13 +298,13 @@ export default function GuidedWalkthrough() {
               </div>
             )}
 
-            <div className="gw-progress">{Math.min(step + 1, N)} / {N}</div>
-          </aside>
+            </aside>
+          </div>
         </div>
       </div>
 
-      {/* sticky live estimate + see-quote */}
-      <div className="gw-bar">
+      {/* immersive live estimate + see-quote (translucent) */}
+      <div className="gw-im-bar">
         <div className="gw-bar-stats">
           <div>
             <div className="gw-bar-k">Per piece</div>

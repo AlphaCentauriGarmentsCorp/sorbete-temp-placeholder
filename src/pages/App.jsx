@@ -1,12 +1,8 @@
 // src/pages/App.jsx — query-param router (?page=…). Single source of route → component.
-import { lazy, Suspense, useSyncExternalStore } from 'react'
+import { useSyncExternalStore } from 'react'
 import { getPageParam, onNavigate } from '../utils/navigation.js'
 import RequireAuth from '../components/RequireAuth.jsx'
 import StickyCTA from '../components/StickyCTA.jsx'
-
-// Lazy — pulls in three.js/react-three-fiber only when the 3D route is visited,
-// keeping that ~600KB out of the main bundle for everyone else.
-const GuidedWalkthrough3D = lazy(() => import('./GuidedWalkthrough3D.jsx'))
 
 import Home from './Home.jsx'
 import ChoosePath from './ChoosePath.jsx'
@@ -52,7 +48,7 @@ const gate = (el) => <RequireAuth>{el}</RequireAuth>
 // Pages that already carry their own fixed bottom action bar (or, for the walk-in
 // kiosk, intentionally render without Navbar/Footer as a self-contained screen) —
 // stacking the global sticky CTA on top of these would clash or feel redundant.
-const NO_STICKY_CTA = new Set(['direct-form', 'walkthrough', 'walkthrough-3d', 'walk-in'])
+const NO_STICKY_CTA = new Set(['direct-form', 'walkthrough', 'walk-in'])
 
 function routePage(page) {
   // Public / built pages
@@ -74,13 +70,6 @@ function routePage(page) {
 
   // Ordering flow (Phase 2) — quote-building is open to guests
   if (page === 'walkthrough') return <GuidedWalkthrough />
-  if (page === 'walkthrough-3d') {
-    return (
-      <Suspense fallback={<div className="w3-boot">Loading 3D builder…</div>}>
-        <GuidedWalkthrough3D />
-      </Suspense>
-    )
-  }
   if (page === 'direct-form') return <DirectForm />
   if (page === 'walk-ins') return <WalkInsInfo />
   if (page === 'walk-in') return <WalkInForm />
