@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
+import StatusPill from '../components/StatusPill.jsx'
+import OrderCard from '../components/OrderCard.jsx'
 import { IoSearch, IoArrowForward } from 'react-icons/io5'
 import { getParam, navigate } from '../utils/navigation.js'
 import { useSession } from '../context/SessionContext.jsx'
@@ -104,7 +106,7 @@ export default function TrackOrder() {
                   <div className="order-ref">{order.ref}</div>
                   <div className="order-meta">{order.qty} pcs · {styleById(order.form.style).label}</div>
                 </div>
-                <span className={'pill pill--' + getState(order.status).tone}>{getState(order.status).label}</span>
+                <StatusPill tone={getState(order.status).tone}>{getState(order.status).label}</StatusPill>
               </div>
               <div className="panel">
                 <div className="panel-h">Progress</div>
@@ -130,16 +132,13 @@ export default function TrackOrder() {
               ) : (
                 <div className="orders">
                   {mine.map((o) => (
-                    <button className="order-card" key={o.id} onClick={() => navigate('?page=track-order&id=' + o.id)}>
-                      <div className="order-card-main">
-                        <div className="order-top">
-                          <span className="order-ref">{o.ref}</span>
-                          <span className={'pill pill--' + getState(o.status).tone}>{getState(o.status).short}</span>
-                        </div>
-                        <div className="order-meta">{o.qty} pcs · {styleById(o.form.style).label}</div>
-                      </div>
-                      <IoArrowForward className="order-arrow" />
-                    </button>
+                    <OrderCard
+                      key={o.id}
+                      order={o}
+                      meta={`${o.qty} pcs · ${styleById(o.form.style).label}`}
+                      icon={IoArrowForward}
+                      onClick={() => navigate('?page=track-order&id=' + o.id)}
+                    />
                   ))}
                 </div>
               )}

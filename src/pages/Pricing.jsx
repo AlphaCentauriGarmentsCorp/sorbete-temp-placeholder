@@ -1,20 +1,23 @@
 // src/pages/Pricing.jsx — pricing reference tables, generated from the canonical orderConfig.
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
-import { IoArrowForward } from 'react-icons/io5'
+import MarketingHero from '../components/MarketingHero.jsx'
+import MarketingCTA from '../components/MarketingCTA.jsx'
 import { navigate } from '../utils/navigation.js'
 import {
-  FITS, SIZES, SIZE_PRICES, STYLES, COLLARS, SLEEVES, PLACEMENTS,
-  SAMPLE_FEE, MIN_QTY, peso,
+  FITS, SIZES, SIZE_PRICES, COLLARS, SLEEVES,
+  PRINT_COLOR_FEE, SAMPLE_FEE, MIN_QTY, peso,
 } from '../data/orderConfig.js'
 import '../design/marketing.css'
 
+// Placement itself is free — back print is billed per colour, so it lives in the
+// print-colour rows below rather than as a flat placement surcharge.
 const addOns = [
-  ...STYLES.filter((s) => s.addPerPc).map((s) => [s.label, `+${peso(s.addPerPc)} / pc`]),
   [COLLARS[1].label, `+${peso(COLLARS[1].addPerPc)} / pc`],
   [SLEEVES[1].label, `+${peso(SLEEVES[1].addPerPc)} / pc`],
-  [PLACEMENTS[1].label, `+${peso(PLACEMENTS[1].addPerPc)} / pc`],
-  ['Each print color after the 1st', '+₱20 / pc'],
+  ['Each front print color after the 1st', `+${peso(PRINT_COLOR_FEE)} / pc`],
+  ['Each back print color (no free color)', `+${peso(PRINT_COLOR_FEE)} / pc`],
+  ['Each sleeve print color, per sleeve', `+${peso(PRINT_COLOR_FEE)} / pc`],
 ]
 
 const terms = [
@@ -31,11 +34,9 @@ export default function Pricing() {
     <div className="page">
       <Navbar />
       <div className="page-body">
-        <section className="mk-hero">
-          <div className="mk-eyebrow">Pricing</div>
-          <h1 className="mk-h1">Straight numbers.</h1>
-          <p className="mk-lead">Per-piece price is driven by size and options — never by fabric alone. Here's the reference; the builder totals it for your exact spec.</p>
-        </section>
+        <MarketingHero eyebrow="Pricing" title="Straight numbers.">
+          Per-piece price is driven by size and options — never by fabric alone. Here's the reference; the builder totals it for your exact spec.
+        </MarketingHero>
 
         <section className="mk-section">
           <div className="mk-section-head"><h2 className="mk-h2">Per-piece base (tees)</h2><p className="mk-section-sub">By fit &amp; size. Long Sleeve adds +{peso(70)}/pc on top.</p></div>
@@ -73,15 +74,12 @@ export default function Pricing() {
           </div>
         </section>
 
-        <section className="mk-cta">
-          <div className="mk-cta-inner">
-            <div>
-              <h2 className="mk-cta-title">Get your exact number.</h2>
-              <p className="mk-cta-sub">The builder totals size, options, print, and the sample fee for your spec.</p>
-            </div>
-            <button className="btn btn-gold btn-lg" onClick={() => navigate('?page=start')}>Build a quote <IoArrowForward /></button>
-          </div>
-        </section>
+        <MarketingCTA
+          title="Get your exact number."
+          sub="The builder totals size, options, print, and the sample fee for your spec."
+          ctaLabel="Build a quote"
+          onCta={() => navigate('?page=start')}
+        />
       </div>
       <Footer />
     </div>

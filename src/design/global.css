@@ -79,6 +79,13 @@ img {
 }
 .page-body {
   flex: 1;
+  /* The global sticky CTA bar (StickyCTA.jsx) is `position: fixed`, so it never
+     pushes page content up on its own — without this, its bottom bar covers
+     whatever content a page happens to end on once scrolled. Reserves space
+     for it (~72px bar + breathing room + the safe-area inset it also adds)
+     on every page that uses this shell; harmless on the few pages where the
+     bar is suppressed (App.jsx's NO_STICKY_CTA), since those don't render it. */
+  padding-bottom: calc(88px + env(safe-area-inset-bottom));
 }
 .container {
   max-width: 1100px;

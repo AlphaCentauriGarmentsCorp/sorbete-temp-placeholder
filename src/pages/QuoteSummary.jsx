@@ -6,6 +6,7 @@
 import { useRef, useState } from 'react'
 import { IoCopyOutline, IoCheckmarkCircle, IoDownloadOutline } from 'react-icons/io5'
 import { quoteTotals, peso, styleById } from '../data/orderConfig.js'
+import { copyToClipboard } from '../utils/format.js'
 import '../design/QuoteSummary.css'
 
 function buildQuoteText(f, qty) {
@@ -41,27 +42,11 @@ export default function QuoteSummary({ form, qty = 50, onChange, onProceed }) {
 
   const copyQuote = () => {
     const text = buildQuoteText(form, qty)
-    const done = () => {
+    copyToClipboard(text).then(() => {
       setCopied(true)
       clearTimeout(timer.current)
       timer.current = setTimeout(() => setCopied(false), 2200)
-    }
-    const fallback = () => {
-      try {
-        const ta = document.createElement('textarea')
-        ta.value = text
-        ta.style.position = 'fixed'
-        ta.style.left = '-9999px'
-        document.body.appendChild(ta)
-        ta.focus(); ta.select()
-        document.execCommand('copy')
-        document.body.removeChild(ta)
-      } catch { /* ignore */ }
-      done()
-    }
-    if (navigator.clipboard?.writeText && window.isSecureContext !== false) {
-      navigator.clipboard.writeText(text).then(done).catch(fallback)
-    } else fallback()
+    })
   }
 
   const cells = [

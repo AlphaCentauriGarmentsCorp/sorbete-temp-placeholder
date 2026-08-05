@@ -1,65 +1,276 @@
 // src/pages/WalkInForm.jsx — in-store QR kiosk (?page=walk-in). On-site experience.
-// Ported from design-reference/01-Website-Prototype/Walk-in Form.dc.html (garment → details →
-// confirm). Two changes from the prototype:
-//   1. Pricing runs through the canonical orderConfig engine, not the stale ₱290/₱650 numbers.
-//   2. Walk-in guests are SMS-tracked (spec §2) — we collect a phone and fire a mock SMS on
-//      placement instead of assuming a login. No auth gate here (cash stays available in store).
-import { useState } from 'react'
-import { IoStorefrontOutline, IoClose } from 'react-icons/io5'
+// Gated by RequireAuth (App.jsx) — walk-in guests sign in with a real Sorbetes account
+// so their order shows up in My Orders / Track Order, same as an online order.
+//
+// Full garment config reusing the SAME engine as the online paths (useGarmentForm /
+// data/orderConfig.js) — a walk-in order prices and states identically to a guided or
+// instant one, it's just entered at the in-store kiosk. The only walk-in-specific piece
+// is the color step, which uses the business's official 20-color reference (SHIRT_COLORS)
+// instead of the smaller per-fabric palette the online paths use.
+//
+// Screen structure is a direct port of the team's sorbetes-walkin.html prototype: a
+// single scrolling order form (numbered sections, not paginated steps) that hands off
+// to a separate itemized quote screen — not the earlier step-1..step-5 wizard this file
+// used to have.
+import { useRef, useState } from 'react'
+import {
+  IoStorefrontOutline, IoClose, IoCopyOutline, IoCheckmarkCircle, IoDownloadOutline,
+  IoArrowForward, IoPeopleOutline, IoLocationOutline,
+} from 'react-icons/io5'
 import { navigate } from '../utils/navigation.js'
-import { useOrders } from '../context/OrderContext.jsx'
-import { sendSMS } from '../mocks/sms.js'
-import { quoteTotals, peso, MIN_QTY } from '../data/orderConfig.js'
+import { copyToClipboard } from '../utils/format.js'
+import { useCheckout } from '../hooks/useCheckout.js'
+import { useGarmentForm, DEFAULT_GARMENT_FORM } from '../hooks/useGarmentForm.js'
+import {
+  STYLES, ORDERABLE_STYLES, FITS, SIZES, COLLARS, SLEEVES, FABRICS, SHIRT_COLORS,
+  PRINT_COLOR_OPTIONS, PRINT_CHOICES, PLACEMENTS, PRINT_COLOR_FEE,
+  hemsFor, showsPrice, styleById, sizePricesFor, priceBreakdown, peso, MIN_QTY,
+} from '../data/orderConfig.js'
+import floorplanSrc from '../assets/walkin-floorplan.webp'
 import '../design/WalkInForm.css'
 
-// The kiosk is deliberately simple (2 garments). Map each to a canonical orderConfig
-// style + sensible in-store defaults so the estimate comes from the real pricing engine.
-const GARMENTS = [
-  { id: 'tee', label: 'T-shirt', glyph: 'T', style: 'plain-tee' },
-  { id: 'hoodie', label: 'Hoodie', glyph: 'H', style: 'hoodie' },
+// Studio floor plan — station coordinates (% of the square plan image) and the walking
+// routes between them, ported from the store's own floor plan asset/waypoints.
+const STATIONS = {
+  qr:       { num: 1, name: 'QR Station',     x: 76,   y: 72,   amenity: false },
+  rack:     { num: 2, name: 'Display Rack',   x: 49.5, y: 59.5, amenity: false },
+  csr:      { num: 3, name: 'CSR',            x: 49.8, y: 41.7, amenity: false },
+  artist:   { num: 4, name: 'Graphic Artist', x: 53.8, y: 19.4, amenity: false },
+  staff:    { num: null, name: 'Staff',       x: 34.8, y: 19.4, amenity: true },
+  entrance: { num: null, name: 'Entrance',    x: 63.6, y: 84.7, amenity: true },
+  restroom: { num: null, name: 'Restroom',    x: 86.5, y: 12.7, amenity: true },
+}
+const PIN_ORDER = ['entrance', 'qr', 'rack', 'csr', 'artist', 'staff', 'restroom']
+const ROUTES = {
+  'qr>rack': [[76, 72], [74, 79], [66, 82], [58, 80], [52, 73], [50, 66], [49.5, 60]],
+  'rack>csr': [[49.5, 60], [54, 56], [57, 51], [56, 47], [51, 45], [49.8, 42]],
+}
+// Which map state each phase shows — only these three screens carry the map, matching
+// the prototype (the order form itself and the quote screen render no map).
+const MAP_BY_PHASE = {
+  welcome: { current: 'qr', destination: 'rack', visited: ['qr'] },
+  browse: { current: 'rack', destination: null, visited: ['qr', 'rack'] },
+  'assist-yes': { current: 'rack', destination: 'csr', visited: ['qr', 'rack'] },
+}
+
+function MapArrows({ route }) {
+  if (!route || route.length < 2) return null
+  const arrows = []
+  let idx = 0
+  for (let i = 0; i < route.length - 1; i++) {
+    const [ax, ay] = route[i]
+    const [bx, by] = route[i + 1]
+    const dx = bx - ax, dy = by - ay
+    const dist = Math.hypot(dx, dy)
+    if (!dist) continue
+    const angle = (Math.atan2(dy, dx) * 180) / Math.PI
+    const n = Math.max(2, Math.round(dist / 8))
+    for (let j = 0; j < n; j++) {
+      const t = (j + 0.9) / (n + 0.8)
+      arrows.push({ x: ax + dx * t, y: ay + dy * t, angle, delay: (idx * 0.16).toFixed(2) })
+      idx++
+    }
+  }
+  return arrows.map((a, i) => (
+    <div key={i} className="wk-map-arrow" style={{ left: a.x + '%', top: a.y + '%', transform: `translate(-50%,-50%) rotate(${a.angle}deg)` }}>
+      <IoArrowForward style={{ animationDelay: a.delay + 's' }} />
+    </div>
+  ))
+}
+
+function MapBlock({ current, destination, visited }) {
+  const route = destination ? ROUTES[current + '>' + destination] : null
+  return (
+    <div className="wk-map">
+      <div className="wk-map-label">
+        <span className="wk-map-label-l"><IoLocationOutline /> Store map · where to go</span>
+        {destination && <span className="wk-map-dest">{STATIONS[destination].name}</span>}
+      </div>
+      <div className="wk-map-frame">
+        <img src={floorplanSrc} alt="Studio floor plan" />
+        <MapArrows route={route} />
+        {PIN_ORDER.map((k) => {
+          const s = STATIONS[k]
+          const isCurrent = k === current
+          const isNext = k === destination
+          const isDone = !isCurrent && !isNext && visited.includes(k)
+          const cls = ['wk-map-pin', s.amenity && 'amenity', isCurrent && 'current', isNext && 'next', isDone && 'done'].filter(Boolean).join(' ')
+          return (
+            <div key={k} className={cls} style={{ left: s.x + '%', top: s.y + '%' }}>
+              <span className="wk-map-dot">{s.num || ''}</span>
+              {(isCurrent || isNext || s.amenity) && (
+                <span className="wk-map-lbl">{s.num ? `Station ${s.num} — ` : ''}{s.name}</span>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function Option({ title, sub, selected, onClick }) {
+  return (
+    <button type="button" className={'wk-opt' + (selected ? ' wk-opt--on' : '')} onClick={onClick}>
+      <span className="wk-opt-t">{title}</span>
+      {sub ? <span className="wk-opt-s">{sub}</span> : null}
+    </button>
+  )
+}
+
+// Disclosure-gate quote text (§3 of CLAUDE.md — the customer must see the ×MIN_QTY
+// minimum and the full total before the sample fee is charged, not just per-piece price).
+function buildWalkInQuoteText(form, sh, hasDesign, breakdown, t, label, phone) {
+  return [
+    'Sorbetes Apparel — Walk-in Quotation', '',
+    'Style: ' + styleById(form.style).label,
+    sh.fit ? 'Fit: ' + form.fit : null,
+    'Size: ' + form.size,
+    sh.collar ? 'Collar: ' + form.collar : null,
+    sh.sleeve ? 'Sleeve: ' + form.sleeve : null,
+    (sh.isPant ? 'Leg opening: ' : 'Hem: ') + form.hem,
+    'Fabric: ' + form.fabric,
+    'Color: ' + form.color,
+    hasDesign ? 'Print: ' + form.printColors + '-color · ' + form.placement : 'Print: Plain (no print)',
+    'Quantity: ' + form.qty + ' pcs',
+    label ? 'Design / label: ' + label : null,
+    phone ? 'Contact: ' + phone : null,
+    '',
+    'PRICE BREAKDOWN (per piece)',
+    ...breakdown.lines.map((l) => l.label + ': ' + (l.key === 'base' ? peso(l.amount) : (l.amount ? '+' + peso(l.amount) : 'Included'))),
+    '',
+    'Per piece: ' + peso(t.perPc),
+    'Garment total × ' + form.qty + ' pcs: ' + peso(t.total),
+    'Sample fee: ' + peso(t.sampleFee),
+    'Total (incl. sample fee): ' + peso(t.grandTotal),
+    '60% downpayment: ' + peso(t.dp),
+    '40% balance at pickup: ' + peso(t.bal),
+  ].filter(Boolean).join('\n')
+}
+
+// Per-piece base price for a style/fit/size (correctly branches plain vs printed, and
+// collapses Boxy+Oversized to one tier — the deprecated flat SIZE_PRICES table this used
+// to read from only covered plain-tee and referenced a non-existent addPerPc field,
+// silently showing ₱0 for every size). Returns null for un-priced styles.
+function priceFor(styleId, fit, size) {
+  return sizePricesFor(styleId, fit)?.[size] ?? null
+}
+
+// Browse screen — a few real, correctly-priced tags (not the full rack). Styles with no
+// standard pricing (hoodie, jogger, long sleeve, cargo) are deliberately left off here;
+// the hint below the grid sends those customers to the CSR instead of guessing a price.
+const RACK_TAGS = [
+  { styleId: 'plain-tee', fit: 'Standard', size: 'M', fabric: 'CVC 240 GSM' },
+  { styleId: 'printed-tee', fit: 'Standard', size: 'M', fabric: 'CVC 240 GSM' },
+  { styleId: 'plain-tee', fit: 'Oversized', size: 'L', fabric: 'CVC 280 GSM' },
 ]
-const BASE_FORM = {
-  fit: 'Standard', size: 'M',
-  collar: 'Standard ribbed crew', sleeve: 'Standard cuff', hem: 'Standard open hem',
-  fabric: 'CVC 240 GSM', color: 'Black',
-  hasDesign: false, printColors: 1, placement: 'Front only',
+
+// What each field on a rack tag means — tapped from the legend to highlight the matching
+// line on the enlarged tag in the inspector sheet.
+const TAG_FIELDS = [
+  { id: 'size', label: 'Size', desc: "The sample size you'll build first — production quantity is set later." },
+  { id: 'fabric', label: 'Fabric', desc: 'The GSM / weight of the shirt.' },
+  { id: 'price', label: 'Price / pc', desc: 'Per piece — your quote multiplies this by your final quantity.' },
+]
+
+// Add-on prices for the catalog sheet, read straight from the pricing tables so this
+// can't drift from the numbers actually charged.
+const CATALOG_ADDONS = [
+  { label: COLLARS[1].label, amount: COLLARS[1].addPerPc },
+  { label: SLEEVES[1].label, amount: SLEEVES[1].addPerPc },
+  { label: 'Each extra print color (any placement)', amount: PRINT_COLOR_FEE },
+]
+
+function RackTagCard({ tag, large, activeField, onFieldTap, onClick }) {
+  const price = priceFor(tag.styleId, tag.fit, tag.size)
+  const field = (id, label, value) => (
+    <button
+      type="button"
+      className={'wk-tag-field' + (activeField === id ? ' wk-tag-field--hi' : '') + (onFieldTap ? ' wk-tag-field--tappable' : '')}
+      onClick={onFieldTap ? (e) => { e.stopPropagation(); onFieldTap(id) } : undefined}
+    >
+      <span className="wk-tag-field-label">{label}</span>
+      <span className="wk-tag-field-val">{value}</span>
+    </button>
+  )
+  return (
+    <div className={'wk-tag' + (large ? ' wk-tag--lg' : '')} onClick={onClick} role={onClick ? 'button' : undefined} tabIndex={onClick ? 0 : undefined}>
+      <div className="wk-tag-bar">{styleById(tag.styleId).label} · {tag.fit}</div>
+      <div className="wk-tag-body">
+        <span className="wk-tag-logo" aria-hidden="true">S</span>
+        {field('size', 'Size', tag.size)}
+        {field('fabric', 'Fabric', tag.fabric)}
+        {field('price', 'Price / pc', price != null ? peso(price) : 'Ask CSR')}
+      </div>
+    </div>
+  )
+}
+
+function Sheet({ title, subtitle, onClose, children }) {
+  return (
+    <div className="wk-sheet-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
+      <div className="wk-sheet" role="dialog" aria-modal="true" aria-label={title}>
+        <span className="wk-sheet-grip" aria-hidden="true" />
+        <div className="wk-sheet-top">
+          <div>
+            <div className="wk-sheet-title">{title}</div>
+            {subtitle && <div className="wk-sheet-sub">{subtitle}</div>}
+          </div>
+          <button type="button" className="wk-sheet-close" aria-label="Close" onClick={onClose}><IoClose /></button>
+        </div>
+        <div className="wk-sheet-body">{children}</div>
+      </div>
+    </div>
+  )
 }
 
 export default function WalkInForm() {
-  const { createOrderRecord } = useOrders()
-  const [step, setStep] = useState(1)
-  const [garment, setGarment] = useState('tee')
+  const { placeOrder } = useCheckout()
+  const { form, set, sh, hasDesign, pickStyle, pickFabric, totals: t } = useGarmentForm(DEFAULT_GARMENT_FORM)
+  // 'welcome' | 'browse' | 'assist' | 'assist-yes' | 'form' | 'quote'
+  const [phase, setPhase] = useState('welcome')
   const [label, setLabel] = useState('')
   const [notes, setNotes] = useState('')
-  const [qty, setQty] = useState(MIN_QTY)
-  const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [placing, setPlacing] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const copyTimer = useRef(null)
+  const [sheet, setSheet] = useState(null) // null | { type: 'inspect', tag } | { type: 'catalog' }
+  const [activeField, setActiveField] = useState('size')
 
-  const g = GARMENTS.find((x) => x.id === garment)
-  const form = { ...BASE_FORM, style: g.style }
-  const t = quoteTotals(form, qty)
+  const openInspector = (tag) => { setActiveField('size'); setSheet({ type: 'inspect', tag }) }
+  const closeSheet = () => setSheet(null)
 
-  const back = () => setStep((s) => Math.max(1, s - 1))
+  const hems = hemsFor(form.style)
+  const priced = showsPrice(form.style)
+  const hasPrintStep = sh.needsPrintChoice || sh.printDesign
+  const breakdown = priceBreakdown({ ...form, hasDesign })
+  const sampleSectionNum = hasPrintStep ? 4 : 3
+
+  const copyQuote = () => {
+    const text = buildWalkInQuoteText(form, sh, hasDesign, breakdown, t, label, phone)
+    copyToClipboard(text).then(() => {
+      setCopied(true)
+      clearTimeout(copyTimer.current)
+      copyTimer.current = setTimeout(() => setCopied(false), 2200)
+    })
+  }
 
   const placeWalkIn = async () => {
     if (placing) return
     setPlacing(true)
-    const customer = { name: name.trim() || 'Walk-in guest', phone: phone.trim() || null }
-    const order = await createOrderRecord({
-      path: 'walkin',
-      form,
-      qty,
-      customer,
-      // extra intake captured at the counter
-    })
-    // Walk-in guests are tracked by SMS (spec §2/§4), not a login.
-    if (customer.phone) {
-      // TODO: replace with real SMS gateway — see FRONTEND-BUILD-SPEC.md §3/§4 (src/mocks/sms.js)
-      sendSMS(customer.phone, `Sorbetes: walk-in order ${order.ref} received. We'll text you when your sample is ready.`)
+    try {
+      await placeOrder({
+        path: 'walkin',
+        form: { ...form, hasDesign, label: label.trim() || null, notes: notes.trim() || null, phone: phone.trim() || null },
+        qty: form.qty,
+      })
+    } finally {
+      setPlacing(false)
     }
-    navigate('?page=payment&id=' + order.id)
   }
+
+  const phaseDotKey = phase === 'assist-yes' ? 'assist' : phase === 'quote' ? 'form' : phase
 
   return (
     <div className="wk-page">
@@ -68,98 +279,432 @@ export default function WalkInForm() {
           <IoClose />
         </button>
         <span className="wk-step-label">
-          <IoStorefrontOutline /> Walk-in order · Step {step} of 3
+          <IoStorefrontOutline />
+          {phase === 'welcome' && ' Welcome in'}
+          {phase === 'browse' && ' Step 1 · Browse'}
+          {phase === 'assist' && ' Before you order'}
+          {phase === 'assist-yes' && ' Assistance'}
+          {phase === 'form' && ' Step 2 · Sample order'}
+          {phase === 'quote' && ' Sample quotation · per piece'}
         </span>
       </header>
+      <div className="wk-phase-nav" aria-hidden="true">
+        {['welcome', 'browse', 'assist', 'form'].map((p) => (
+          <span key={p} className={'wk-phase-dot' + (p === phaseDotKey ? ' wk-phase-dot--on' : '')} />
+        ))}
+      </div>
 
       <main className="wk-main">
         <div className="wk-inner">
-          {step === 1 && (
-            <div className="wk-panel">
-              <h1 className="wk-h1">What are you ordering today?</h1>
-              <div className="wk-garments">
-                {GARMENTS.map((x) => (
-                  <button
-                    key={x.id}
-                    className={'wk-garment' + (garment === x.id ? ' wk-garment--on' : '')}
-                    onClick={() => setGarment(x.id)}
-                  >
-                    <span className="wk-garment-glyph">{x.glyph}</span>
-                    <span className="wk-garment-label">{x.label}</span>
-                  </button>
-                ))}
-              </div>
-              <button className="wk-primary" onClick={() => setStep(2)}>Continue</button>
-            </div>
-          )}
 
-          {step === 2 && (
-            <div className="wk-panel">
-              <h1 className="wk-h1">Order details</h1>
-              <div className="wk-fields">
-                <input className="wk-input" type="text" value={label} placeholder="Design name / label"
-                  onChange={(e) => setLabel(e.target.value)} />
-                <textarea className="wk-input" rows="3" value={notes}
-                  placeholder="Describe the print or show a reference at the counter"
-                  onChange={(e) => setNotes(e.target.value)} />
-                <div className="wk-qty-row">
-                  <span className="wk-qty-label">Quantity</span>
-                  <button className="wk-qty-btn" onClick={() => setQty((q) => Math.max(MIN_QTY, q - 10))}>−</button>
-                  <span className="wk-qty-val">{qty}</span>
-                  <button className="wk-qty-btn" onClick={() => setQty((q) => q + 10)}>+</button>
-                </div>
-                <div className="wk-hint">Minimum {MIN_QTY} pcs · steps of 10</div>
-                <div className="wk-contact">
-                  <input className="wk-input" type="text" value={name} placeholder="Your name"
-                    onChange={(e) => setName(e.target.value)} />
-                  <input className="wk-input" type="tel" value={phone} placeholder="Mobile number (for SMS updates)"
-                    onChange={(e) => setPhone(e.target.value)} />
-                </div>
-              </div>
-              <div className="wk-actions">
-                <button className="wk-ghost" onClick={back}>Back</button>
-                <button className="wk-primary wk-grow" onClick={() => setStep(3)}>Continue</button>
+          {MAP_BY_PHASE[phase] && <MapBlock {...MAP_BY_PHASE[phase]} />}
+
+          {/* Welcome */}
+          {phase === 'welcome' && (
+            <div className="wk-panel wk-welcome">
+              <div className="wk-eyebrow">Welcome in</div>
+              <h1 className="wk-h1 wk-hero">Build your<br />quote.</h1>
+              <p className="wk-note">Order on your phone. Follow each step.</p>
+              <div className="wk-welcome-steps">
+                <div className="wk-welcome-step"><span className="wk-welcome-n">1</span>Browse</div>
+                <div className="wk-welcome-step"><span className="wk-welcome-n">2</span>Build &amp; get a quote</div>
+                <div className="wk-welcome-step"><span className="wk-welcome-n">3</span>Pay</div>
               </div>
             </div>
           )}
 
-          {step === 3 && (
+          {/* Browse */}
+          {phase === 'browse' && (
             <div className="wk-panel">
-              <h1 className="wk-h1">Confirm your order</h1>
-              <div className="wk-summary">
-                {[
-                  ['Garment', g.label],
-                  ['Design / label', label || '—'],
-                  ['Notes', notes || '—'],
-                  ['Quantity', qty + ' pcs'],
-                  ['Contact', phone ? `${name || 'Guest'} · ${phone}` : name || '—'],
-                ].map(([k, v]) => (
-                  <div className="wk-summary-row" key={k}>
-                    <span className="wk-summary-k">{k}</span>
-                    <span className="wk-summary-v">{v}</span>
-                  </div>
+              <h1 className="wk-h1">Choose your<br />apparel</h1>
+              <p className="wk-note">Check the rack for style, fit and fabric. Tap a tag to see what each line means:</p>
+              <div className="wk-rack-grid">
+                {RACK_TAGS.map((tag, i) => (
+                  <RackTagCard key={i} tag={tag} onClick={() => openInspector(tag)} />
                 ))}
               </div>
+              <button type="button" className="wk-rack-link" onClick={() => setSheet({ type: 'catalog' })}>
+                See the full rack list, specs &amp; prices →
+              </button>
+              <div className="wk-hint">Ordering a hoodie, jogger, long sleeve or cargo? Ask our CSR — those are quoted case-by-case.</div>
+            </div>
+          )}
 
-              <div className="wk-total">
-                <span className="wk-total-k">In-store estimate</span>
-                <span className="wk-total-v">{peso(t.grandTotal)}</span>
-              </div>
-              <p className="wk-note">
-                Estimate includes the ₱1,000 sample fee. Staff confirms your final quote, sizes,
-                and payment (cash or e-wallet) at the counter.
-              </p>
-
-              <div className="wk-actions">
-                <button className="wk-ghost" onClick={back}>Back</button>
-                <button className="wk-primary wk-grow wk-gold" onClick={placeWalkIn} disabled={placing}>
-                  {placing ? 'Placing…' : 'Place walk-in order'}
+          {/* Assistance */}
+          {phase === 'assist' && (
+            <div className="wk-panel">
+              <div className="wk-eyebrow">Before you order</div>
+              <h1 className="wk-h1">Need any<br />assistance?</h1>
+              <p className="wk-note">Order on your own, or have a Customer Service Rep help you.</p>
+              <div className="wk-choicewrap">
+                <button type="button" className="wk-choice" onClick={() => setPhase('assist-yes')}>
+                  <IoPeopleOutline className="wk-choice-icon" />
+                  <span className="wk-choice-body">
+                    <span className="wk-choice-t">Yes, I need help</span>
+                    <span className="wk-choice-s">We'll point you to the CSR</span>
+                  </span>
+                  <IoArrowForward className="wk-choice-chev" />
+                </button>
+                <button type="button" className="wk-choice wk-choice--dark" onClick={() => setPhase('form')}>
+                  <IoCheckmarkCircle className="wk-choice-icon" />
+                  <span className="wk-choice-body">
+                    <span className="wk-choice-t">No, I'll continue</span>
+                    <span className="wk-choice-s">Go straight to the order form</span>
+                  </span>
+                  <IoArrowForward className="wk-choice-chev" />
                 </button>
               </div>
             </div>
           )}
+
+          {/* Assistance: routed to CSR */}
+          {phase === 'assist-yes' && (
+            <div className="wk-panel">
+              <h1 className="wk-h1">Head to<br />the CSR</h1>
+              <p className="wk-note">Head to <strong>Customer Service · Station 3</strong> — a staff member will help you.</p>
+              <div className="wk-callout">Staff give <strong>guidance only</strong> — you still place the order on your phone.</div>
+            </div>
+          )}
+
+          {/* Order form — single scroll, numbered sections, matches the prototype's
+              screen-order (no per-field pagination). */}
+          {phase === 'form' && (
+            <div className="wk-panel">
+              <div className="wk-eyebrow">Step 2 · Sample order</div>
+              <h1 className="wk-h1" style={{ fontSize: '27px', marginBottom: '8px' }}>Build your sample</h1>
+
+              <div className="wk-dark-note">
+                <span>This quote is for a <strong>sample, priced per piece</strong>. A sample is required before mass production.</span>
+              </div>
+
+              <div className="wk-section">
+                <div className="wk-section-num"><span className="wk-section-n">1</span>Apparel</div>
+
+                <div className="wk-field-label">Style</div>
+                <div className="wk-grid">
+                  {ORDERABLE_STYLES.map((s) => (
+                    <Option key={s.id} title={s.label} sub={s.sub} selected={form.style === s.id} onClick={() => pickStyle(s.id)} />
+                  ))}
+                </div>
+
+                {sh.fit && (
+                  <>
+                    <div className="wk-field-label">Fit</div>
+                    <div className="wk-grid">
+                      {FITS.map((fit) => (
+                        <Option key={fit} title={fit} selected={form.fit === fit} onClick={() => set({ fit })} />
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                <div className="wk-field-label">Size · price per piece</div>
+                <div className="wk-grid wk-grid--sizes">
+                  {SIZES.map((sz) => {
+                    const p = priceFor(form.style, form.fit, sz)
+                    return (
+                      <Option key={sz} title={sz} sub={p != null ? peso(p) + ' / pc' : null}
+                        selected={form.size === sz} onClick={() => set({ size: sz })} />
+                    )
+                  })}
+                </div>
+                <div className="wk-hint">For your sample only — we'll confirm production quantity next.</div>
+
+                {sh.collar && (
+                  <>
+                    <div className="wk-field-label">Collar type</div>
+                    <div className="wk-grid">
+                      {COLLARS.map((c) => (
+                        <Option key={c.label} title={c.label} sub={c.sub} selected={form.collar === c.label} onClick={() => set({ collar: c.label })} />
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {sh.sleeve && (
+                  <>
+                    <div className="wk-field-label">Sleeve</div>
+                    <div className="wk-grid">
+                      {SLEEVES.map((c) => (
+                        <Option key={c.label} title={c.label} sub={c.sub} selected={form.sleeve === c.label} onClick={() => set({ sleeve: c.label })} />
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                <div className="wk-field-label">{sh.isPant ? 'Leg opening' : 'Hem'}</div>
+                <div className="wk-grid">
+                  {hems.map((h) => (
+                    <Option key={h.label} title={h.label} sub={h.sub} selected={form.hem === h.label} onClick={() => set({ hem: h.label })} />
+                  ))}
+                </div>
+              </div>
+
+              <div className="wk-section">
+                <div className="wk-section-num"><span className="wk-section-n">2</span>Fabric &amp; Color</div>
+
+                <div className="wk-field-label">Fabric</div>
+                <div className="wk-grid">
+                  {FABRICS.map((fb) => (
+                    <Option key={fb.value} title={fb.label} sub={fb.sub} selected={form.fabric === fb.value} onClick={() => pickFabric(fb.value)} />
+                  ))}
+                </div>
+
+                <div className="wk-field-label">Color</div>
+                <div className="wk-swatches">
+                  {SHIRT_COLORS.map((c) => (
+                    <button key={c.name} type="button" className={'wk-swatch' + (form.color === c.name ? ' wk-swatch--on' : '')}
+                      onClick={() => set({ color: c.name })}>
+                      <span className="wk-swatch-chip" style={{ background: c.hex }} />
+                      <span className="wk-swatch-name">{c.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {hasPrintStep && (
+                <div className="wk-section">
+                  <div className="wk-section-num"><span className="wk-section-n">3</span>Print &amp; Design</div>
+
+                  {sh.needsPrintChoice && (
+                    <div className="wk-grid wk-grid--wide">
+                      {PRINT_CHOICES.map((pc) => (
+                        <Option key={pc.id} title={pc.label} sub={pc.sub} selected={form.printChoice === pc.id} onClick={() => set({ printChoice: pc.id })} />
+                      ))}
+                    </div>
+                  )}
+
+                  {hasDesign && (
+                    <>
+                      <div className="wk-field-label">Print colors</div>
+                      <div className="wk-grid">
+                        {PRINT_COLOR_OPTIONS.map((o) => (
+                          <Option
+                            key={o.n}
+                            title={o.label}
+                            sub={o.sub}
+                            selected={o.n === 5 ? (form.printColors || 1) >= 5 : form.printColors === o.n}
+                            onClick={() => set({ printColors: o.n === 5 ? Math.max(5, form.printColors || 5) : o.n })}
+                          />
+                        ))}
+                      </div>
+                      {(form.printColors || 1) >= 5 && (
+                        <div className="wk-fields">
+                          <input className="wk-input" type="number" min="5" max="99" value={form.printColors}
+                            onChange={(e) => set({ printColors: Math.max(5, Math.min(99, parseInt(e.target.value, 10) || 5)) })} />
+                          <div className="wk-hint">{form.printColors} colors · +{peso(20 * (form.printColors - 1))} / pc</div>
+                        </div>
+                      )}
+
+                      <div className="wk-field-label">Placement</div>
+                      <div className="wk-grid">
+                        {PLACEMENTS.map((p) => (
+                          <Option key={p.label} title={p.label} sub={p.sub} selected={form.placement === p.label} onClick={() => set({ placement: p.label })} />
+                        ))}
+                      </div>
+
+                      <div className="wk-field-label">Design details</div>
+                      <textarea className="wk-input" rows="3" value={notes}
+                        placeholder="Describe the print, or bring a reference / file to show at the counter"
+                        onChange={(e) => setNotes(e.target.value)} />
+                    </>
+                  )}
+                </div>
+              )}
+
+              <div className="wk-section">
+                <div className="wk-section-num"><span className="wk-section-n">{sampleSectionNum}</span>Sample &amp; next steps</div>
+                <div className="wk-note-box">
+                  <span>You're ordering <strong>one sample piece</strong>, priced per piece. Set your production quantity and contact info below so we can prep your quotation.</span>
+                </div>
+
+                <div className="wk-qty-row">
+                  <span className="wk-qty-label">Quantity</span>
+                  <button className="wk-qty-btn" onClick={() => set({ qty: Math.max(MIN_QTY, (form.qty || MIN_QTY) - 10) })}>−</button>
+                  <span className="wk-qty-val">{form.qty}</span>
+                  <button className="wk-qty-btn" onClick={() => set({ qty: (form.qty || MIN_QTY) + 10 })}>+</button>
+                </div>
+                <div className="wk-hint">Minimum {MIN_QTY} pcs · steps of 10</div>
+
+                <div className="wk-fields wk-contact">
+                  <input className="wk-input" type="text" value={label} placeholder="Design name / label (optional)"
+                    onChange={(e) => setLabel(e.target.value)} />
+                  <input className="wk-input" type="tel" value={phone} placeholder="Contact number (optional — for staff to reach you)"
+                    onChange={(e) => setPhone(e.target.value)} />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Quotation — separate screen, itemized breakdown built from the SAME
+              priceBreakdown() the backend prices from, so it can't drift from the quote. */}
+          {phase === 'quote' && (
+            <div className="wk-panel">
+              <div className="wk-eyebrow">Sample quotation · per piece</div>
+              <h1 className="wk-h1" style={{ fontSize: '27px' }}>Here's your quote</h1>
+              <p className="wk-note">A ballpark based on your specs — final figure confirmed before your sample.</p>
+
+              <div className="wk-spec-box">
+                <div className="wk-spec-head">Your specs</div>
+                <div className="wk-spec-grid">
+                  {[
+                    ['Style', styleById(form.style).label],
+                    sh.fit && ['Fit', form.fit],
+                    ['Size', form.size],
+                    sh.collar && ['Collar', form.collar],
+                    sh.sleeve && ['Sleeve', form.sleeve],
+                    [sh.isPant ? 'Leg opening' : 'Hem', form.hem],
+                    ['Fabric', form.fabric],
+                    ['Color', form.color],
+                    ['Print', hasDesign ? `${form.printColors}-color · ${form.placement}` : 'None (plain)'],
+                  ].filter(Boolean).map(([k, v]) => (
+                    <div className="wk-spec-cell" key={k}>
+                      <div className="wk-spec-lbl">{k}</div>
+                      <div className="wk-spec-val">{v}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="wk-quote" id="wkQuoteCard">
+                {breakdown.lines.map((l) => (
+                  <div className="wk-quote-row wk-quote-muted" key={l.key}>
+                    <span>{l.label}</span>
+                    <span>{l.key === 'base' ? peso(l.amount) : (l.amount ? '+' + peso(l.amount) : 'Included')}</span>
+                  </div>
+                ))}
+                <div className="wk-quote-row wk-quote-row--hero">
+                  <span>Per piece</span>
+                  <span className="wk-quote-perpc">{priced ? peso(t.perPc) : 'Quoted by staff'}</span>
+                </div>
+                <div className="wk-quote-row wk-quote-muted">
+                  <span>Garment total × {form.qty} pcs</span><span>{priced ? peso(t.total) : '—'}</span>
+                </div>
+                <div className="wk-quote-row wk-quote-muted">
+                  <span>+ Sample fee</span><span>{peso(t.sampleFee)}</span>
+                </div>
+                <div className="wk-quote-row wk-quote-total">
+                  <span>Total (incl. sample fee)</span><span>{priced ? peso(t.grandTotal) : '—'}</span>
+                </div>
+                <div className="wk-quote-split">
+                  <div className="wk-quote-row wk-quote-muted"><span>60% downpayment</span><span>{priced ? peso(t.dp) : '—'}</span></div>
+                  <div className="wk-quote-row wk-quote-muted"><span>40% balance at pickup</span><span>{priced ? peso(t.bal) : '—'}</span></div>
+                </div>
+                <div className="wk-quote-min">
+                  Minimum order: <strong>{MIN_QTY} pcs</strong> — this quote covers the full production run, not just today's sample piece.
+                </div>
+              </div>
+
+              <div className="wk-quote-tools">
+                <button type="button" className="wk-quote-tool" onClick={copyQuote}>
+                  {copied
+                    ? <><IoCheckmarkCircle className="wk-quote-ok" /><span className="wk-quote-ok">Copied</span></>
+                    : <><IoCopyOutline /> Copy quotation</>}
+                </button>
+                <button type="button" className="wk-quote-tool" onClick={() => window.print()}>
+                  <IoDownloadOutline /> Save as PDF
+                </button>
+              </div>
+
+              <p className="wk-note">Want to place this order? Staff confirms your final quote at the counter before you pay.</p>
+            </div>
+          )}
         </div>
       </main>
+
+      <footer className="wk-foot">
+        {phase === 'form' && (
+          <>
+            <div className="wk-foot-price">
+              <span className="wk-foot-k">Sample price · per pc</span>
+              <span className="wk-foot-v">{priced ? peso(t.perPc) : 'Ask CSR'}</span>
+            </div>
+            <div className="wk-foot-actions">
+              <button className="wk-foot-primary wk-foot-gold" onClick={() => setPhase('quote')}>See quotation</button>
+            </div>
+          </>
+        )}
+        {phase === 'quote' && (
+          <div className="wk-foot-actions wk-foot-actions--full">
+            <button className="wk-foot-ghost" onClick={() => setPhase('form')}>Change</button>
+            <button className="wk-foot-primary wk-foot-gold" onClick={placeWalkIn} disabled={placing}>
+              {placing ? 'Placing…' : 'Place order'}
+            </button>
+          </div>
+        )}
+        {phase !== 'form' && phase !== 'quote' && (
+          <div className="wk-foot-actions wk-foot-actions--full">
+            {phase !== 'welcome' && (
+              <button
+                className="wk-foot-ghost"
+                onClick={() => setPhase(phase === 'browse' ? 'welcome' : phase === 'assist' ? 'browse' : 'assist')}
+              >
+                Back
+              </button>
+            )}
+            {phase === 'welcome' && <button className="wk-foot-primary wk-foot-gold" onClick={() => setPhase('browse')}>Get started</button>}
+            {phase === 'browse' && <button className="wk-foot-primary" onClick={() => setPhase('assist')}>Continue</button>}
+            {phase === 'assist-yes' && <button className="wk-foot-primary wk-foot-gold" onClick={() => setPhase('form')}>Continue</button>}
+          </div>
+        )}
+      </footer>
+
+      {sheet?.type === 'inspect' && (
+        <Sheet title="Reading a rack tag" subtitle="Tap a line to see what it means" onClose={closeSheet}>
+          <RackTagCard tag={sheet.tag} large activeField={activeField} onFieldTap={setActiveField} />
+          <div className="wk-tag-legend">
+            {TAG_FIELDS.map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                className={'wk-tag-legend-item' + (activeField === f.id ? ' wk-tag-legend-item--on' : '')}
+                onClick={() => setActiveField(f.id)}
+              >
+                <span className="wk-tag-legend-t">{f.label}</span>
+                <span className="wk-tag-legend-d">{f.desc}</span>
+              </button>
+            ))}
+          </div>
+          <div className="wk-hint">Every piece on the rack carries a tag like this.</div>
+        </Sheet>
+      )}
+
+      {sheet?.type === 'catalog' && (
+        <Sheet title="On the rack" subtitle="Styles, fabrics & per-piece prices" onClose={closeSheet}>
+          <div className="wk-cat">
+            {STYLES.map((s) => (
+              <div className="wk-cat-item" key={s.id}>
+                <div className="wk-cat-name">{s.label}</div>
+                <div className="wk-cat-desc">{s.sub}</div>
+                {s.priceClass ? (
+                  <table className="wk-cat-table">
+                    <thead><tr><th>Size</th><th>Standard</th><th>Boxy / Oversized</th></tr></thead>
+                    <tbody>
+                      {SIZES.map((sz) => (
+                        <tr key={sz}>
+                          <td>{sz}</td>
+                          <td>{peso(sizePricesFor(s.id, 'Standard')[sz])}</td>
+                          <td>{peso(sizePricesFor(s.id, 'Oversized')[sz])}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="wk-cat-quote">Quoted case-by-case — ask our CSR.</div>
+                )}
+              </div>
+            ))}
+            <div className="wk-cat-item">
+              <div className="wk-cat-name">Add-ons</div>
+              <div className="wk-cat-desc">Added on top of the size price</div>
+              {CATALOG_ADDONS.map((a) => (
+                <div className="wk-cat-addline" key={a.label}><span>{a.label}</span><span>+{peso(a.amount)}/pc</span></div>
+              ))}
+            </div>
+          </div>
+          <div className="wk-hint">Prices are per piece for your sample. 1-color print is included in the printed base price.</div>
+        </Sheet>
+      )}
     </div>
   )
 }

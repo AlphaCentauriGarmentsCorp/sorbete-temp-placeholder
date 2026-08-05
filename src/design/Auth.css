@@ -35,6 +35,41 @@
   line-height: 1.6;
   margin: 0 0 24px;
 }
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.auth-input {
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+}
+.auth-input:focus {
+  border-color: var(--ink);
+}
+.auth-error {
+  font-size: 13px;
+  color: var(--danger);
+}
+.auth-switch {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  text-decoration: underline;
+  cursor: pointer;
+  text-align: center;
+}
+
 .auth-google-list {
   display: flex;
   flex-direction: column;

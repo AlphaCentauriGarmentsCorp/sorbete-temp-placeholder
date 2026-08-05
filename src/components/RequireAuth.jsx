@@ -4,8 +4,7 @@
 import { useEffect } from 'react'
 import { navigate, getPageParam, getParams } from '../utils/navigation.js'
 import { useSession } from '../context/SessionContext.jsx'
-import Navbar from './Navbar.jsx'
-import Footer from './Footer.jsx'
+import StubScreen from './StubScreen.jsx'
 
 export default function RequireAuth({ children }) {
   const { isAuthenticated, ready } = useSession()
@@ -23,20 +22,9 @@ export default function RequireAuth({ children }) {
 
   if (!isAuthenticated) {
     return (
-      <div className="page">
-        <Navbar />
-        <div className="page-body">
-          <div className="stub">
-            <div className="stub-eyebrow">Sign in required</div>
-            <h1>Redirecting to sign in…</h1>
-            <p>
-              This page — <code>?page={getPageParam()}</code> — needs a Google sign-in. Taking you
-              there now.
-            </p>
-          </div>
-        </div>
-        <Footer />
-      </div>
+      <StubScreen eyebrow="Sign in required" title="Redirecting to sign in…">
+        This page — <code>?page={getPageParam()}</code> — needs a Google sign-in. Taking you there now.
+      </StubScreen>
     )
   }
 

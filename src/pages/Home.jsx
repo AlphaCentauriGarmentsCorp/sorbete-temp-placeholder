@@ -22,9 +22,24 @@ const STATS = [
 ]
 
 const PATHS = [
-  { icon: <IoSparklesOutline />, title: 'Guided', body: 'Design as you scroll — visual builder, live preview.', page: 'walkthrough' },
-  { icon: <IoFlashOutline />, title: 'Instant', body: 'Know your spec? One-page form, instant quote.', page: 'direct-form' },
-  { icon: <IoStorefrontOutline />, title: 'Walk-in', body: 'Order in person at our Quezon City studio.', page: 'walk-ins' },
+  {
+    icon: <IoSparklesOutline />,
+    title: 'See what it looks like as you order!',
+    body: 'Customize your design step by step and see it update instantly as you choose colors, fabric, and style.',
+    page: 'walkthrough',
+  },
+  {
+    icon: <IoFlashOutline />,
+    title: 'Order Online',
+    body: 'Know exactly what you want? Fill out a quick form and place your order in minutes — fast and straightforward.',
+    page: 'direct-form',
+  },
+  {
+    icon: <IoStorefrontOutline />,
+    title: 'Order in our physical store',
+    body: 'Prefer a hands-on experience? Visit our store and get guided assistance while placing your order.',
+    page: 'walk-ins',
+  },
 ]
 
 const STEPS = [
@@ -70,7 +85,7 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <img className="hm-hero-model" src="/img/hero-model.png" alt="" aria-hidden="true" loading="eager" />
+          <img className="hm-hero-model" src="/img/hero-model.webp" alt="" aria-hidden="true" loading="eager" fetchPriority="high" />
         </section>
 
         {/* stats band */}
@@ -95,9 +110,11 @@ export default function Home() {
             {PATHS.map((p) => (
               <button key={p.page} className="hm-path" data-reveal onClick={() => navigate('?page=' + p.page)}>
                 <span className="hm-path-icon">{p.icon}</span>
-                <span className="hm-path-title">{p.title}</span>
-                <span className="hm-path-body">{p.body}</span>
-                <span className="hm-path-arrow">
+                <span className="hm-path-text">
+                  <span className="hm-path-title">{p.title}</span>
+                  <span className="hm-path-body">{p.body}</span>
+                </span>
+                <span className="hm-path-arrow" aria-hidden="true">
                   <IoArrowForward />
                 </span>
               </button>

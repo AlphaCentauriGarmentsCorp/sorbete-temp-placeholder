@@ -1,9 +1,11 @@
-// src/context/SessionContext.jsx — auth/session state (mock Google OAuth).
-// Locked model (FRONTEND-BUILD-SPEC §2): Google-only. `ready` guards against a
-// signed-in flash while we restore the session from storage.
-import { createContext, useContext, useEffect, useState, useCallback } from 'react'
-import { signInWithGoogle, signOutGoogle } from '../mocks/auth.js'
+// src/context/SessionContext.jsx — auth/session state, backed by the real Laravel API
+// (email + password, src/api/auth.js). `ready` guards against a signed-in flash while we
+// restore the session from storage.
+import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react'
+import { registerAccount, loginAccount } from '../api/auth.js'
+import { setToken } from '../api/client.js'
 import { navigate, getParam } from '../utils/navigation.js'
+import { getJSON, setJSON, remove } from '../utils/storage.js'
 
 const STORAGE_KEY = 'sorbetes_session'
 const SessionContext = createContext(null)
@@ -15,42 +17,56 @@ export function SessionProvider({ children }) {
 
   // Restore any persisted session once on mount.
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (raw) setUser(JSON.parse(raw))
-    } catch {
-      /* ignore malformed session */
+    const session = getJSON(STORAGE_KEY)
+    if (session?.token) {
+      setToken(session.token)
+      setUser(session.user)
     }
     setReady(true)
   }, [])
 
-  const signIn = useCallback(async (profile) => {
+  // Shared by register()/login(): persist the session and resume the intended
+  // destination if RequireAuth stashed one as ?next=…
+  const afterAuth = (session) => {
+    setToken(session.token)
+    setUser(session.user)
+    setJSON(STORAGE_KEY, session)
+    const next = getParam('next')
+    navigate(next ? decodeURIComponent(next) : '?page=my-orders')
+    return session
+  }
+
+  const register = useCallback(async ({ name, email, password }) => {
     setPending(true)
     try {
-      const session = await signInWithGoogle(profile)
-      setUser(session)
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
-      // Resume intended destination if RequireAuth stashed one as ?next=…
-      const next = getParam('next')
-      navigate(next ? decodeURIComponent(next) : '?page=my-orders')
-      return session
+      return afterAuth(await registerAccount({ name, email, password }))
+    } finally {
+      setPending(false)
+    }
+  }, [])
+
+  const login = useCallback(async ({ email, password }) => {
+    setPending(true)
+    try {
+      return afterAuth(await loginAccount({ email, password }))
     } finally {
       setPending(false)
     }
   }, [])
 
   const signOut = useCallback(async () => {
-    await signOutGoogle()
+    setToken(null)
     setUser(null)
-    localStorage.removeItem(STORAGE_KEY)
+    remove(STORAGE_KEY)
     navigate('?page=home')
   }, [])
 
-  return (
-    <SessionContext.Provider value={{ user, isAuthenticated: !!user, ready, pending, signIn, signOut }}>
-      {children}
-    </SessionContext.Provider>
+  const value = useMemo(
+    () => ({ user, isAuthenticated: !!user, ready, pending, register, login, signOut }),
+    [user, ready, pending, register, login, signOut],
   )
+
+  return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>
 }
 
 export function useSession() {

@@ -38,19 +38,9 @@ export default function WalkInsInfo() {
             </div>
           </div>
 
-          <div className="walkins-actions">
-            <a className="walkins-btn walkins-btn--dark" href={MAPS_LINK} target="_blank" rel="noopener noreferrer">
-              Get directions →
-            </a>
-            <button className="walkins-btn walkins-btn--ghost" onClick={() => navigate('?page=direct-form')}>
-              Get instant quote
-            </button>
-          </div>
-
           <p className="walkins-foot">
             Ordering online instead? Skip the trip and use{' '}
-            <a onClick={() => navigate('?page=direct-form')}>Get Instant Quote</a> or{' '}
-            <a onClick={() => navigate('?page=walkthrough')}>Start an Order</a> — no visit required.
+            <a onClick={() => navigate('?page=walkthrough')}>our guided walkthrough</a> — no visit required.
           </p>
         </div>
 

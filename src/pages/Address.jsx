@@ -5,18 +5,14 @@ import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
 import AccountNav from '../components/AccountNav.jsx'
 import { useSession } from '../context/SessionContext.jsx'
+import { getJSON, setJSON } from '../utils/storage.js'
+import { uid } from '../utils/id.js'
 import '../design/dashboard.css'
 
 const KEY = 'sorbetes_addresses'
 const EMPTY = { label: '', recipient: '', phone: '', line: '', city: '' }
 
-function load() {
-  try {
-    return JSON.parse(localStorage.getItem(KEY) || '{}')
-  } catch {
-    return {}
-  }
-}
+const load = () => getJSON(KEY, {})
 
 export default function Address() {
   const { user } = useSession()
@@ -24,19 +20,13 @@ export default function Address() {
   const [form, setForm] = useState(EMPTY)
   const list = all[user.email] || []
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(KEY, JSON.stringify(all))
-    } catch {
-      /* ignore */
-    }
-  }, [all])
+  useEffect(() => setJSON(KEY, all), [all])
 
   const setList = (next) => setAll((a) => ({ ...a, [user.email]: next }))
 
   const add = () => {
     if (!form.recipient.trim() || !form.line.trim()) return
-    const entry = { id: 'addr_' + Math.random().toString(36).slice(2, 8), ...form, default: list.length === 0 }
+    const entry = { id: uid('addr_'), ...form, default: list.length === 0 }
     setList([...list, entry])
     setForm(EMPTY)
   }

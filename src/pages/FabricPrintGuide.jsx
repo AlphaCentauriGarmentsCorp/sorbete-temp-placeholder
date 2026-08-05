@@ -1,7 +1,8 @@
 // src/pages/FabricPrintGuide.jsx — fabric weights, colors & print options (?page=fabric-print-guide).
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
-import { IoArrowForward } from 'react-icons/io5'
+import MarketingHero from '../components/MarketingHero.jsx'
+import MarketingCTA from '../components/MarketingCTA.jsx'
 import { navigate } from '../utils/navigation.js'
 import { FABRICS, COLORS_BY_FABRIC, COLOR_HEX, PRINT_COLOR_OPTIONS, PLACEMENTS, peso } from '../data/orderConfig.js'
 import '../design/marketing.css'
@@ -18,14 +19,10 @@ export default function FabricPrintGuide() {
     <div className="page">
       <Navbar />
       <div className="page-body">
-        <section className="mk-hero">
-          <div className="mk-eyebrow">Fabric &amp; print guide</div>
-          <h1 className="mk-h1">Pick the right base.</h1>
-          <p className="mk-lead">
-            Fabric sets the feel; print sets the look. Here's what we stock and how the options
-            affect your price — the builder shows exact numbers as you choose.
-          </p>
-        </section>
+        <MarketingHero eyebrow="Fabric & print guide" title="Pick the right base.">
+          Fabric sets the feel; print sets the look. Here's what we stock and how the options
+          affect your price — the builder shows exact numbers as you choose.
+        </MarketingHero>
 
         <section className="mk-section">
           <div className="mk-section-head">
@@ -76,15 +73,12 @@ export default function FabricPrintGuide() {
           </div>
         </section>
 
-        <section className="mk-cta">
-          <div className="mk-cta-inner">
-            <div>
-              <h2 className="mk-cta-title">See it priced live.</h2>
-              <p className="mk-cta-sub">The builder updates your per-piece price as you change fabric, color, and print.</p>
-            </div>
-            <button className="btn btn-gold btn-lg" onClick={() => navigate('?page=walkthrough')}>Open the builder <IoArrowForward /></button>
-          </div>
-        </section>
+        <MarketingCTA
+          title="See it priced live."
+          sub="The builder updates your per-piece price as you change fabric, color, and print."
+          ctaLabel="Open the builder"
+          onCta={() => navigate('?page=walkthrough')}
+        />
       </div>
       <Footer />
     </div>

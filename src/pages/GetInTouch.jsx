@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
+import MarketingHero from '../components/MarketingHero.jsx'
 import { IoLocationOutline, IoTimeOutline, IoChatbubbleEllipsesOutline } from 'react-icons/io5'
 import '../design/marketing.css'
 
@@ -23,11 +24,9 @@ export default function GetInTouch() {
     <div className="page">
       <Navbar />
       <div className="page-body">
-        <section className="mk-hero">
-          <div className="mk-eyebrow">Get in touch</div>
-          <h1 className="mk-h1">Let's make something.</h1>
-          <p className="mk-lead">Questions on fabrics, timelines, or a big run? Message us — or just start a quote and we'll take it from there.</p>
-        </section>
+        <MarketingHero eyebrow="Get in touch" title="Let's make something.">
+          Questions on fabrics, timelines, or a big run? Message us — or just start a quote and we'll take it from there.
+        </MarketingHero>
 
         <section className="mk-section">
           <div className="git-grid">

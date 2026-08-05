@@ -1,9 +1,11 @@
 // src/pages/Services.jsx — what we make + how (marketing).
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
+import MarketingHero from '../components/MarketingHero.jsx'
+import MarketingCTA from '../components/MarketingCTA.jsx'
 import {
   IoShirtOutline, IoBrushOutline, IoLayersOutline, IoConstructOutline,
-  IoPricetagsOutline, IoArrowForward, IoCheckmarkCircle,
+  IoPricetagsOutline, IoCheckmarkCircle,
 } from 'react-icons/io5'
 import { navigate } from '../utils/navigation.js'
 import { peso, MIN_QTY, SAMPLE_FEE } from '../data/orderConfig.js'
@@ -22,14 +24,10 @@ export default function Services() {
     <div className="page">
       <Navbar />
       <div className="page-body">
-        <section className="mk-hero">
-          <div className="mk-eyebrow">Services</div>
-          <h1 className="mk-h1">Everything, under one roof.</h1>
-          <p className="mk-lead">
-            From blank tees to fully-printed capsule drops — we handle cut, sew, print, sampling,
-            labeling, and packing in-house. One team, one point of contact.
-          </p>
-        </section>
+        <MarketingHero eyebrow="Services" title="Everything, under one roof.">
+          From blank tees to fully-printed capsule drops — we handle cut, sew, print, sampling,
+          labeling, and packing in-house. One team, one point of contact.
+        </MarketingHero>
 
         <section className="mk-section">
           <div className="mk-grid-3">
@@ -53,15 +51,12 @@ export default function Services() {
           </ul>
         </section>
 
-        <section className="mk-cta">
-          <div className="mk-cta-inner">
-            <div>
-              <h2 className="mk-cta-title">Spec your order.</h2>
-              <p className="mk-cta-sub">Guided or instant — both give you an itemized quote on the spot.</p>
-            </div>
-            <button className="btn btn-gold btn-lg" onClick={() => navigate('?page=start')}>Start an order <IoArrowForward /></button>
-          </div>
-        </section>
+        <MarketingCTA
+          title="Spec your order."
+          sub="Guided or instant — both give you an itemized quote on the spot."
+          ctaLabel="Start an order"
+          onCta={() => navigate('?page=start')}
+        />
       </div>
       <Footer />
     </div>

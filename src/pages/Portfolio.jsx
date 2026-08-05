@@ -4,6 +4,7 @@
 import { useState } from 'react'
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
+import MarketingHero from '../components/MarketingHero.jsx'
 import { IoClose, IoArrowForward } from 'react-icons/io5'
 import { navigate, getParam } from '../utils/navigation.js'
 import { PORTFOLIO } from '../data/mockData.js'
@@ -48,11 +49,9 @@ export default function Portfolio() {
     <div className="page">
       <Navbar />
       <div className="page-body">
-        <section className="mk-hero">
-          <div className="mk-eyebrow">Portfolio</div>
-          <h1 className="mk-h1">Real runs, real brands.</h1>
-          <p className="mk-lead">A sample of what we've cut, sewn, and printed — filter by the kind of work you're planning.</p>
-        </section>
+        <MarketingHero eyebrow="Portfolio" title="Real runs, real brands.">
+          A sample of what we've cut, sewn, and printed — filter by the kind of work you're planning.
+        </MarketingHero>
 
         <section className="mk-section">
           <div className="pf-filters">

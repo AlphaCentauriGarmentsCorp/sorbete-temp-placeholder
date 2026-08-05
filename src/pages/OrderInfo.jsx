@@ -2,6 +2,8 @@
 // Fixes SYSTEM-FLOW §7: adds a "Reorder" re-entry control (seeds the Instant builder).
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
+import StubScreen from '../components/StubScreen.jsx'
+import StatusPill from '../components/StatusPill.jsx'
 import { IoArrowBack, IoArrowForward, IoRepeatOutline } from 'react-icons/io5'
 import { getParam, navigate } from '../utils/navigation.js'
 import { useOrders } from '../context/OrderContext.jsx'
@@ -20,20 +22,13 @@ export default function OrderInfo() {
 
   if (!order) {
     return (
-      <div className="page">
-        <Navbar />
-        <div className="page-body">
-          <div className="stub">
-            <div className="stub-eyebrow">Order</div>
-            <h1>Order not found</h1>
-            <p>We couldn’t find that order in your account.</p>
-            <div className="stub-links">
-              <button className="btn btn-gold" onClick={() => navigate('?page=my-orders')}>My orders</button>
-            </div>
-          </div>
-        </div>
-        <Footer />
-      </div>
+      <StubScreen
+        eyebrow="Order"
+        title="Order not found"
+        actions={<button className="btn btn-gold" onClick={() => navigate('?page=my-orders')}>My orders</button>}
+      >
+        We couldn’t find that order in your account.
+      </StubScreen>
     )
   }
 
@@ -70,7 +65,7 @@ export default function OrderInfo() {
               <div className="dash-eyebrow">{pathLabel(order.path)} · {order.qty} pcs</div>
               <h1 className="dash-title">{order.ref}</h1>
             </div>
-            <span className={'pill pill--' + s.tone}>{s.label}</span>
+            <StatusPill tone={s.tone}>{s.label}</StatusPill>
           </div>
 
           <div className="panel">
@@ -101,9 +96,9 @@ export default function OrderInfo() {
               {order.payments.map((p) => (
                 <div className="tot-row" key={p.id}>
                   <span>{PAY_LABEL[p.type] || p.type} · {p.channel}{p.ref ? ` · ${p.ref}` : ''}</span>
-                  <span className={'pill pill--' + (p.status === 'approved' ? 'done' : p.status === 'rejected' ? 'danger' : 'wait')}>
+                  <StatusPill tone={p.status === 'approved' ? 'done' : p.status === 'rejected' ? 'danger' : 'wait'}>
                     {peso(p.amount)} · {p.status.replace('_', ' ')}
-                  </span>
+                  </StatusPill>
                 </div>
               ))}
             </div>

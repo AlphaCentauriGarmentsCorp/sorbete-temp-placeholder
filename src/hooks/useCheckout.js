@@ -27,7 +27,11 @@ export function useCheckout() {
       return null
     }
 
-    const customer = { name: user.name, email: user.email }
+    // WalkInForm collects a phone number into form.phone (there's no dedicated field
+    // for it on the online paths) — pass it through so it lands in orders.customer_phone
+    // instead of being silently dropped. PH customers primarily use phone as their
+    // contact channel, which matters once staff pick this order up in ash_ai.
+    const customer = { name: user.name, email: user.email, phone: form.phone || null }
     const order = await createOrderRecord({ path, form, qty, customer })
     clearDraft()
     navigate('?page=payment&id=' + order.id)

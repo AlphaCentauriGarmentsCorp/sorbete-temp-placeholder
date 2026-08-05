@@ -30,127 +30,96 @@
   margin: 0;
 }
 
+/* Compact horizontal rows — icon, text, arrow-button — instead of tall vertical
+   cards. Same treatment at every width; the row just naturally takes far less
+   height, which matters most on a phone where three of these stack in a column. */
 .cp-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 .cp-card {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   text-align: left;
-  gap: 6px;
+  gap: 14px;
+  width: 100%;
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 20px;
-  padding: 26px 26px 24px;
+  border-radius: 16px;
+  padding: 14px 16px;
   cursor: pointer;
   transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
 }
 .cp-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-2px);
   border-color: var(--ink);
-  box-shadow: 0 20px 44px rgba(18, 18, 18, 0.1);
+  box-shadow: 0 14px 30px rgba(18, 18, 18, 0.1);
 }
 .cp-card-icon {
   display: grid;
   place-items: center;
-  width: 46px;
-  height: 46px;
+  width: 42px;
+  height: 42px;
+  flex: none;
   border-radius: 12px;
   background: var(--ink);
   color: var(--gold);
-  font-size: 24px;
-  margin-bottom: 10px;
+  font-size: 21px;
+}
+.cp-card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
 }
 .cp-card-eyebrow {
   font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.1em;
+  font-size: 10px;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--gold-ink);
 }
 .cp-card-title {
   font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 22px;
-  line-height: 1.1;
+  font-weight: 800;
+  font-size: 15.5px;
+  line-height: 1.25;
   color: var(--ink);
 }
 .cp-card-body {
   color: var(--muted);
-  font-size: 14px;
-  line-height: 1.55;
-  margin: 4px 0 10px;
-}
-.cp-card-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 14px;
-  color: var(--ink);
-  margin-top: auto;
-}
-.cp-card:hover .cp-card-cta {
-  color: var(--gold-ink);
+  font-size: 12.5px;
+  line-height: 1.4;
+  margin-top: 2px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.cp-walkin {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  width: 100%;
-  text-align: left;
-  margin-top: 18px;
-  background: transparent;
-  border: 1.5px dashed rgba(18, 18, 18, 0.22);
-  border-radius: 18px;
-  padding: 20px 22px;
-  cursor: pointer;
-  transition: border-color 0.16s ease, background 0.16s ease;
-}
-.cp-walkin:hover {
-  border-color: var(--ink);
-  background: rgba(18, 18, 18, 0.02);
-}
-.cp-walkin-icon {
+/* CTA is a real (small, round) button — not a colored text link — so it still
+   reads as clearly tappable without needing a full-width block. */
+.cp-card-cta {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: rgba(18, 18, 18, 0.06);
-  color: var(--ink);
-  font-size: 22px;
+  width: 36px;
+  height: 36px;
   flex: none;
-}
-.cp-walkin-title {
-  display: block;
-  font-family: var(--font-display);
-  font-weight: 800;
+  color: #fff;
+  background: var(--ink);
+  border-radius: 50%;
   font-size: 16px;
+  transition: box-shadow 0.16s ease, transform 0.2s ease;
 }
-.cp-walkin-body {
-  display: block;
-  font-size: 13.5px;
-  color: var(--muted);
-  margin-top: 2px;
-}
-.cp-walkin-arrow {
-  margin-left: auto;
-  font-size: 20px;
-  flex: none;
-  color: var(--muted);
-}
-.cp-walkin:hover .cp-walkin-arrow {
-  color: var(--ink);
+.cp-card:hover .cp-card-cta {
+  box-shadow: 0 6px 16px rgba(18, 18, 18, 0.28);
+  transform: translateX(2px);
 }
 
-@media (max-width: 720px) {
-  .cp-grid {
-    grid-template-columns: 1fr;
+@media (max-width: 480px) {
+  .cp-card-body {
+    display: none;
   }
 }

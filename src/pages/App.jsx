@@ -11,7 +11,7 @@ import Mockup from './Mockup.jsx'
 
 // Phase 2 — ordering flow
 import GuidedWalkthrough from './GuidedWalkthrough.jsx'
-import DirectForm from './DirectForm.jsx'
+import ComingSoon from './ComingSoon.jsx'
 import WalkInsInfo from './WalkInsInfo.jsx'
 import WalkInForm from './WalkInForm.jsx'
 import Checkout from './Checkout.jsx'
@@ -68,11 +68,14 @@ function routePage(page) {
   if (page === 'pricing') return <Pricing />
   if (page === 'mockup') return <Mockup />
 
-  // Ordering flow (Phase 2) — quote-building is open to guests
+  // Ordering flow (Phase 2) — quote-building is open to guests.
+  // Current focus is the guided walkthrough + walk-in kiosk — the instant builder
+  // isn't open yet, so its route (and every button that points to it) shows a
+  // "coming soon" stub instead.
   if (page === 'walkthrough') return <GuidedWalkthrough />
-  if (page === 'direct-form') return <DirectForm />
+  if (page === 'direct-form') return <ComingSoon />
   if (page === 'walk-ins') return <WalkInsInfo />
-  if (page === 'walk-in') return <WalkInForm />
+  if (page === 'walk-in') return gate(<WalkInForm />)
   if (page === 'payment') return <Payment /> // reachable by online (authed) + walk-in (SMS) orders
 
   // Sign-in-gated (spec §2): placement resume + dashboard/tracking

@@ -7,6 +7,7 @@ import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
 import { IoCloudUploadOutline, IoArrowForward, IoCheckmarkCircle } from 'react-icons/io5'
 import { navigate } from '../utils/navigation.js'
+import { getJSON, setJSON } from '../utils/storage.js'
 import '../design/Mockup.css'
 
 const SWATCHES = [
@@ -18,13 +19,7 @@ const KEY = 'sorbetes_mockup'
 const DEFAULTS = { teeColor: 'white', logoSrc: '', logoName: '', x: 50, y: 42, size: 32, guide: false }
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v))
 
-function load() {
-  try {
-    return { ...DEFAULTS, ...(JSON.parse(localStorage.getItem(KEY) || 'null') || {}) }
-  } catch {
-    return DEFAULTS
-  }
-}
+const load = () => ({ ...DEFAULTS, ...getJSON(KEY, {}) })
 
 export default function Mockup() {
   const [st, setSt] = useState(load)
@@ -35,13 +30,7 @@ export default function Mockup() {
   const copyTimer = useRef(null)
   const set = (patch) => setSt((s) => ({ ...s, ...patch }))
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(KEY, JSON.stringify(st))
-    } catch {
-      /* quota (large data-URL logo) — ignore for the mock */
-    }
-  }, [st])
+  useEffect(() => setJSON(KEY, st), [st])
 
   const loadFile = (file) => {
     if (!file || !file.type.startsWith('image/')) return

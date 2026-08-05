@@ -6,26 +6,6 @@ import { quoteTotals } from './orderConfig.js'
 
 const daysAgo = (n) => new Date(Date.now() - n * 86_400_000).toISOString()
 
-// ---- Fake Google OAuth profiles ------------------------------------------
-// TODO: replace with real Google OAuth profile — see FRONTEND-BUILD-SPEC.md §2/§3.
-export const FAKE_GOOGLE_PROFILES = [
-  {
-    id: 'g_1088231',
-    name: 'Maria Santos',
-    email: 'maria.santos@gmail.com',
-    picture: '', // avatar falls back to initials in the UI
-    provider: 'google',
-  },
-  {
-    id: 'g_2277841',
-    name: 'Josh Reyes',
-    email: 'josh.reyes@gmail.com',
-    picture: '',
-    provider: 'google',
-  },
-]
-export const DEFAULT_PROFILE = FAKE_GOOGLE_PROFILES[0]
-
 // ---- helper to shape a seed order consistently with the live store -------
 function seedOrder({ id, ref, path, status, form, qty, customer, createdDaysAgo, timeline, payments = [], extra = {} }) {
   const totals = quoteTotals(form, qty)

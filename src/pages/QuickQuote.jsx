@@ -5,6 +5,7 @@
 import { useState } from 'react'
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
+import MarketingHero from '../components/MarketingHero.jsx'
 import { IoArrowForward } from 'react-icons/io5'
 import { navigate, getParam } from '../utils/navigation.js'
 import { quoteTotals, peso, MIN_QTY, styleById } from '../data/orderConfig.js'
@@ -35,11 +36,9 @@ export default function QuickQuote() {
     <div className="page">
       <Navbar />
       <div className="page-body">
-        <section className="mk-hero">
-          <div className="mk-eyebrow">Quick quote</div>
-          <h1 className="mk-h1">Ballpark in seconds.</h1>
-          <p className="mk-lead">A rough per-piece estimate for a Standard-fit, size-M, front-print run. Want exact numbers by size, fabric, and placement? Use the full builder.</p>
-        </section>
+        <MarketingHero eyebrow="Quick quote" title="Ballpark in seconds.">
+          A rough per-piece estimate for a Standard-fit, size-M, front-print run. Want exact numbers by size, fabric, and placement? Use the full builder.
+        </MarketingHero>
 
         <section className="mk-section">
           <div className="qq-wrap">

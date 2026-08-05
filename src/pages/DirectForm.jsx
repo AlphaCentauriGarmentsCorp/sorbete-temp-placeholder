@@ -3,27 +3,19 @@
 // shared QuoteSummary → placeOrder (sign-in gate). No print-method / fulfillment / upload steps.
 // Ported from design-reference/04-Frontend-Update-React-Code/DirectForm.jsx; changes: chrome
 // import path, and onProceed now routes through the checkout hook instead of a dead link.
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
 import QuoteSummary from './QuoteSummary.jsx'
 import { navigateBack } from '../utils/navigation.js'
 import { useCheckout } from '../hooks/useCheckout.js'
+import { useGarmentForm, DEFAULT_GARMENT_FORM } from '../hooks/useGarmentForm.js'
 import { loadReorder, clearReorder } from '../utils/draftOrder.js'
 import {
-  STYLES, FITS, SIZES, SIZE_PRICES, COLLARS, SLEEVES, FABRICS, colorsFor, COLOR_HEX,
-  PRINT_COLOR_OPTIONS, PRINT_CHOICES, PLACEMENTS, hemsFor, showFor, showsPrice,
-  styleById, peso, quoteTotals, MIN_QTY,
+  ORDERABLE_STYLES, FITS, SIZES, SIZE_PRICES, COLLARS, SLEEVES, FABRICS, colorsFor, COLOR_HEX,
+  PRINT_COLOR_OPTIONS, PRINT_CHOICES, PLACEMENTS, hemsFor, showsPrice, styleById, peso, MIN_QTY,
 } from '../data/orderConfig.js'
 import '../design/DirectForm.css'
-
-const DEFAULT_FORM = {
-  style: 'plain-tee', fit: 'Standard', size: 'M',
-  collar: 'Standard ribbed crew', sleeve: 'Standard cuff', hem: 'Standard open hem',
-  fabric: 'CVC 240 GSM', color: 'Black',
-  printChoice: 'has', hasDesign: false, printColors: 1, placement: 'Front only',
-  qty: MIN_QTY,
-}
 
 // Small uniform option card
 function Card({ title, sub, selected, onClick }) {
@@ -37,38 +29,19 @@ function Card({ title, sub, selected, onClick }) {
 
 export default function DirectForm() {
   // Seed from a "Reorder" if one was stashed (from My Orders / Order details).
-  const [form, setForm] = useState(() => {
+  const { form, set, sh, hasDesign, pickStyle, pickFabric, totals: t } = useGarmentForm(() => {
     const r = loadReorder()
-    return r?.form ? { ...DEFAULT_FORM, ...r.form, qty: r.qty || DEFAULT_FORM.qty } : DEFAULT_FORM
+    return r?.form ? { ...DEFAULT_GARMENT_FORM, ...r.form, qty: r.qty || DEFAULT_GARMENT_FORM.qty } : DEFAULT_GARMENT_FORM
   })
   const [showQuote, setShowQuote] = useState(false)
   const { placeOrder } = useCheckout()
-  const set = (patch) => setForm((f) => ({ ...f, ...patch }))
 
   // Consume the reorder seed once so a refresh starts fresh.
   useEffect(() => { clearReorder() }, [])
 
-  const sh = useMemo(() => showFor(form.style, form.printChoice), [form.style, form.printChoice])
-  const hasDesign = sh.printDesign
   const hems = hemsFor(form.style)
   const colors = colorsFor(form.fabric)
   const priced = showsPrice(form.style)
-  const t = quoteTotals({ ...form, hasDesign }, form.qty)
-
-  // keep dependent fields valid when style/fabric change
-  const pickStyle = (id) => {
-    const s = showFor(id, form.printChoice)
-    const nextHems = hemsFor(id)
-    set({
-      style: id,
-      fit: s.isPant ? form.fit : (FITS.includes(form.fit) ? form.fit : 'Standard'),
-      hem: nextHems.some((h) => h.label === form.hem) ? form.hem : nextHems[0].label,
-    })
-  }
-  const pickFabric = (value) => {
-    const avail = colorsFor(value)
-    set({ fabric: value, color: avail.includes(form.color) ? form.color : (avail[0] || form.color) })
-  }
 
   if (showQuote) {
     return (
@@ -102,7 +75,7 @@ export default function DirectForm() {
 
           <div className="df-label">Style</div>
           <div className="df-grid">
-            {STYLES.map((s) => (
+            {ORDERABLE_STYLES.map((s) => (
               <Card key={s.id} title={s.label} sub={s.sub} selected={form.style === s.id} onClick={() => pickStyle(s.id)} />
             ))}
           </div>

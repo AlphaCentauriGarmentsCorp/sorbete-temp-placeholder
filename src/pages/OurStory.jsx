@@ -1,7 +1,9 @@
 // src/pages/OurStory.jsx — brand story (marketing).
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
-import { IoArrowForward, IoCutOutline, IoColorPaletteOutline, IoShieldCheckmarkOutline } from 'react-icons/io5'
+import MarketingHero from '../components/MarketingHero.jsx'
+import MarketingCTA from '../components/MarketingCTA.jsx'
+import { IoCutOutline, IoColorPaletteOutline, IoShieldCheckmarkOutline } from 'react-icons/io5'
 import { navigate } from '../utils/navigation.js'
 import { MIN_QTY } from '../data/orderConfig.js'
 import '../design/marketing.css'
@@ -17,18 +19,15 @@ export default function OurStory() {
     <div className="page">
       <Navbar />
       <div className="page-body">
-        <section className="mk-hero mk-hero--split">
-          <div>
-            <div className="mk-eyebrow">Our story</div>
-            <h1 className="mk-h1">Not a middleman. The maker.</h1>
-            <p className="mk-lead">
-              Sorbetes Apparel Studio started in Quezon City with one idea: give local brands
-              factory-direct custom apparel without the reseller games — real fabrics, real
-              samples, honest pricing.
-            </p>
-          </div>
-          <div className="mk-hero-media"><img src="/img/hero-model.png" alt="" /></div>
-        </section>
+        <MarketingHero
+          eyebrow="Our story"
+          title="Not a middleman. The maker."
+          media={<img src="/img/hero-model.webp" alt="" />}
+        >
+          Sorbetes Apparel Studio started in Quezon City with one idea: give local brands
+          factory-direct custom apparel without the reseller games — real fabrics, real
+          samples, honest pricing.
+        </MarketingHero>
 
         <section className="mk-section">
           <div className="mk-body">
@@ -58,15 +57,12 @@ export default function OurStory() {
           </div>
         </section>
 
-        <section className="mk-cta">
-          <div className="mk-cta-inner">
-            <div>
-              <h2 className="mk-cta-title">See what we can make with you.</h2>
-              <p className="mk-cta-sub">Build a quote in a few minutes — no account needed to start.</p>
-            </div>
-            <button className="btn btn-gold btn-lg" onClick={() => navigate('?page=start')}>Start an order <IoArrowForward /></button>
-          </div>
-        </section>
+        <MarketingCTA
+          title="See what we can make with you."
+          sub="Build a quote in a few minutes — no account needed to start."
+          ctaLabel="Start an order"
+          onCta={() => navigate('?page=start')}
+        />
       </div>
       <Footer />
     </div>

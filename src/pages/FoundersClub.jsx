@@ -2,7 +2,9 @@
 // Also serves ?page=founders-club-guide (same content).
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
-import { IoCheckmarkCircle, IoArrowForward, IoStar } from 'react-icons/io5'
+import MarketingHero from '../components/MarketingHero.jsx'
+import MarketingCTA from '../components/MarketingCTA.jsx'
+import { IoCheckmarkCircle, IoStar } from 'react-icons/io5'
 import { navigate } from '../utils/navigation.js'
 import { useSession } from '../context/SessionContext.jsx'
 import '../design/marketing.css'
@@ -27,14 +29,10 @@ export default function FoundersClub() {
     <div className="page">
       <Navbar />
       <div className="page-body">
-        <section className="mk-hero">
-          <div className="mk-eyebrow">Founder's Club</div>
-          <h1 className="mk-h1">Built for repeat brands.</h1>
-          <p className="mk-lead">
-            The more you produce with us, the more you get — priority sampling, member pricing, and
-            early access. Free to join; you're in the moment you sign in.
-          </p>
-        </section>
+        <MarketingHero eyebrow="Founder's Club" title="Built for repeat brands.">
+          The more you produce with us, the more you get — priority sampling, member pricing, and
+          early access. Free to join; you're in the moment you sign in.
+        </MarketingHero>
 
         <section className="mk-section">
           <div className="mk-grid-2">
@@ -56,19 +54,12 @@ export default function FoundersClub() {
           </div>
         </section>
 
-        <section className="mk-cta">
-          <div className="mk-cta-inner">
-            <div>
-              <h2 className="mk-cta-title">{isAuthenticated ? "You're a member." : 'Join the club.'}</h2>
-              <p className="mk-cta-sub">
-                {isAuthenticated ? 'Check your tier and points under Rewards.' : 'Sign in with Google to start earning on your first order.'}
-              </p>
-            </div>
-            <button className="btn btn-gold btn-lg" onClick={() => navigate(isAuthenticated ? '?page=rewards' : '?page=auth')}>
-              {isAuthenticated ? 'View rewards' : 'Sign in'} <IoArrowForward />
-            </button>
-          </div>
-        </section>
+        <MarketingCTA
+          title={isAuthenticated ? "You're a member." : 'Join the club.'}
+          sub={isAuthenticated ? 'Check your tier and points under Rewards.' : 'Sign in with Google to start earning on your first order.'}
+          ctaLabel={isAuthenticated ? 'View rewards' : 'Sign in'}
+          onCta={() => navigate(isAuthenticated ? '?page=rewards' : '?page=auth')}
+        />
       </div>
       <Footer />
     </div>

@@ -2,11 +2,11 @@
 // Fixes SYSTEM-FLOW §7: adds the missing "＋ New order" re-entry control to the dashboard.
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
+import OrderCard from '../components/OrderCard.jsx'
 import { IoAddCircleOutline, IoChevronForward } from 'react-icons/io5'
 import { navigate } from '../utils/navigation.js'
 import { useSession } from '../context/SessionContext.jsx'
 import { useOrders } from '../context/OrderContext.jsx'
-import { getState } from '../data/orderStates.js'
 import { styleById, peso } from '../data/orderConfig.js'
 import { fmtDate } from '../utils/format.js'
 import '../design/dashboard.css'
@@ -41,26 +41,16 @@ export default function MyOrders() {
             </div>
           ) : (
             <div className="orders">
-              {orders.map((o) => {
-                const s = getState(o.status)
-                return (
-                  <button className="order-card" key={o.id} onClick={() => navigate('?page=my-orders-info&id=' + o.id)}>
-                    <div className="order-card-main">
-                      <div className="order-top">
-                        <span className="order-ref">{o.ref}</span>
-                        <span className={'pill pill--' + s.tone}>{s.short}</span>
-                      </div>
-                      <div className="order-meta">
-                        {o.qty} pcs · {styleById(o.form.style).label} · {pathLabel(o.path)} · {fmtDate(o.createdAt)}
-                      </div>
-                    </div>
-                    <div className="order-right">
-                      <span className="order-meta">{peso(o.totals.grandTotal)}</span>
-                    </div>
-                    <IoChevronForward className="order-arrow" />
-                  </button>
-                )
-              })}
+              {orders.map((o) => (
+                <OrderCard
+                  key={o.id}
+                  order={o}
+                  meta={`${o.qty} pcs · ${styleById(o.form.style).label} · ${pathLabel(o.path)} · ${fmtDate(o.createdAt)}`}
+                  total={peso(o.totals.grandTotal)}
+                  icon={IoChevronForward}
+                  onClick={() => navigate('?page=my-orders-info&id=' + o.id)}
+                />
+              ))}
             </div>
           )}
         </div>

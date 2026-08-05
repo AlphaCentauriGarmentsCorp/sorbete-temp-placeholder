@@ -1,7 +1,8 @@
 // src/pages/OrderingGuide.jsx — how ordering works (?page=guide).
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
-import { IoArrowForward } from 'react-icons/io5'
+import MarketingHero from '../components/MarketingHero.jsx'
+import MarketingCTA from '../components/MarketingCTA.jsx'
 import { navigate } from '../utils/navigation.js'
 import { peso, MIN_QTY, SAMPLE_FEE } from '../data/orderConfig.js'
 import '../design/marketing.css'
@@ -20,14 +21,10 @@ export default function OrderingGuide() {
     <div className="page">
       <Navbar />
       <div className="page-body">
-        <section className="mk-hero">
-          <div className="mk-eyebrow">Guide</div>
-          <h1 className="mk-h1">How ordering works.</h1>
-          <p className="mk-lead">
-            Sample-first, then a 60 / 40 split — you never pay the full amount up front, and you
-            approve a real sample before production runs.
-          </p>
-        </section>
+        <MarketingHero eyebrow="Guide" title="How ordering works.">
+          Sample-first, then a 60 / 40 split — you never pay the full amount up front, and you
+          approve a real sample before production runs.
+        </MarketingHero>
 
         <section className="mk-section">
           <div className="gd-steps">
@@ -43,15 +40,12 @@ export default function OrderingGuide() {
           </div>
         </section>
 
-        <section className="mk-cta">
-          <div className="mk-cta-inner">
-            <div>
-              <h2 className="mk-cta-title">Ready when you are.</h2>
-              <p className="mk-cta-sub">Start a guided or instant quote — it only takes a couple of minutes.</p>
-            </div>
-            <button className="btn btn-gold btn-lg" onClick={() => navigate('?page=start')}>Start an order <IoArrowForward /></button>
-          </div>
-        </section>
+        <MarketingCTA
+          title="Ready when you are."
+          sub="Start a guided or instant quote — it only takes a couple of minutes."
+          ctaLabel="Start an order"
+          onCta={() => navigate('?page=start')}
+        />
       </div>
       <Footer />
     </div>

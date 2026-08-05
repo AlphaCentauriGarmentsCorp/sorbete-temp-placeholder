@@ -10,13 +10,15 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
+import GarmentScrub from '../components/GarmentScrub.jsx'
 import QuoteSummary from './QuoteSummary.jsx'
 import { navigateBack } from '../utils/navigation.js'
 import { useCheckout } from '../hooks/useCheckout.js'
+import { useGarmentForm } from '../hooks/useGarmentForm.js'
+import { scrubVariantFor } from '../data/garmentScrub.js'
 import {
-  STYLES, FITS, SIZES, SIZE_PRICES, COLLARS, SLEEVES, FABRICS, colorsFor, COLOR_HEX,
-  PRINT_COLOR_OPTIONS, PRINT_CHOICES, PLACEMENTS, hemsFor, showFor, showsPrice,
-  styleById, peso, quoteTotals, MIN_QTY,
+  ORDERABLE_STYLES, FITS, SIZES, SIZE_PRICES, COLLARS, SLEEVES, FABRICS, colorsFor, COLOR_HEX,
+  PRINT_COLOR_OPTIONS, PRINT_CHOICES, PLACEMENTS, hemsFor, showsPrice, styleById, peso,
 } from '../data/orderConfig.js'
 import '../design/GuidedWalkthrough.css'
 
@@ -49,13 +51,6 @@ function TeeFallback({ colorHex, hasPrint }) {
   )
 }
 
-const DEFAULT_FORM = {
-  style: 'plain-tee', fit: 'Standard', size: 'M',
-  collar: 'Standard ribbed crew', sleeve: 'Standard cuff', hem: 'Standard open hem',
-  fabric: 'CVC 240 GSM', color: 'Black',
-  printChoice: 'has', printColors: 1, placement: 'Front only', qty: MIN_QTY,
-}
-
 function Card({ title, sub, selected, onClick }) {
   return (
     <div className={'gw-card' + (selected ? ' gw-card--on' : '')} onClick={onClick}>
@@ -66,14 +61,10 @@ function Card({ title, sub, selected, onClick }) {
 }
 
 export default function GuidedWalkthrough() {
-  const [form, setForm] = useState(DEFAULT_FORM)
+  const { form, set, sh, hasDesign, pickStyle, pickFabric, totals: t } = useGarmentForm()
   const [step, setStep] = useState(0)
   const [showQuote, setShowQuote] = useState(false)
   const { placeOrder } = useCheckout()
-  const set = (patch) => setForm((f) => ({ ...f, ...patch }))
-
-  const sh = useMemo(() => showFor(form.style, form.printChoice), [form.style, form.printChoice])
-  const hasDesign = sh.printDesign
 
   // Build the ordered part list from the current style/print choice.
   const parts = useMemo(() => {
@@ -94,18 +85,29 @@ export default function GuidedWalkthrough() {
 
   const N = parts.length
   const trackRef = useRef(null)
-  // The GarmentStage rig reads scroll each frame and reports the active part back
-  // via onStep; when WebGL is unavailable we drive the same part index off scroll.
+  // Filmed scroll-scrub footage takes priority when the current fit+collar has it
+  // (works regardless of WebGL). Otherwise: 3D if supported, else a flat SVG fallback.
+  const scrubVariant = scrubVariantFor(form, sh)
   const supports3D = useMemo(hasWebGL, [])
   const reduced = useMemo(
     () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches,
     [],
   )
 
-  // WebGL path: GarmentStage's frame loop reports the active part via onStep.
-  // No-WebGL path: drive the same part index from scroll here.
+  // Keep the selected color valid when switching into/between filmed combos —
+  // each combo's photoshoot only covers its own palette.
   useEffect(() => {
-    if (supports3D) return
+    if (!scrubVariant) return
+    if (!scrubVariant.colors.some((c) => c.name === form.color)) {
+      set({ color: scrubVariant.colors[0].name })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scrubVariant])
+
+  // GarmentScrub and GarmentStage both drive `step` themselves via onStep (reading
+  // scroll every frame). Only the flat-SVG fallback needs this manual listener.
+  useEffect(() => {
+    if (supports3D || scrubVariant) return
     const onScroll = () => {
       const track = trackRef.current
       if (!track) return
@@ -123,23 +125,8 @@ export default function GuidedWalkthrough() {
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onScroll)
     }
-  }, [supports3D, N])
+  }, [supports3D, scrubVariant, N])
 
-  const pickStyle = (id) => {
-    const s = showFor(id, form.printChoice)
-    const nextHems = hemsFor(id)
-    set({
-      style: id,
-      fit: s.isPant ? form.fit : (FITS.includes(form.fit) ? form.fit : 'Standard'),
-      hem: nextHems.some((h) => h.label === form.hem) ? form.hem : nextHems[0].label,
-    })
-  }
-  const pickFabric = (value) => {
-    const avail = colorsFor(value)
-    set({ fabric: value, color: avail.includes(form.color) ? form.color : (avail[0] || form.color) })
-  }
-
-  const t = quoteTotals({ ...form, hasDesign }, form.qty)
   const active = parts[Math.min(step, N - 1)] || parts[0]
   const priced = showsPrice(form.style)
   const colorHex = COLOR_HEX[form.color] || '#111111'
@@ -167,7 +154,7 @@ export default function GuidedWalkthrough() {
         <h1 className="gw-title">Design it as you scroll.</h1>
         <p className="gw-lead">
           Scroll through three sections — apparel, fabric &amp; color, print &amp; design.
-          Spin the live 3D garment, watch it recolor as you choose, and your quote moves live.
+          Watch the garment come together as you choose, and your quote moves live.
         </p>
       </div>
 
@@ -175,7 +162,15 @@ export default function GuidedWalkthrough() {
       <div ref={trackRef} className="gw-track" style={{ height: `${N * PART_VH}vh` }}>
         <div className="gw-im-stage">
           <div className="gw-im-bg" aria-hidden="true" />
-          {supports3D ? (
+          {scrubVariant ? (
+            <GarmentScrub
+              trackRef={trackRef}
+              parts={parts}
+              variant={scrubVariant}
+              colorName={form.color}
+              onStep={setStep}
+            />
+          ) : supports3D ? (
             <Suspense fallback={<div className="gw-stage-loading">Loading 3D…</div>}>
               <GarmentStage
                 trackRef={trackRef}
@@ -207,7 +202,7 @@ export default function GuidedWalkthrough() {
             {active.key === 'style' && (
               <>
                 <div className="gw-cards">
-                  {STYLES.map((s) => (
+                  {ORDERABLE_STYLES.map((s) => (
                     <Card key={s.id} title={s.label} sub={s.sub} selected={form.style === s.id} onClick={() => pickStyle(s.id)} />
                   ))}
                 </div>
@@ -260,11 +255,17 @@ export default function GuidedWalkthrough() {
             )}
             {active.key === 'color' && (
               <div className="gw-swatches">
-                {colorsFor(form.fabric).map((c) => (
-                  <button key={c} className={'gw-swatch' + (form.color === c ? ' gw-swatch--on' : '')} title={c} onClick={() => set({ color: c })}>
-                    <span style={{ background: COLOR_HEX[c] || '#ccc' }} />{c}
-                  </button>
-                ))}
+                {scrubVariant
+                  ? scrubVariant.colors.map((c) => (
+                    <button key={c.name} className={'gw-swatch' + (form.color === c.name ? ' gw-swatch--on' : '')} title={c.name} onClick={() => set({ color: c.name })}>
+                      <span style={{ background: c.hex }} />{c.name}
+                    </button>
+                  ))
+                  : colorsFor(form.fabric).map((c) => (
+                    <button key={c} className={'gw-swatch' + (form.color === c ? ' gw-swatch--on' : '')} title={c} onClick={() => set({ color: c })}>
+                      <span style={{ background: COLOR_HEX[c] || '#ccc' }} />{c}
+                    </button>
+                  ))}
               </div>
             )}
 
@@ -306,15 +307,15 @@ export default function GuidedWalkthrough() {
       {/* immersive live estimate + see-quote (translucent) */}
       <div className="gw-im-bar">
         <div className="gw-bar-stats">
-          <div>
+          <div className="gw-bar-stat--perpc">
             <div className="gw-bar-k">Per piece</div>
             <div className="gw-bar-v">{peso(t.perPc)}</div>
           </div>
-          <div>
+          <div className="gw-bar-stat--qty">
             <div className="gw-bar-k">Quantity</div>
             <div className="gw-bar-v gw-bar-v--sm">{form.qty} pcs</div>
           </div>
-          <div>
+          <div className="gw-bar-stat--total">
             <div className="gw-bar-k">Total (incl. sample fee)</div>
             <div className="gw-bar-v gw-bar-v--sm">{peso(t.grandTotal)}</div>
           </div>

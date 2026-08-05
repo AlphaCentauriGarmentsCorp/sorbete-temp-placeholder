@@ -4,12 +4,14 @@
 // (approve / request changes → seller classifies minor|major) → downpayment → production
 // → ready (balance) → delivered. All payment verification is MANUAL (spec §3) — no PayMongo.
 //
-// The "Seller / staff — demo" panel stands in for the backend + staff console that don't
-// exist yet, so one person can drive the whole flow. TODO: replace with real API + staff
-// app — see FRONTEND-BUILD-SPEC.md §3/§4 (src/mocks/api.js).
+// The "Seller / staff — demo" panel stands in for the real staff console that doesn't
+// exist yet (Sorbetes has no staff accounts by design) — its actions go through the
+// backend's owner-authorized demo-advance endpoint (OrderContext.jsx), so they're real
+// transitions, not local simulation. Replace once a real staff console is connected.
 import { useEffect, useState } from 'react'
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
+import StubScreen from '../components/StubScreen.jsx'
 import {
   IoCheckmarkCircle, IoArrowForward, IoTimeOutline, IoWarningOutline,
   IoCloudUploadOutline, IoStorefrontOutline, IoConstructOutline,
@@ -129,21 +131,18 @@ export default function Payment() {
 
   if (!order) {
     return (
-      <div className="page">
-        <Navbar />
-        <div className="page-body">
-          <div className="stub">
-            <div className="stub-eyebrow">Order</div>
-            <h1>Order not found</h1>
-            <p>We couldn’t find that order. It may have been cleared, or the link is wrong.</p>
-            <div className="stub-links">
-              <button className="btn btn-gold" onClick={() => navigate('?page=start')}>Start an order</button>
-              <button className="btn btn-ghost" onClick={() => navigate('?page=my-orders')}>My orders</button>
-            </div>
-          </div>
-        </div>
-        <Footer />
-      </div>
+      <StubScreen
+        eyebrow="Order"
+        title="Order not found"
+        actions={
+          <>
+            <button className="btn btn-gold" onClick={() => navigate('?page=start')}>Start an order</button>
+            <button className="btn btn-ghost" onClick={() => navigate('?page=my-orders')}>My orders</button>
+          </>
+        }
+      >
+        We couldn’t find that order. It may have been cleared, or the link is wrong.
+      </StubScreen>
     )
   }
 
