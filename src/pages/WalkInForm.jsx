@@ -20,6 +20,7 @@ import {
 import { navigate } from '../utils/navigation.js'
 import { copyToClipboard } from '../utils/format.js'
 import { useCheckout } from '../hooks/useCheckout.js'
+import AddressPicker from '../components/AddressPicker.jsx'
 import { useGarmentForm, DEFAULT_GARMENT_FORM } from '../hooks/useGarmentForm.js'
 import {
   STYLES, ORDERABLE_STYLES, FITS, SIZES, COLLARS, SLEEVES, FABRICS, SHIRT_COLORS,
@@ -232,6 +233,8 @@ export default function WalkInForm() {
   const [label, setLabel] = useState('')
   const [notes, setNotes] = useState('')
   const [phone, setPhone] = useState('')
+  const [showAddress, setShowAddress] = useState(false)
+  const [delivery, setDelivery] = useState(null)
   const [placing, setPlacing] = useState(false)
   const [copied, setCopied] = useState(false)
   const copyTimer = useRef(null)
@@ -256,6 +259,13 @@ export default function WalkInForm() {
     })
   }
 
+  // First click reveals the address step (nothing asked for it until now); once an
+  // address resolves, the same button's second click actually places the order.
+  const handlePlaceOrder = () => {
+    if (!showAddress) { setShowAddress(true); return }
+    if (delivery) placeWalkIn()
+  }
+
   const placeWalkIn = async () => {
     if (placing) return
     setPlacing(true)
@@ -264,6 +274,7 @@ export default function WalkInForm() {
         path: 'walkin',
         form: { ...form, hasDesign, label: label.trim() || null, notes: notes.trim() || null, phone: phone.trim() || null },
         qty: form.qty,
+        delivery,
       })
     } finally {
       setPlacing(false)
@@ -606,6 +617,13 @@ export default function WalkInForm() {
                 </button>
               </div>
 
+              {showAddress && (
+                <div className="wk-spec-box">
+                  <div className="wk-spec-head">Delivery address</div>
+                  <AddressPicker value={delivery} onChange={setDelivery} />
+                </div>
+              )}
+
               <p className="wk-note">Want to place this order? Staff confirms your final quote at the counter before you pay.</p>
             </div>
           )}
@@ -627,7 +645,7 @@ export default function WalkInForm() {
         {phase === 'quote' && (
           <div className="wk-foot-actions wk-foot-actions--full">
             <button className="wk-foot-ghost" onClick={() => setPhase('form')}>Change</button>
-            <button className="wk-foot-primary wk-foot-gold" onClick={placeWalkIn} disabled={placing}>
+            <button className="wk-foot-primary wk-foot-gold" onClick={handlePlaceOrder} disabled={placing || (showAddress && !delivery)}>
               {placing ? 'Placing…' : 'Place order'}
             </button>
           </div>

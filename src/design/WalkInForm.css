@@ -100,14 +100,17 @@
 .wk-quote-split { margin-top: 2px; }
 .wk-quote-min { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--wk-line); font-size: 11.5px; color: var(--wk-gray); line-height: 1.5; }
 
-.wk-quote-tools { display: flex; gap: 10px; flex-wrap: wrap; }
+/* Emphasized — the customer's likely to want to save/share the quote before deciding.
+   Place order stays the standard wk-foot-primary size (shared kiosk touch target). */
+.wk-quote-tools { display: flex; gap: 12px; flex-wrap: wrap; }
 .wk-quote-tool {
-  display: inline-flex; align-items: center; gap: 8px;
-  border: 1.5px solid var(--wk-line); background: var(--wk-white); color: var(--wk-black);
-  cursor: pointer; font-family: inherit; font-weight: 700; font-size: 13.5px;
-  padding: 11px 18px; border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 9px;
+  border: 2px solid var(--wk-black); background: var(--wk-black); color: var(--wk-white);
+  cursor: pointer; font-family: inherit; font-weight: 800; font-size: 14.5px;
+  padding: 15px 26px; border-radius: 999px;
 }
-.wk-quote-ok { color: #178a4c; }
+.wk-quote-tool:hover { opacity: 0.88; }
+.wk-quote-ok { color: #6fdc8c; }
 
 /* Save as PDF — print only the quote card */
 @media print {

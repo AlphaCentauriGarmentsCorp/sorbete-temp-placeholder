@@ -18,6 +18,7 @@ import {
 } from 'react-icons/io5'
 import { getParam, navigate } from '../utils/navigation.js'
 import { useOrders } from '../context/OrderContext.jsx'
+import { fetchPaymentProof, fetchTimelineAttachment } from '../api/orders.js'
 import { getState, isPayment } from '../data/orderStates.js'
 import { peso, styleById, DEFECT_CLASSES, SAMPLE_DEFECT_FEE } from '../data/orderConfig.js'
 import '../design/Payment.css'
@@ -27,13 +28,13 @@ const WALKIN_CHANNELS = ['GCash', 'Maya', 'Bank Transfer', 'Cash']
 
 const PAY_LABEL = { sampleFee: 'Sample fee', dp: '60% downpayment', bal: '40% balance' }
 
-// 5 visible milestones grouped from the 10-state happy path.
+// 5 visible milestones grouped from the 12-state happy path.
 const MILESTONES = [
   { label: 'Order', states: ['waiting_for_seller'] },
   { label: 'Sample fee', states: ['sample_fee_to_pay', 'sample_fee_review'] },
-  { label: 'Sample', states: ['sample_production', 'sample_approval'] },
+  { label: 'Sample', states: ['sample_production', 'sample_approval', 'sample_changes_requested'] },
   { label: 'Downpayment', states: ['downpayment_to_pay', 'downpayment_review'] },
-  { label: 'Produce → deliver', states: ['in_production', 'ready_to_ship', 'delivered'] },
+  { label: 'Produce → deliver', states: ['in_production', 'ready_to_ship', 'balance_review', 'out_for_delivery', 'delivered'] },
 ]
 const milestoneIndex = (st) => Math.max(0, MILESTONES.findIndex((m) => m.states.includes(st)))
 
@@ -60,9 +61,9 @@ function PayPanel({ order, channels, onPay }) {
   const amount = order.totals[type]
   const [channel, setChannel] = useState(channels[0])
   const [ref, setRef] = useState('')
-  const [fileName, setFileName] = useState('')
+  const [file, setFile] = useState(null)
   const isCash = channel === 'Cash'
-  const canSubmit = isCash || (ref.trim() && fileName)
+  const canSubmit = isCash || (ref.trim() && file)
 
   return (
     <div className="pm-pay">
@@ -98,36 +99,109 @@ function PayPanel({ order, channels, onPay }) {
             placeholder="e.g. GCash ref #, bank txn #"
           />
           <div className="pm-field-label">Proof of payment</div>
-          {/* Mock upload — the file never leaves the browser; we keep the name only.
-              TODO: replace with real upload — see FRONTEND-BUILD-SPEC.md §3. */}
           <label className="pm-upload">
             <IoCloudUploadOutline />
-            <span>{fileName || 'Upload screenshot / receipt'}</span>
+            <span>{file?.name || 'Upload screenshot / receipt'}</span>
             <input type="file" accept="image/*,application/pdf" hidden
-              onChange={(e) => setFileName(e.target.files?.[0]?.name || '')} />
+              onChange={(e) => setFile(e.target.files?.[0] || null)} />
           </label>
         </>
       )}
 
       <button className="btn btn-gold pm-pay-submit" disabled={!canSubmit}
-        onClick={() => onPay({ channel, ref: ref.trim(), proofName: fileName || null })}>
+        onClick={() => onPay({ channel, ref: ref.trim(), proof: file })}>
         {isCash ? 'Confirm cash payment' : 'Submit payment for review'} <IoArrowForward />
       </button>
     </div>
   )
 }
 
+// "Request changes" used to submit with zero payload — the studio had nothing to go
+// on but "something's wrong." This form makes the message required (what actually
+// needs changing) and a reference photo optional, before it ever reaches the server.
+function SampleReviewPanel({ order, onApprove, onRequestChanges }) {
+  const [showForm, setShowForm] = useState(false)
+  const [message, setMessage] = useState('')
+  const [file, setFile] = useState(null)
+  const canSubmit = message.trim().length > 0
+
+  return (
+    <div className="pm-sample">
+      <p className="pm-sample-lead">Your sample is ready. Review it in person / from photos, then decide:</p>
+      {!showForm ? (
+        <div className="pm-actions">
+          <button className="btn btn-gold" onClick={onApprove}>Approve sample — proceed</button>
+          <button className="btn btn-ghost" onClick={() => setShowForm(true)}>Request changes</button>
+        </div>
+      ) : (
+        <div className="pm-request-changes">
+          <div className="pm-field-label">What would you like changed?</div>
+          <textarea
+            className="pm-textarea"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="e.g. The print is off-center, please move it up by an inch"
+            rows={4}
+          />
+          <div className="pm-field-label">Reference photo (optional)</div>
+          <label className="pm-upload">
+            <IoCloudUploadOutline />
+            <span>{file?.name || 'Attach a photo'}</span>
+            <input type="file" accept="image/*,application/pdf" hidden
+              onChange={(e) => setFile(e.target.files?.[0] || null)} />
+          </label>
+          <div className="pm-actions">
+            <button className="btn btn-gold" disabled={!canSubmit}
+              onClick={() => onRequestChanges(message.trim(), file)}>
+              Submit request
+            </button>
+            <button className="pm-link" onClick={() => setShowForm(false)}>Cancel</button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Payment() {
-  const { getById, pay, reviewProof, advance } = useOrders()
+  const { getById, pay, reviewProof, advance, requestSampleChanges } = useOrders()
   const id = getParam('id')
   const order = id ? getById(id) : null
   const st = order?.status
-  const [changesRequested, setChangesRequested] = useState(false)
   const [rejectReason, setRejectReason] = useState('')
+  const [proofThumb, setProofThumb] = useState(null)
+  const [changeThumb, setChangeThumb] = useState(null)
+  const lastPayment = order ? order.payments[order.payments.length - 1] : undefined
+  const changeRequestEvent = order
+    ? [...order.timeline].reverse().find((t) => t.status === 'sample_changes_requested')
+    : undefined
 
+  // Same reasoning as the proof-thumbnail effect below: staff should see the
+  // client's reference photo automatically, right next to the classify buttons,
+  // not have to dig for it — the whole point of request_changes carrying an
+  // attachment is defeated if staff has to go find it themselves.
   useEffect(() => {
-    if (st !== 'sample_approval') setChangesRequested(false)
-  }, [st])
+    if (!order || st !== 'sample_changes_requested' || !changeRequestEvent?.attachmentUrl) {
+      setChangeThumb(null)
+      return
+    }
+    let cancelled = false
+    fetchTimelineAttachment(order.id, changeRequestEvent.id).then((url) => { if (!cancelled) setChangeThumb(url) })
+    return () => { cancelled = true }
+  }, [order, st, changeRequestEvent?.id, changeRequestEvent?.attachmentUrl])
+
+  // Load the payment-under-review's proof automatically, so staff sees the actual
+  // receipt right next to Approve/Reject instead of approving blind and having to
+  // go dig for it separately in the payments list below.
+  useEffect(() => {
+    if (!order || !lastPayment?.proofUrl || lastPayment.status !== 'under_review') {
+      setProofThumb(null)
+      return
+    }
+    let cancelled = false
+    fetchPaymentProof(order.id, lastPayment.id).then((url) => { if (!cancelled) setProofThumb(url) })
+    return () => { cancelled = true }
+  }, [order, lastPayment?.id, lastPayment?.proofUrl, lastPayment?.status])
 
   if (!order) {
     return (
@@ -148,8 +222,23 @@ export default function Payment() {
 
   const state = getState(st)
   const channels = order.path === 'walkin' ? WALKIN_CHANNELS : ONLINE_CHANNELS
-  const lastPayment = order.payments[order.payments.length - 1]
   const showRejected = isPayment(st) && lastPayment?.status === 'rejected'
+
+  // Proof files live on a private disk behind an authenticated route — a plain
+  // <a href> can't carry our bearer token, so fetch it ourselves and open the blob.
+  // The tab opens synchronously (inside the click's call stack) and gets pointed at
+  // the blob once it's ready — opening AFTER the await would get popup-blocked.
+  const viewProof = async (paymentId) => {
+    const tab = window.open('', '_blank')
+    const url = await fetchPaymentProof(order.id, paymentId)
+    if (tab) tab.location = url
+  }
+
+  const viewChangeAttachment = async (eventId) => {
+    const tab = window.open('', '_blank')
+    const url = await fetchTimelineAttachment(order.id, eventId)
+    if (tab) tab.location = url
+  }
 
   // ---- current action card by state ----
   let action = null
@@ -157,7 +246,7 @@ export default function Payment() {
     action = <p className="pm-wait"><IoTimeOutline /> Order received. Waiting for the studio to accept it and request the sample fee.</p>
   } else if (st === 'sample_fee_to_pay' || st === 'downpayment_to_pay' || st === 'ready_to_ship') {
     action = <PayPanel order={order} channels={channels} onPay={(opts) => pay(order.id, opts)} />
-  } else if (st === 'sample_fee_review' || st === 'downpayment_review') {
+  } else if (st === 'sample_fee_review' || st === 'downpayment_review' || st === 'balance_review') {
     action = (
       <p className="pm-wait">
         <IoTimeOutline /> Payment submitted{lastPayment?.channel ? ` via ${lastPayment.channel}` : ''}
@@ -168,44 +257,26 @@ export default function Payment() {
     action = <p className="pm-wait"><IoConstructOutline /> Payment verified. Your physical sample is being produced.</p>
   } else if (st === 'sample_approval') {
     action = (
-      <div className="pm-sample">
-        <p className="pm-sample-lead">Your sample is ready. Review it in person / from photos, then decide:</p>
-        {!changesRequested ? (
-          <div className="pm-actions">
-            <button className="btn btn-gold" onClick={() => advance(order.id, 'approve_sample')}>
-              Approve sample — proceed
-            </button>
-            <button className="btn btn-ghost" onClick={() => setChangesRequested(true)}>
-              Request changes
-            </button>
-          </div>
-        ) : (
-          <div className="pm-classify">
-            <div className="pm-classify-head">
-              Changes requested — the <strong>studio</strong> classifies the change:
-            </div>
-            <div className="pm-actions">
-              {DEFECT_CLASSES.map((d) => (
-                <button
-                  key={d.id}
-                  className={'btn ' + (d.id === 'major' ? 'btn-dark' : 'btn-ghost')}
-                  onClick={() => advance(order.id, 'classify_defect', { classification: d.id })}
-                >
-                  {d.label}
-                </button>
-              ))}
-            </div>
-            <p className="pm-classify-note">
-              Minor → fixed in-house, no fee → straight to downpayment. Major → new{' '}
-              {peso(SAMPLE_DEFECT_FEE)} sample fee (not credited) and a fresh sample is made.
-            </p>
-            <button className="pm-link" onClick={() => setChangesRequested(false)}>← back</button>
-          </div>
-        )}
-      </div>
+      <SampleReviewPanel
+        order={order}
+        onApprove={() => advance(order.id, 'approve_sample')}
+        onRequestChanges={(message, file) => requestSampleChanges(order.id, message, file)}
+      />
+    )
+  } else if (st === 'sample_changes_requested') {
+    // Deliberately no minor/major choice here — that classification (and its fee
+    // consequence) is the studio's call, not the client's. See the staff panel below.
+    action = (
+      <p className="pm-wait">
+        <IoTimeOutline /> Changes requested. The studio is reviewing your sample and will classify the change shortly.
+      </p>
     )
   } else if (st === 'in_production') {
     action = <p className="pm-wait"><IoConstructOutline /> Downpayment verified. Your full order is in production.</p>
+  } else if (st === 'out_for_delivery') {
+    // Deliberately no customer-side "confirm receipt" action here — paid and
+    // delivered are separate facts; staff/rider marks delivery, not the client.
+    action = <p className="pm-wait"><IoConstructOutline /> Balance confirmed. Your order is out for delivery.</p>
   } else if (st === 'delivered') {
     action = (
       <div className="pm-done">
@@ -222,9 +293,28 @@ export default function Payment() {
   let staff = null
   if (st === 'waiting_for_seller') {
     staff = <button className="pm-staff-btn" onClick={() => advance(order.id, 'accept_order')}>Accept order → request sample fee</button>
-  } else if (st === 'sample_fee_review' || st === 'downpayment_review') {
+  } else if (st === 'sample_fee_review' || st === 'downpayment_review' || st === 'balance_review') {
     staff = (
       <div className="pm-staff-review">
+        {lastPayment?.proofUrl && (
+          <div className="pm-staff-proof">
+            <div className="pm-field-label">
+              Proof of payment{lastPayment.ref ? ` — ref ${lastPayment.ref}` : ''}
+            </div>
+            {proofThumb ? (
+              <img
+                className="pm-staff-proof-img"
+                src={proofThumb}
+                alt="Payment proof"
+                onClick={() => viewProof(lastPayment.id)}
+                onError={(e) => { e.currentTarget.style.display = 'none' }}
+              />
+            ) : (
+              <p className="pm-wait"><IoTimeOutline /> Loading proof…</p>
+            )}
+            <button className="pm-link" onClick={() => viewProof(lastPayment.id)}>View full size</button>
+          </div>
+        )}
         <button className="pm-staff-btn" onClick={() => reviewProof(order.id, 'approve')}>Approve payment</button>
         <div className="pm-staff-reject">
           <input className="pm-input" placeholder="Reject reason (optional)" value={rejectReason}
@@ -238,8 +328,57 @@ export default function Payment() {
     )
   } else if (st === 'sample_production') {
     staff = <button className="pm-staff-btn" onClick={() => advance(order.id, 'sample_ready')}>Mark sample ready for review</button>
+  } else if (st === 'sample_changes_requested') {
+    // The classification (and its fee consequence) belongs here, staff-side — not on
+    // the client's own action panel above, where they could just always pick "minor."
+    staff = (
+      <div className="pm-classify">
+        <div className="pm-classify-head">Client requested changes — classify it:</div>
+        {changeRequestEvent?.note && (
+          <p className="pm-sample-lead" style={{ marginTop: 0 }}>
+            “{changeRequestEvent.note.replace(/^Client requested changes: /, '')}”
+          </p>
+        )}
+        {changeRequestEvent?.attachmentUrl && (
+          <div className="pm-staff-proof">
+            <div className="pm-field-label">Reference photo</div>
+            {changeThumb ? (
+              <img
+                className="pm-staff-proof-img"
+                src={changeThumb}
+                alt="Client's reference"
+                onClick={() => viewChangeAttachment(changeRequestEvent.id)}
+                onError={(e) => { e.currentTarget.style.display = 'none' }}
+              />
+            ) : (
+              <p className="pm-wait"><IoTimeOutline /> Loading attachment…</p>
+            )}
+            <button className="pm-link" onClick={() => viewChangeAttachment(changeRequestEvent.id)}>View full size</button>
+          </div>
+        )}
+        <div className="pm-actions">
+          {DEFECT_CLASSES.map((d) => (
+            <button
+              key={d.id}
+              className={'btn ' + (d.id === 'major' ? 'btn-dark' : 'btn-ghost')}
+              onClick={() => advance(order.id, 'classify_defect', { classification: d.id })}
+            >
+              {d.label}
+            </button>
+          ))}
+        </div>
+        <p className="pm-classify-note">
+          Minor → fixed in-house, no fee → straight to downpayment. Major → new{' '}
+          {peso(SAMPLE_DEFECT_FEE)} sample fee (not credited) and a fresh sample is made.
+        </p>
+      </div>
+    )
   } else if (st === 'in_production') {
     staff = <button className="pm-staff-btn" onClick={() => advance(order.id, 'ship')}>Mark ready to ship</button>
+  } else if (st === 'out_for_delivery') {
+    // Deliberately a separate action from approving the balance payment (above) —
+    // paid and delivered are different facts; the rider/staff confirms the handoff.
+    staff = <button className="pm-staff-btn" onClick={() => advance(order.id, 'confirm_delivery')}>Mark as delivered</button>
   }
 
   return (
@@ -293,7 +432,10 @@ export default function Payment() {
               <div className="pm-list-h">Payments</div>
               {order.payments.map((p) => (
                 <div className="pm-pay-row" key={p.id}>
-                  <span>{PAY_LABEL[p.type] || p.type} · {p.channel}{p.ref ? ` · ${p.ref}` : ''}</span>
+                  <span>
+                    {PAY_LABEL[p.type] || p.type} · {p.channel}{p.ref ? ` · ${p.ref}` : ''}
+                    {p.proofUrl && <button className="pm-link" onClick={() => viewProof(p.id)}>View proof</button>}
+                  </span>
                   <span className={'pm-pay-status pm-pay-status--' + p.status}>
                     {peso(p.amount)} · {p.status.replace('_', ' ')}
                   </span>

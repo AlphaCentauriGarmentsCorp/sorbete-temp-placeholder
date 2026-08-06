@@ -44,8 +44,8 @@ export function OrderProvider({ children }) {
   }, [])
 
   /** Create + persist a new order via the real API. Returns the server record. */
-  const createOrderRecord = useCallback(async ({ form, qty, path, customer }) => {
-    const order = await ordersApi.createOrder({ form, qty, path, customer })
+  const createOrderRecord = useCallback(async ({ form, qty, path, customer, delivery }) => {
+    const order = await ordersApi.createOrder({ form, qty, path, customer, delivery })
     setOrders((os) => [order, ...os])
     return order
   }, [])
@@ -57,14 +57,25 @@ export function OrderProvider({ children }) {
   const listForUser = useCallback(() => orders, [orders])
 
   /**
-   * Apply a state-machine event. 'approve_sample' has its own dedicated endpoint;
-   * every other event (the staff-side ones) goes through demoAdvance (see file header).
+   * Apply a state-machine event. 'approve_sample' is a client action with its own
+   * dedicated endpoint; every other event (the staff-side ones) goes through
+   * demoAdvance (see file header). 'request_changes' needs a message/attachment
+   * payload demoAdvance has no room for — see requestSampleChanges below.
    */
   const advance = useCallback(
     async (id, event, payload = {}) => {
       const updated = event === 'approve_sample'
         ? await ordersApi.approveSample(id)
         : await ordersApi.demoAdvance(id, event, payload)
+      replaceOrder(updated)
+    },
+    [replaceOrder],
+  )
+
+  /** Client flags the sample for changes, with what they actually want changed. */
+  const requestSampleChanges = useCallback(
+    async (id, message, attachment) => {
+      const updated = await ordersApi.requestChanges(id, message, attachment)
       replaceOrder(updated)
     },
     [replaceOrder],
@@ -77,8 +88,8 @@ export function OrderProvider({ children }) {
    * no fast-path shortcut server-side).
    */
   const pay = useCallback(
-    async (id, { channel, ref } = {}) => {
-      const updated = await ordersApi.submitPayment(id, { channel, ref })
+    async (id, { channel, ref, proof } = {}) => {
+      const updated = await ordersApi.submitPayment(id, { channel, ref, proof })
       replaceOrder(updated)
     },
     [replaceOrder],
@@ -86,8 +97,11 @@ export function OrderProvider({ children }) {
 
   /** Staff decision on the latest under-review proof. */
   const reviewProof = useCallback(
-    (id, decision, reason) => advance(id, decision === 'approve' ? 'approve_payment' : 'reject_payment', { reason }),
-    [advance],
+    async (id, decision, reason) => {
+      const updated = await ordersApi.reviewPayment(id, decision, reason)
+      replaceOrder(updated)
+    },
+    [replaceOrder],
   )
 
   const patchOrder = useCallback((id, patch) => {
@@ -95,8 +109,8 @@ export function OrderProvider({ children }) {
   }, [])
 
   const value = useMemo(
-    () => ({ orders, createOrderRecord, getById, listForUser, advance, pay, reviewProof, patchOrder, pathLabel }),
-    [orders, createOrderRecord, getById, listForUser, advance, pay, reviewProof, patchOrder],
+    () => ({ orders, createOrderRecord, getById, listForUser, advance, requestSampleChanges, pay, reviewProof, patchOrder, pathLabel }),
+    [orders, createOrderRecord, getById, listForUser, advance, requestSampleChanges, pay, reviewProof, patchOrder],
   )
 
   return <OrderContext.Provider value={value}>{children}</OrderContext.Provider>

@@ -3,12 +3,25 @@
 //
 //   waiting_for_seller → sample_fee_to_pay → sample_fee_review
 //     → sample_production → sample_approval
-//       ├─ (minor / none) ─────────────────────┐
-//       └─ (major: new fee + remake) → sample_fee_to_pay (loop)
+//       ├─ (client approves outright) ──────────────────────────┐
+//       └─ (client requests changes) → sample_changes_requested │
+//            ├─ (studio classifies minor) ─────────────────────┤
+//            └─ (studio classifies major: new fee) → sample_fee_to_pay (loop)
 //     → downpayment_to_pay → downpayment_review → in_production
-//     → ready_to_ship → delivered
+//     → ready_to_ship → balance_review → out_for_delivery → delivered
 //   Side states: waiting_for_user (info requested), rejected (payment proof rejected,
 //   returns to the *_to_pay step with a reason).
+//
+//   sample_changes_requested exists specifically so the CLIENT can't pick its own
+//   minor/major (that has a real fee consequence) — request_changes only flags the
+//   sample; only the studio's classify_defect decides the branch.
+//
+//   balance_review / out_for_delivery exist because the balance payment used to
+//   auto-settle straight to 'delivered' (the theory being "the rider collects it in
+//   person") — that conflated "payment confirmed" with "physically handed over,"
+//   two different facts. The balance now goes through review like every other
+//   payment, and reaching 'delivered' requires a separate, deliberate staff/rider
+//   confirm_delivery action — not just an approved payment.
 //
 // `kind` drives UI treatment: payment steps show a pay CTA, review steps show
 // "under review", production/action steps are informational.
@@ -55,6 +68,14 @@ export const STATES = {
     kind: 'decision',
     tone: 'action',
   },
+  sample_changes_requested: {
+    label: 'Changes requested',
+    short: 'Awaiting classification',
+    desc: 'You requested changes to your sample. The studio is reviewing and will classify it as minor or major.',
+    actor: 'seller',
+    kind: 'review',
+    tone: 'wait',
+  },
   downpayment_to_pay: {
     label: 'Downpayment to pay',
     short: 'Pay 60% downpayment',
@@ -88,6 +109,22 @@ export const STATES = {
     kind: 'payment',
     tone: 'action',
     payment: 'bal',
+  },
+  balance_review: {
+    label: 'Balance under review',
+    short: 'Verifying payment',
+    desc: 'We received your balance payment. Staff is verifying it before releasing your order.',
+    actor: 'seller',
+    kind: 'review',
+    tone: 'wait',
+  },
+  out_for_delivery: {
+    label: 'Out for delivery',
+    short: 'On its way',
+    desc: 'Balance confirmed. Your order is on its way — the rider/staff will mark it delivered once handed over.',
+    actor: 'seller',
+    kind: 'production',
+    tone: 'neutral',
   },
   delivered: {
     label: 'Delivered',
@@ -128,6 +165,8 @@ export const HAPPY_PATH = [
   'downpayment_review',
   'in_production',
   'ready_to_ship',
+  'balance_review',
+  'out_for_delivery',
   'delivered',
 ]
 
@@ -137,10 +176,12 @@ export const INITIAL_STATE = 'waiting_for_seller'
 const REVIEW_TO_NEXT = {
   sample_fee_review: 'sample_production',
   downpayment_review: 'in_production',
+  balance_review: 'out_for_delivery',
 }
 const PAY_TO_REVIEW = {
   sample_fee_to_pay: 'sample_fee_review',
   downpayment_to_pay: 'downpayment_review',
+  ready_to_ship: 'balance_review',
 }
 
 // Pure transition function. Returns the next state id, or throws on an invalid event.
@@ -161,6 +202,7 @@ export function transition(current, event, payload = {}) {
       // Review → back to the paying step it came from.
       if (current === 'sample_fee_review') return 'sample_fee_to_pay'
       if (current === 'downpayment_review') return 'downpayment_to_pay'
+      if (current === 'balance_review') return 'ready_to_ship'
       break
     case 'sample_ready':
       if (current === 'sample_production') return 'sample_approval'
@@ -169,13 +211,20 @@ export function transition(current, event, payload = {}) {
       // Client approves outright — treated as the minor/none branch.
       if (current === 'sample_approval') return 'downpayment_to_pay'
       break
+    case 'request_changes':
+      // Client only flags the sample — does NOT pick minor/major itself.
+      if (current === 'sample_approval') return 'sample_changes_requested'
+      break
     case 'classify_defect':
-      if (current === 'sample_approval') {
+      if (current === 'sample_changes_requested') {
         return payload.classification === 'major' ? 'sample_fee_to_pay' : 'downpayment_to_pay'
       }
       break
-    case 'pay_balance':
-      if (current === 'ready_to_ship') return 'delivered'
+    // Staff/rider-only: confirms the order was physically handed over, separate from
+    // the balance payment being approved (out_for_delivery). Approving the payment
+    // used to jump straight to 'delivered' — paid and delivered are not the same fact.
+    case 'confirm_delivery':
+      if (current === 'out_for_delivery') return 'delivered'
       break
     case 'ship':
       if (current === 'in_production') return 'ready_to_ship'

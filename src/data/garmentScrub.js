@@ -1,7 +1,7 @@
 // src/data/garmentScrub.js — scroll-scrubbed video preview (Path A / GuidedWalkthrough).
-// Two garment combos have real video + photo assets so far: Standard fit with either
-// collar option. Everything else (other fits, styles without a collar) falls back to
-// the existing 3D stage — see GuidedWalkthrough's use of SCRUB_VARIANTS.
+// Four garment combos have real video + photo assets so far: Standard and Boxy fit,
+// each with either collar option. Oversized (and styles without a collar) falls back to
+// the existing 3D stage — see GuidedWalkthrough's use of scrubVariantFor.
 //
 // Each video is ~8s; timestamp.txt (from the asset drop) maps seconds → camera framing:
 //   0:00 wholebody · 0:02 collar · 0:04 sleeve · 0:06 hem · 0:08 back to wholebody
@@ -76,6 +76,56 @@ const PROCLUB_COLORS = [
   ['White', 'White_std_pc.webp', '#FFFFFF'],
 ]
 
+// Boxy shoot uses 'Green' where Standard used 'Christmas Green' — same inconsistency
+// already noted above between shoots. Reuses PROCLUB_COLORS' non-card 'Green' hex.
+const BOXY_STANDARD_COLORS = [
+  ['Ash Gray', 'Ash_Gray_box_std.png', '#5B5B5B'],
+  ['Black', 'Black_box_std.png', '#111111'],
+  ['Brown', 'Brown_box_std.png', '#332211'],
+  ['Cream', 'Cream_box_std.png', '#FDFBD4'],
+  ['Dark Royal Blue', 'Dk_Royal_blue_box_std.png', '#041848'],
+  ['Emerald Green', 'emerald_green_box_std.png', '#046007'],
+  ['Fatigue', 'fatigue_box_std.png', '#41411D'],
+  ['Green', 'Green_box_std.png', '#1d5a2e'],
+  ['Ivory', 'ivory_box_std.png', '#FFFEF2'],
+  ['Light Royal Blue', 'Lt_Royal_blue_box_std.png', '#1C3F87'],
+  ['Mocha', 'mocca_box_std.png', '#C6A38A'],
+  ['Mustard Gold', 'mustard_gold_box_std.png', '#CD7F32'],
+  ['Navy Blue', 'Navy_Blue_box_std.png', '#00022E'],
+  ['Off White', 'off_white_box_std.png', '#F2F1EE'],
+  ['Pink', 'pink_box_std.png', '#F7B0BB'],
+  ['Red', 'Red_box_std.png', '#780606'],
+  ['Royal Blue', 'Royal_blue_box_std.png', '#02066F'],
+  ['Silver Gray', 'silver_gray_box_std.png', '#C0C0C0'],
+  ['Special Gray', 'special_gray_box_std.png', '#A9A9A9'],
+  ['White', 'White_box_std.png', '#FFFFFF'],
+]
+
+// Note: 'pink_box_std.png' lives in the proclub folder despite its _std suffix — a
+// filename typo in the asset drop, not a misplaced file (it's the only pink there).
+const BOXY_PROCLUB_COLORS = [
+  ['Ash Gray', 'Ash_Gray_box_proclub.png', '#5B5B5B'],
+  ['Black', 'Black_box_proclub.png', '#111111'],
+  ['Brown', 'Brown_box_proclub.png', '#332211'],
+  ['Cream', 'Cream_box_proclub.png', '#FDFBD4'],
+  ['Dark Royal Blue', 'Dk_Royal_Blue_box_proclub.png', '#041848'],
+  ['Emerald Green', 'emerald_green_box_pc.png', '#046007'],
+  ['Fatigue', 'fatigue_box_pc.png', '#41411D'],
+  ['Green', 'Green_box_proclub.png', '#1d5a2e'],
+  ['Ivory', 'ivory_box_pc.png', '#FFFEF2'],
+  ['Light Royal Blue', 'Light_Royal_Blue_box_proclub.png', '#1C3F87'],
+  ['Mocha', 'mocca_box_pc.png', '#C6A38A'],
+  ['Mustard Gold', 'mustard_box_pc.png', '#CD7F32'],
+  ['Navy Blue', 'Navy_blue_box_proclub.png', '#00022E'],
+  ['Off White', 'offwhite_box_pc.png', '#F2F1EE'],
+  ['Pink', 'pink_box_std.png', '#F7B0BB'],
+  ['Red', 'Red_box_proclub.png', '#780606'],
+  ['Royal Blue', 'royalblue_box_pc.png', '#02066F'],
+  ['Silver Gray', 'silver_gray_box_pc.png', '#C0C0C0'],
+  ['Special Gray', 'special_gray_box_pc.png', '#A9A9A9'],
+  ['White', 'White_box_proclub.png', '#FFFFFF'],
+]
+
 function makeVariant(key, video, colorDir, colors) {
   return {
     key,
@@ -84,21 +134,37 @@ function makeVariant(key, video, colorDir, colors) {
   }
 }
 
-// Keyed by the exact form.collar label (data/orderConfig.js COLLARS) — both variants
-// are Standard fit; there's no Boxy/Oversized coverage yet.
+// Keyed by the variant's own key — flat, so GarmentScrub.jsx can mount every known
+// variant's <video> up front (see its file header on why nothing gets key-remounted).
 export const SCRUB_VARIANTS = {
-  'Standard ribbed crew': makeVariant('standard-standard', 'standard-standard.mp4', 'standard-standard', STANDARD_COLORS),
-  'Pro Club-style thick rib': makeVariant('standard-proclub', 'standard-proclub.mp4', 'standard-proclub', PROCLUB_COLORS),
+  'standard-standard': makeVariant('standard-standard', 'standard-standard.mp4', 'standard-standard', STANDARD_COLORS),
+  'standard-proclub': makeVariant('standard-proclub', 'standard-proclub.mp4', 'standard-proclub', PROCLUB_COLORS),
+  'boxy-standard': makeVariant('boxy-standard', 'boxy-standard.mp4', 'box_standard_clr', BOXY_STANDARD_COLORS),
+  'boxy-proclub': makeVariant('boxy-proclub', 'boxy-proclub.mp4', 'box_proclub_clr', BOXY_PROCLUB_COLORS),
+}
+
+// form.fit -> form.collar label (data/orderConfig.js COLLARS) -> SCRUB_VARIANTS key.
+// Oversized has no footage yet, so it's absent here and falls through to the 3D stage.
+const VARIANT_KEY_BY_FIT_COLLAR = {
+  Standard: {
+    'Standard ribbed crew': 'standard-standard',
+    'Pro Club-style thick rib': 'standard-proclub',
+  },
+  Boxy: {
+    'Standard ribbed crew': 'boxy-standard',
+    'Pro Club-style thick rib': 'boxy-proclub',
+  },
 }
 
 /**
- * Is there a filmed variant for the current form? Only Standard fit + a collar we
- * have footage for, on a style that shows a collar at all (plain/printed tee, long
- * sleeve — sh.collar mirrors data/orderConfig.js's showFor()).
+ * Is there a filmed variant for the current form? Needs a fit+collar combo we have
+ * footage for, on a style that shows a collar at all (plain/printed tee, long sleeve
+ * — sh.collar mirrors data/orderConfig.js's showFor()).
  */
 export function scrubVariantFor(form, sh) {
-  if (!sh.collar || form.fit !== 'Standard') return null
-  return SCRUB_VARIANTS[form.collar] || null
+  if (!sh.collar) return null
+  const key = VARIANT_KEY_BY_FIT_COLLAR[form.fit]?.[form.collar]
+  return key ? SCRUB_VARIANTS[key] : null
 }
 
 export function timeForPart(partKey) {

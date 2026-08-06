@@ -1,0 +1,26 @@
+/* src/design/AddressPicker.css — shared address picker (checkout: QuoteSummary, WalkInForm) */
+.ap { display: flex; flex-direction: column; gap: 10px; }
+.ap-loading { font-size: 13.5px; color: var(--muted); margin: 0; }
+
+.ap-list { display: flex; flex-direction: column; gap: 8px; }
+.ap-item {
+  display: block; width: 100%; text-align: left; background: #fff;
+  border: 1.5px solid var(--line); border-radius: 12px; padding: 12px 14px;
+  cursor: pointer; font: inherit;
+}
+.ap-item--on { border-color: var(--ink); background: rgba(18, 18, 18, 0.03); }
+.ap-item-name { font-weight: 800; font-size: 14px; }
+.ap-item-default { font-family: var(--font-mono); font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gold-ink); margin-left: 8px; }
+.ap-item-line { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+.ap-item--new { color: var(--ink-soft); font-weight: 700; font-size: 13.5px; }
+
+.ap-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+.ap-form .full { grid-column: 1 / -1; }
+.ap-input { border: 1.5px solid var(--line); border-radius: 10px; padding: 11px 13px; font-family: inherit; font-size: 14px; outline: none; background: #fff; }
+.ap-input:focus { border-color: var(--ink); }
+.ap-error { font-size: 12.5px; color: var(--danger); margin: 0; }
+.ap-confirmed { font-size: 12.5px; color: var(--ok); font-weight: 700; margin: 0; }
+
+@media (max-width: 480px) {
+  .ap-form { grid-template-columns: 1fr; }
+}

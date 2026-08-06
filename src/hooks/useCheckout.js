@@ -1,6 +1,6 @@
 // src/hooks/useCheckout.js — the convergence point for all three ordering paths.
 // Both online paths (and, when they choose to log in, walk-ins) funnel through placeOrder():
-//   guest  → save draft, bounce to Google sign-in, resume in Checkout (spec §2 gate)
+//   guest  → save draft, bounce to sign-in, resume in Checkout (spec §2 gate)
 //   authed → create the order (state machine starts at waiting_for_seller) → payment
 import { useSession } from '../context/SessionContext.jsx'
 import { useOrders } from '../context/OrderContext.jsx'
@@ -13,13 +13,17 @@ export function useCheckout() {
 
   /**
    * Place an online order from a completed quote.
-   * @param path 'guided' | 'instant'
+   * @param path 'guided' | 'instant' | 'walkin'
    * @param form full form incl. hasDesign
    * @param qty  production quantity
+   * @param delivery {recipient, phone, line, city} — where to actually deliver the
+   *   order. Required: the order used to be able to reach 'delivered' with the system
+   *   never knowing where to. Resolved by AddressPicker (either a saved address or one
+   *   typed inline at checkout).
    */
-  async function placeOrder({ path, form, qty }) {
+  async function placeOrder({ path, form, qty, delivery }) {
     // Always stash the draft so nothing is lost on the auth redirect.
-    saveDraft({ path, form, qty })
+    saveDraft({ path, form, qty, delivery })
 
     if (!isAuthenticated) {
       // Locked gate (spec §2): sign in before placing. Resume at Checkout afterwards.
@@ -32,7 +36,7 @@ export function useCheckout() {
     // instead of being silently dropped. PH customers primarily use phone as their
     // contact channel, which matters once staff pick this order up in ash_ai.
     const customer = { name: user.name, email: user.email, phone: form.phone || null }
-    const order = await createOrderRecord({ path, form, qty, customer })
+    const order = await createOrderRecord({ path, form, qty, customer, delivery })
     clearDraft()
     navigate('?page=payment&id=' + order.id)
     return order

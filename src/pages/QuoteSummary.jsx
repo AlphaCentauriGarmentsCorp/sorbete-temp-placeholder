@@ -7,6 +7,7 @@ import { useRef, useState } from 'react'
 import { IoCopyOutline, IoCheckmarkCircle, IoDownloadOutline } from 'react-icons/io5'
 import { quoteTotals, peso, styleById } from '../data/orderConfig.js'
 import { copyToClipboard } from '../utils/format.js'
+import AddressPicker from '../components/AddressPicker.jsx'
 import '../design/QuoteSummary.css'
 
 function buildQuoteText(f, qty) {
@@ -36,6 +37,8 @@ function buildQuoteText(f, qty) {
 
 export default function QuoteSummary({ form, qty = 50, onChange, onProceed }) {
   const [copied, setCopied] = useState(false)
+  const [showAddress, setShowAddress] = useState(false)
+  const [delivery, setDelivery] = useState(null)
   const timer = useRef(null)
   const t = quoteTotals(form, qty)
   const colors = form.printColors || 1
@@ -47,6 +50,13 @@ export default function QuoteSummary({ form, qty = 50, onChange, onProceed }) {
       clearTimeout(timer.current)
       timer.current = setTimeout(() => setCopied(false), 2200)
     })
+  }
+
+  // First click reveals the address step (nothing asked for it until now); once an
+  // address resolves, the same button's second click actually places the order.
+  const handlePlaceOrder = () => {
+    if (!showAddress) { setShowAddress(true); return }
+    if (delivery) onProceed(delivery)
   }
 
   const cells = [
@@ -99,12 +109,23 @@ export default function QuoteSummary({ form, qty = 50, onChange, onProceed }) {
         </button>
       </div>
 
+      {onProceed && showAddress && (
+        <div className="quote-delivery">
+          <h3 className="quote-delivery-h">Delivery address</h3>
+          <AddressPicker value={delivery} onChange={setDelivery} />
+        </div>
+      )}
+
       <div className="quote-cta">
         {onChange && <button className="quote-change" onClick={onChange}>Change</button>}
-        {onProceed && <button className="quote-proceed" onClick={onProceed}>Place order →</button>}
+        {onProceed && (
+          <button className="quote-proceed" disabled={showAddress && !delivery} onClick={handlePlaceOrder}>
+            Place order →
+          </button>
+        )}
       </div>
       {onProceed && (
-        <p className="quote-foot">The ₱1,000 sample fee is billed first; you’ll sign in with Google to place the order.</p>
+        <p className="quote-foot">The ₱1,000 sample fee is billed first; you’ll need to sign in to place the order.</p>
       )}
     </div>
   )

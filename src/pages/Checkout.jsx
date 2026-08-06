@@ -1,5 +1,5 @@
 // src/pages/Checkout.jsx — post-sign-in resume step (gated by RequireAuth in App).
-// A guest who hit "Place order" was bounced to Google sign-in with next=?page=checkout.
+// A guest who hit "Place order" was bounced to sign-in with next=?page=checkout.
 // Now authenticated, we read the stashed draft, create the order, and continue to payment.
 import { useEffect, useRef, useState } from 'react'
 import StubScreen from '../components/StubScreen.jsx'
@@ -26,7 +26,8 @@ export default function Checkout() {
       path: draft.path,
       form: draft.form,
       qty: draft.qty,
-      customer: { name: user.name, email: user.email },
+      customer: { name: user.name, email: user.email, phone: draft.form?.phone || null },
+      delivery: draft.delivery,
     })
       .then((order) => {
         clearDraft()

@@ -73,7 +73,6 @@
 .gw-im-panel .gw-inline { margin-top: 11px; padding-top: 10px; }
 .gw-im-panel .gw-swatches { gap: 8px; }
 .gw-im-panel .gw-swatch { width: 52px; font-size: 9.5px; gap: 4px; }
-.gw-im-panel .gw-swatch span { width: 30px; height: 30px; }
 
 .gw-cards { display: flex; flex-direction: column; gap: 10px; }
 .gw-cards--row, .gw-cards--sizes { flex-direction: row; flex-wrap: wrap; }
@@ -91,10 +90,16 @@
 .gw-inline { margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(18, 18, 18, 0.1); }
 .gw-inline-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #9a9488; margin-bottom: 10px; }
 
+/* Paint-chip style swatches (ref: the customer's color-card inspo image) — a
+   square block that fills the slot's full width, cut corner top-right, name
+   below. Replaces the old small circle, which left visible dead space around
+   it in the same slot. The square scales itself off the slot width via
+   aspect-ratio, so per-breakpoint size overrides (tablet/mobile) only need to
+   resize .gw-swatch's own width — no separate span width/height to keep in sync. */
 .gw-swatches { display: flex; flex-wrap: wrap; gap: 10px; }
-.gw-swatch { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 62px; background: none; border: none; cursor: pointer; font: inherit; font-size: 10px; color: var(--ink-soft); text-align: center; }
-.gw-swatch span { width: 38px; height: 38px; border-radius: 50%; border: 1px solid rgba(18, 18, 18, 0.16); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15); }
-.gw-swatch--on span { border: 3px solid var(--ink); }
+.gw-swatch { display: flex; flex-direction: column; align-items: stretch; gap: 5px; width: 62px; background: none; border: none; cursor: pointer; font: inherit; font-weight: 700; font-size: 10px; color: var(--ink-soft); text-align: center; }
+.gw-swatch span { width: 100%; aspect-ratio: 1; border-radius: 3px 12px 3px 3px; border: 1px solid rgba(18, 18, 18, 0.16); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15); }
+.gw-swatch--on span { border: 2.5px solid var(--ink); }
 
 .gw-others { margin-top: 12px; }
 .gw-others input { font-family: var(--font-mono); font-size: 15px; padding: 11px 13px; border: 1px solid rgba(18, 18, 18, 0.16); border-radius: 12px; background: var(--card); width: 120px; }
@@ -112,9 +117,7 @@
 .gw-bar-v--sm { font-size: 18px; color: #fff; }
 .gw-bar-v span { font-family: inherit; font-size: 14px; font-weight: 700; color: rgba(255, 255, 255, 0.6); }
 .gw-bar-sub { font-size: 12.5px; color: rgba(255, 255, 255, 0.55); margin-top: 3px; }
-.gw-bar-actions { display: flex; align-items: center; gap: 10px; }
-.gw-bar-ghost { background: transparent; color: #fff; border: 1.5px solid rgba(255, 255, 255, 0.28); cursor: pointer; font: inherit; font-weight: 700; font-size: 13.5px; padding: 13px 20px; border-radius: 999px; white-space: nowrap; }
-.gw-bar-ghost:hover { border-color: rgba(255, 255, 255, 0.5); }
+.gw-bar-actions { display: flex; align-items: center; }
 .gw-bar-cta { background: var(--gold); color: var(--ink); border: none; cursor: pointer; font: inherit; font-weight: 700; font-size: 15px; padding: 15px 28px; border-radius: 999px; white-space: nowrap; }
 
 .gw-quote-wrap { padding: 40px 16px 80px; }
@@ -144,16 +147,28 @@
 @media (max-width: 480px) {
   .gw-im-part { max-width: 66%; }
   .gw-bar-actions { flex: 1; }
-  .gw-bar-actions .gw-bar-ghost { display: none; }
   .gw-bar-cta { flex: 1; text-align: center; }
 
   /* The bar's real height on a narrow phone was ~166px (3 stats wrapping to 2
      lines + the button), while the panel above it assumed the ~82px tablet
-     height — so the bar covered the bottom of the options panel. Down to one
-     stat the bar still wraps to 2 rows at this width (stat row + full-width
-     button row, ~116px) — the panel's clearance now matches that measured
-     height instead of guessing. */
-  .gw-bar-stat--perpc, .gw-bar-stat--qty { display: none; }
+     height — so the bar covered the bottom of the options panel. Instead of
+     dropping per-piece/qty, all three stats are forced onto one shared row
+     (flex-basis 100%, shrunk type) with the CTA on its own row below — same
+     2-row shape as before (stat row + full-width button row, ~116px), so the
+     panel's clearance still matches without hiding any figure from the customer.
+     Per piece stays the hero stat (matches desktop: gold, largest figure —
+     it's the one number spec screens are meant to lead with, per the sample-
+     first pricing model). Qty and total are tucked in small; total is pushed
+     to the row's far edge with margin-left:auto instead of space-between, so
+     the row reads as one tight cluster instead of three figures floating with
+     awkward gaps between them. */
+  .gw-bar-stats { flex: 1 1 100%; align-items: baseline; gap: 16px; }
+  .gw-bar-actions { flex: 1 1 100%; }
+  .gw-bar-stat--perpc .gw-bar-v { font-size: 24px; }
+  .gw-bar-stat--qty .gw-bar-k, .gw-bar-stat--total .gw-bar-k { font-size: 8.5px; }
+  .gw-bar-stat--qty .gw-bar-v, .gw-bar-stat--total .gw-bar-v { font-size: 14px; }
+  .gw-bar-stat--total { margin-left: auto; text-align: right; }
+  .gw-bar-stat--total .gw-bar-k { white-space: normal; max-width: 108px; }
   .gw-im-bar { padding: 8px 12px; }
   .gw-im-panel { bottom: 118px; }
 
@@ -183,7 +198,6 @@
   .gw-im-panel .gw-inline-label { font-size: 8.5px; margin-bottom: 6px; }
   .gw-im-panel .gw-swatches { gap: 6px; }
   .gw-im-panel .gw-swatch { width: 42px; font-size: 8px; gap: 3px; }
-  .gw-im-panel .gw-swatch span { width: 24px; height: 24px; }
 
   /* bottom bar: smaller type to match */
   .gw-bar-k { font-size: 9.5px; }

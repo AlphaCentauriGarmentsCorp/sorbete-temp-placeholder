@@ -52,7 +52,7 @@ export default function DirectForm() {
             form={{ ...form, hasDesign }}
             qty={form.qty}
             onChange={() => setShowQuote(false)}
-            onProceed={() => placeOrder({ path: 'instant', form: { ...form, hasDesign }, qty: form.qty })}
+            onProceed={(delivery) => placeOrder({ path: 'instant', form: { ...form, hasDesign }, qty: form.qty, delivery })}
           />
         </div>
         <Footer />

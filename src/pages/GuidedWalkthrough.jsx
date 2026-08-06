@@ -17,8 +17,8 @@ import { useCheckout } from '../hooks/useCheckout.js'
 import { useGarmentForm } from '../hooks/useGarmentForm.js'
 import { scrubVariantFor } from '../data/garmentScrub.js'
 import {
-  ORDERABLE_STYLES, FITS, SIZES, SIZE_PRICES, COLLARS, SLEEVES, FABRICS, colorsFor, COLOR_HEX,
-  PRINT_COLOR_OPTIONS, PRINT_CHOICES, PLACEMENTS, hemsFor, showsPrice, styleById, peso,
+  ORDERABLE_STYLES, FITS, SIZES, COLLARS, SLEEVES, FABRICS, colorsFor, COLOR_HEX,
+  PRINT_COLOR_OPTIONS, PRINT_CHOICES, PLACEMENTS, hemsFor, showsPrice, styleById, sizePricesFor, peso,
 } from '../data/orderConfig.js'
 import '../design/GuidedWalkthrough.css'
 
@@ -138,7 +138,7 @@ export default function GuidedWalkthrough() {
         <div className="gw-quote-wrap">
           <QuoteSummary form={{ ...form, hasDesign }} qty={form.qty}
             onChange={() => { setShowQuote(false); window.scrollTo(0, 0) }}
-            onProceed={() => placeOrder({ path: 'guided', form: { ...form, hasDesign }, qty: form.qty })} />
+            onProceed={(delivery) => placeOrder({ path: 'guided', form: { ...form, hasDesign }, qty: form.qty, delivery })} />
         </div>
         <Footer />
       </div>
@@ -221,14 +221,13 @@ export default function GuidedWalkthrough() {
 
             {active.key === 'size' && (
               <div className="gw-cards gw-cards--sizes">
-                {SIZES.map((sz) => {
-                  const p = (SIZE_PRICES[form.fit] || SIZE_PRICES.Standard)[sz]
-                  const add = styleById(form.style).addPerPc
-                  return (
-                    <Card key={sz} title={sz} sub={priced ? peso(p + add) + ' / pc' : 'Sample size'}
+                {(() => {
+                  const prices = sizePricesFor(form.style, form.fit)
+                  return SIZES.map((sz) => (
+                    <Card key={sz} title={sz} sub={priced && prices ? peso(prices[sz]) + ' / pc' : 'Sample size'}
                       selected={form.size === sz} onClick={() => set({ size: sz })} />
-                  )
-                })}
+                  ))
+                })()}
               </div>
             )}
 
@@ -321,7 +320,6 @@ export default function GuidedWalkthrough() {
           </div>
         </div>
         <div className="gw-bar-actions">
-          <button className="gw-bar-ghost" onClick={() => setShowQuote(true)}>Breakdown</button>
           <button className="gw-bar-cta" onClick={() => setShowQuote(true)}>See quotation →</button>
         </div>
       </div>

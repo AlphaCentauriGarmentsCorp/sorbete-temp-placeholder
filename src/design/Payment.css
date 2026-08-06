@@ -60,6 +60,8 @@
 .pm-chip-btn--on { background: var(--ink); color: #fff; border-color: var(--ink); }
 .pm-input { width: 100%; border: 1.5px solid var(--line); border-radius: 12px; padding: 12px 14px; font-family: inherit; font-size: 14px; outline: none; background: #fff; }
 .pm-input:focus { border-color: var(--ink); }
+.pm-textarea { width: 100%; border: 1.5px solid var(--line); border-radius: 12px; padding: 12px 14px; font-family: inherit; font-size: 14px; outline: none; background: #fff; resize: vertical; }
+.pm-textarea:focus { border-color: var(--ink); }
 .pm-cash-note { font-size: 13.5px; color: var(--muted); line-height: 1.5; margin: 12px 0 0; }
 .pm-upload {
   display: flex; align-items: center; gap: 10px; cursor: pointer;
@@ -74,6 +76,7 @@
 /* sample review */
 .pm-sample-lead { font-size: 14.5px; color: var(--ink-soft); margin: 0 0 16px; }
 .pm-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.pm-request-changes { display: flex; flex-direction: column; gap: 12px; }
 .pm-classify { border-top: 1px solid var(--line); padding-top: 16px; }
 .pm-classify-head { font-size: 14px; margin-bottom: 12px; }
 .pm-classify-note { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin: 12px 0 8px; }
@@ -96,11 +99,14 @@
 .pm-staff-review { display: flex; flex-direction: column; gap: 12px; }
 .pm-staff-reject { display: flex; gap: 8px; }
 .pm-staff-reject .pm-input { flex: 1; }
+.pm-staff-proof { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.pm-staff-proof-img { max-width: 220px; max-height: 220px; border-radius: 10px; border: 1px solid var(--line); cursor: pointer; object-fit: cover; }
 
 /* lists (payments + timeline) */
 .pm-list { margin-top: 18px; }
 .pm-list-h { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
 .pm-pay-row { display: flex; justify-content: space-between; gap: 12px; padding: 11px 14px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 6px; font-size: 13.5px; }
+.pm-pay-row .pm-link { margin-left: 8px; text-decoration: underline; }
 .pm-pay-status { font-weight: 700; white-space: nowrap; }
 .pm-pay-status--approved { color: var(--ok); }
 .pm-pay-status--under_review, .pm-pay-status--submitted { color: var(--warn); }
