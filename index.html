@@ -3,7 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/jpeg" href="/img/logo.jpg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- viewport-fit=cover: without it iOS reports env(safe-area-inset-*) as 0, so the
+         kiosk's pinned footer never gets home-indicator clearance on notched iPhones. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta
       name="description"
       content="Sorbetes Apparel Studio — B2B custom-apparel manufacturing. Design, quote, and order custom tees, hoodies, and pants online or in-store."

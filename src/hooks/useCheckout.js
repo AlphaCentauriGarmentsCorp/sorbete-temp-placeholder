@@ -42,5 +42,16 @@ export function useCheckout() {
     return order
   }
 
-  return { placeOrder }
+  /**
+   * A guest reaching the address step (not yet resolved a delivery — AddressPicker is
+   * gated behind sign-in, so they can never produce one). Stash the garment-spec draft
+   * (no `delivery` yet) and bounce to sign-in; Checkout resumes with a real, authenticated
+   * AddressPicker so the address they pick actually gets saved, not just typed and lost.
+   */
+  function redirectToSignIn({ path, form, qty }) {
+    saveDraft({ path, form, qty })
+    navigate('?page=auth&next=' + encodeURIComponent('?page=checkout'))
+  }
+
+  return { placeOrder, redirectToSignIn }
 }

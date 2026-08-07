@@ -64,7 +64,7 @@ export default function GuidedWalkthrough() {
   const { form, set, sh, hasDesign, pickStyle, pickFabric, totals: t } = useGarmentForm()
   const [step, setStep] = useState(0)
   const [showQuote, setShowQuote] = useState(false)
-  const { placeOrder } = useCheckout()
+  const { placeOrder, redirectToSignIn } = useCheckout()
 
   // Build the ordered part list from the current style/print choice.
   const parts = useMemo(() => {
@@ -138,7 +138,8 @@ export default function GuidedWalkthrough() {
         <div className="gw-quote-wrap">
           <QuoteSummary form={{ ...form, hasDesign }} qty={form.qty}
             onChange={() => { setShowQuote(false); window.scrollTo(0, 0) }}
-            onProceed={(delivery) => placeOrder({ path: 'guided', form: { ...form, hasDesign }, qty: form.qty, delivery })} />
+            onProceed={(delivery) => placeOrder({ path: 'guided', form: { ...form, hasDesign }, qty: form.qty, delivery })}
+            onSignIn={() => redirectToSignIn({ path: 'guided', form: { ...form, hasDesign }, qty: form.qty })} />
         </div>
         <Footer />
       </div>

@@ -34,8 +34,9 @@ export default function AddressPicker({ value, onChange }) {
         setSelectedId(NEW)
       }
     }).catch(() => {
-      // Guest browsing the quote before the sign-in gate (see useCheckout.js) — no
-      // saved addresses to load yet. Falls through to "add new," typed inline below.
+      // No saved addresses yet (new account), or a transient error — either way, fall
+      // through to "add new," typed inline below. AddressPicker only mounts when
+      // signed in, so this is never a guest/401 case.
       setSelectedId(NEW)
     }).finally(() => setLoading(false))
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -75,13 +76,13 @@ export default function AddressPicker({ value, onChange }) {
       setForm(EMPTY_FORM)
       onChange(toDelivery(created))
     } catch (e) {
-      if (e.status === 401) {
-        // Not signed in yet — the sign-in gate is later, at "Place order." Let them
-        // proceed with what they typed; it'll actually get saved once they sign in.
-        onChange({ recipient: form.recipient, phone: form.phone, line: form.line, city: form.city })
-      } else {
-        setError(e.message || 'Could not save address.')
-      }
+      // AddressPicker only ever mounts when signed in (gated by QuoteSummary/Checkout for
+      // the online paths, by RequireAuth for walk-in) — a 401 here means the session
+      // expired mid-checkout, not a guest. No fallback: silently fabricating an unsaved
+      // "delivery" from the typed form used to let a guest's address bypass persistence
+      // entirely (it never actually reached their address book). Surface it as an error
+      // instead so they know to sign in again.
+      setError(e.status === 401 ? 'Your session expired — please sign in again.' : (e.message || 'Could not save address.'))
     } finally {
       setSaving(false)
     }

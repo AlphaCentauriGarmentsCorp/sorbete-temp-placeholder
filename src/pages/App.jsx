@@ -75,7 +75,10 @@ function routePage(page) {
   if (page === 'walkthrough') return <GuidedWalkthrough />
   if (page === 'direct-form') return <ComingSoon />
   if (page === 'walk-ins') return <WalkInsInfo />
-  if (page === 'walk-in') return gate(<WalkInForm />)
+  // Walk-in is guest-friendly up to the quote — the sign-in gate lives at the address
+  // step inside WalkInForm itself (same placement as the online paths), so an in-store
+  // customer can browse and build without an account and only signs in to save an address.
+  if (page === 'walk-in') return <WalkInForm />
   if (page === 'payment') return <Payment /> // reachable by online (authed) + walk-in (SMS) orders
 
   // Sign-in-gated (spec §2): placement resume + dashboard/tracking

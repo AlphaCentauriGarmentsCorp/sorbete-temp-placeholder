@@ -1,6 +1,9 @@
 // src/pages/WalkInForm.jsx — in-store QR kiosk (?page=walk-in). On-site experience.
-// Gated by RequireAuth (App.jsx) — walk-in guests sign in with a real Sorbetes account
-// so their order shows up in My Orders / Track Order, same as an online order.
+// Guest-friendly up to the quote: browsing, building, and the quotation itself need no
+// account (same as the online paths). The sign-in gate sits at the ADDRESS step — a
+// customer signs in (or creates an account) right before adding a delivery address, so
+// the address is saved to their account and the order shows up in My Orders. The built
+// order survives the auth round-trip via a localStorage draft (WALKIN_DRAFT_KEY).
 //
 // Full garment config reusing the SAME engine as the online paths (useGarmentForm /
 // data/orderConfig.js) — a walk-in order prices and states identically to a guided or
@@ -12,14 +15,17 @@
 // single scrolling order form (numbered sections, not paginated steps) that hands off
 // to a separate itemized quote screen — not the earlier step-1..step-5 wizard this file
 // used to have.
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   IoStorefrontOutline, IoClose, IoCopyOutline, IoCheckmarkCircle, IoDownloadOutline,
-  IoArrowForward, IoPeopleOutline, IoLocationOutline,
+  IoArrowForward, IoPeopleOutline, IoLocationOutline, IoInformationCircleOutline,
+  IoRefreshOutline,
 } from 'react-icons/io5'
 import { navigate } from '../utils/navigation.js'
 import { copyToClipboard } from '../utils/format.js'
 import { useCheckout } from '../hooks/useCheckout.js'
+import { useSession } from '../context/SessionContext.jsx'
+import { getJSON, setJSON, remove } from '../utils/storage.js'
 import AddressPicker from '../components/AddressPicker.jsx'
 import { useGarmentForm, DEFAULT_GARMENT_FORM } from '../hooks/useGarmentForm.js'
 import {
@@ -187,6 +193,7 @@ function RackTagCard({ tag, large, activeField, onFieldTap, onClick }) {
   const field = (id, label, value) => (
     <button
       type="button"
+      data-field={id}
       className={'wk-tag-field' + (activeField === id ? ' wk-tag-field--hi' : '') + (onFieldTap ? ' wk-tag-field--tappable' : '')}
       onClick={onFieldTap ? (e) => { e.stopPropagation(); onFieldTap(id) } : undefined}
     >
@@ -204,6 +211,154 @@ function RackTagCard({ tag, large, activeField, onFieldTap, onClick }) {
         {field('price', 'Price / pc', price != null ? peso(price) : 'Ask CSR')}
       </div>
     </div>
+  )
+}
+
+// Mini hangtag for the Browse fan — a small replica of the physical rack tag (dark
+// header bar, big size, print method, fabric, price), absolutely positioned + rotated
+// into the prototype's fanned stack. Oversized cuts get the blue header bar, same as
+// the physical tags.
+function RackTagMini({ tag, className, onClick }) {
+  const price = priceFor(tag.styleId, tag.fit, tag.size)
+  const oversized = tag.fit !== 'Standard'
+  return (
+    <button
+      type="button"
+      className={'wk-rtag ' + className + (oversized ? ' wk-rtag--ovr' : '')}
+      onClick={onClick}
+      aria-label={`Inspect tag: ${styleById(tag.styleId).label} · ${tag.fit}`}
+    >
+      <span className="wk-rtag-bar">{styleById(tag.styleId).label} · {tag.fit}</span>
+      <span className="wk-rtag-body">
+        <span className="wk-rtag-lbl">Size</span>
+        <span className="wk-rtag-row">
+          <span className="wk-rtag-size">{tag.size}</span>
+          <span className="wk-rtag-method">{tag.styleId === 'printed-tee' ? <>Silkscreen<br />(Waterbased)</> : 'No print'}</span>
+        </span>
+        <span className="wk-rtag-lbl">Fabric</span>
+        <span className="wk-rtag-fabric">{tag.fabric}</span>
+        <span className="wk-rtag-price">{price != null ? peso(price) : 'Ask CSR'}</span>
+      </span>
+    </button>
+  )
+}
+
+// Inspector stage — the prototype's annotated-tag view: hand-drawn-style ink rings
+// circle each field of the enlarged tag one after another (stroke-dashoffset draw-in,
+// staggered), with numbered badges and a Replay button. Ring geometry is MEASURED from
+// the live DOM (each field's real box), so it stays locked to the right line at any
+// text length or viewport width. Tapping a legend row (or the field itself) redraws
+// just that ring.
+function TagInspector({ tag, activeField, onFieldTap }) {
+  const stageRef = useRef(null)
+  const timers = useRef([])
+  const [rings, setRings] = useState([])
+  const [drawn, setDrawn] = useState([])
+
+  const measure = () => {
+    const stage = stageRef.current
+    if (!stage) return []
+    const sRect = stage.getBoundingClientRect()
+    return TAG_FIELDS.map((f, i) => {
+      // Ring the VALUE ("M", "CVC 240 GSM", "₱200"), not the whole row — full-width
+      // rows would produce three card-wide ellipses stacked on top of each other.
+      const el = stage.querySelector(`[data-field="${f.id}"] .wk-tag-field-val`)
+      if (!el) return null
+      const r = el.getBoundingClientRect()
+      const cx = r.left - sRect.left + r.width / 2
+      const cy = r.top - sRect.top + r.height / 2
+      const rx = Math.max(r.width / 2 + 14, 26)
+      const ry = Math.max(r.height / 2 + 9, 17)
+      // Ramanujan's ellipse-perimeter approximation — close enough for a dash length.
+      const len = Math.PI * (3 * (rx + ry) - Math.sqrt((3 * rx + ry) * (rx + 3 * ry)))
+      // Number badge: top-right of the ring, flipped to the left when it'd overflow.
+      const overflowsRight = cx + rx + 16 > sRect.width
+      const nx = overflowsRight ? cx - rx - 12 : cx + rx + 6
+      return { id: f.id, n: i + 1, cx, cy, rx, ry, len, nx, ny: cy - ry + 2, rot: i % 2 ? 3 : -3 }
+    }).filter(Boolean)
+  }
+
+  const clearTimers = () => { timers.current.forEach(clearTimeout); timers.current = [] }
+
+  // Circle each field in turn, legend row lighting up in step (via activeField).
+  const play = () => {
+    clearTimers()
+    setDrawn([])
+    const rs = measure()
+    setRings(rs)
+    rs.forEach((r, i) => {
+      timers.current.push(setTimeout(() => {
+        setDrawn((d) => [...d, r.id])
+        onFieldTap(r.id)
+      }, 120 + i * 560))
+    })
+  }
+
+  // Draw only the tapped field's ring (legend tap / tag-line tap).
+  const highlight = (id) => {
+    clearTimers()
+    setRings((rs) => (rs.length ? rs : measure()))
+    setDrawn([id])
+    onFieldTap(id)
+  }
+
+  useEffect(() => {
+    // Double-rAF: wait for the sheet's slide-up + font layout before measuring.
+    let raf2
+    const raf1 = requestAnimationFrame(() => { raf2 = requestAnimationFrame(play) })
+    const remeasure = () => setRings(measure())
+    window.addEventListener('resize', remeasure)
+    return () => {
+      cancelAnimationFrame(raf1)
+      if (raf2) cancelAnimationFrame(raf2)
+      window.removeEventListener('resize', remeasure)
+      clearTimers()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  return (
+    <>
+      <div className="wk-insp-stage" ref={stageRef}>
+        <RackTagCard tag={tag} large activeField={activeField} onFieldTap={highlight} />
+        <svg className="wk-insp-svg" aria-hidden="true">
+          {rings.map((r) => (
+            <g key={r.id} transform={`rotate(${r.rot} ${r.cx} ${r.cy})`}>
+              <ellipse
+                className="wk-insp-ring"
+                cx={r.cx} cy={r.cy} rx={r.rx} ry={r.ry}
+                style={{ strokeDasharray: r.len, strokeDashoffset: drawn.includes(r.id) ? 0 : r.len }}
+              />
+              <text
+                className={'wk-insp-num' + (drawn.includes(r.id) ? ' wk-insp-num--on' : '')}
+                x={r.nx} y={r.ny}
+              >
+                {r.n}
+              </text>
+            </g>
+          ))}
+        </svg>
+      </div>
+      <button type="button" className="wk-insp-replay" onClick={play}>
+        <IoRefreshOutline /> Replay
+      </button>
+      <div className="wk-tag-legend">
+        {TAG_FIELDS.map((f, i) => (
+          <button
+            key={f.id}
+            type="button"
+            className={'wk-tag-legend-item' + (activeField === f.id ? ' wk-tag-legend-item--on' : '')}
+            onClick={() => highlight(f.id)}
+          >
+            <span className="wk-tag-legend-n">{i + 1}</span>
+            <span className="wk-tag-legend-body">
+              <span className="wk-tag-legend-t">{f.label}</span>
+              <span className="wk-tag-legend-d">{f.desc}</span>
+            </span>
+          </button>
+        ))}
+      </div>
+    </>
   )
 }
 
@@ -225,15 +380,26 @@ function Sheet({ title, subtitle, onClose, children }) {
   )
 }
 
+// The built order survives the sign-in round-trip here — saved right before the auth
+// redirect, consumed once on the way back (same idea as the online draftOrder).
+const WALKIN_DRAFT_KEY = 'sorbetes_walkin_draft'
+
 export default function WalkInForm() {
   const { placeOrder } = useCheckout()
-  const { form, set, sh, hasDesign, pickStyle, pickFabric, totals: t } = useGarmentForm(DEFAULT_GARMENT_FORM)
+  const { isAuthenticated, ready } = useSession()
+  // Consume a stashed draft once (guest built a quote, went to sign in, came back):
+  // resume straight at the quote with the address step already open.
+  const draft = useRef(getJSON(WALKIN_DRAFT_KEY)).current
+  useEffect(() => { remove(WALKIN_DRAFT_KEY) }, [])
+  const { form, set, sh, hasDesign, pickStyle, pickFabric, totals: t } = useGarmentForm(
+    draft?.form ? { ...DEFAULT_GARMENT_FORM, ...draft.form } : DEFAULT_GARMENT_FORM,
+  )
   // 'welcome' | 'browse' | 'assist' | 'assist-yes' | 'form' | 'quote'
-  const [phase, setPhase] = useState('welcome')
-  const [label, setLabel] = useState('')
-  const [notes, setNotes] = useState('')
-  const [phone, setPhone] = useState('')
-  const [showAddress, setShowAddress] = useState(false)
+  const [phase, setPhase] = useState(draft ? 'quote' : 'welcome')
+  const [label, setLabel] = useState(draft?.label || '')
+  const [notes, setNotes] = useState(draft?.notes || '')
+  const [phone, setPhone] = useState(draft?.phone || '')
+  const [showAddress, setShowAddress] = useState(!!draft)
   const [delivery, setDelivery] = useState(null)
   const [placing, setPlacing] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -266,6 +432,14 @@ export default function WalkInForm() {
     if (delivery) placeWalkIn()
   }
 
+  // Guest reached the address step — stash the built order and bounce to sign-in.
+  // AddressPicker never mounts for a guest here (same rule as the online paths), so
+  // an address can only ever be added while signed in and lands in their account.
+  const signInToContinue = () => {
+    setJSON(WALKIN_DRAFT_KEY, { form: { ...form }, label, notes, phone })
+    navigate('?page=auth&next=' + encodeURIComponent('?page=walk-in'))
+  }
+
   const placeWalkIn = async () => {
     if (placing) return
     setPlacing(true)
@@ -283,8 +457,14 @@ export default function WalkInForm() {
 
   const phaseDotKey = phase === 'assist-yes' ? 'assist' : phase === 'quote' ? 'form' : phase
 
+  // Scrolling lives INSIDE the device shell (the phone-frame card on desktop), so a
+  // phase change must reset the shell's own scroll, not the window's.
+  const mainRef = useRef(null)
+  useEffect(() => { mainRef.current?.scrollTo?.({ top: 0 }) }, [phase])
+
   return (
     <div className="wk-page">
+      <div className="wk-device">
       <header className="wk-head">
         <button className="wk-exit" aria-label="Exit" onClick={() => navigate('?page=walk-ins')}>
           <IoClose />
@@ -300,12 +480,14 @@ export default function WalkInForm() {
         </span>
       </header>
       <div className="wk-phase-nav" aria-hidden="true">
-        {['welcome', 'browse', 'assist', 'form'].map((p) => (
-          <span key={p} className={'wk-phase-dot' + (p === phaseDotKey ? ' wk-phase-dot--on' : '')} />
+        {[['welcome', 'Welcome'], ['browse', 'Browse'], ['assist', 'Assistance'], ['form', 'Order form']].map(([p, lbl]) => (
+          <span key={p} className={'wk-phase-step' + (p === phaseDotKey ? ' wk-phase-step--on' : '')}>
+            <span className="wk-phase-dot" />{lbl}
+          </span>
         ))}
       </div>
 
-      <main className="wk-main">
+      <main className="wk-main" ref={mainRef}>
         <div className="wk-inner">
 
           {MAP_BY_PHASE[phase] && <MapBlock {...MAP_BY_PHASE[phase]} />}
@@ -324,18 +506,29 @@ export default function WalkInForm() {
             </div>
           )}
 
-          {/* Browse */}
+          {/* Browse — the prototype's split: a fanned stack of mini hangtags at the
+              left (each tappable → inspector), copy at the right, and the full-rack
+              note-row below. */}
           {phase === 'browse' && (
             <div className="wk-panel">
-              <h1 className="wk-h1">Choose your<br />apparel</h1>
-              <p className="wk-note">Check the rack for style, fit and fabric. Tap a tag to see what each line means:</p>
-              <div className="wk-rack-grid">
-                {RACK_TAGS.map((tag, i) => (
-                  <RackTagCard key={i} tag={tag} onClick={() => openInspector(tag)} />
-                ))}
+              <div className="wk-browse-split">
+                <div className="wk-rack-visual">
+                  <div className="wk-rack-stack">
+                    {RACK_TAGS.map((tag, i) => (
+                      <RackTagMini key={i} tag={tag} className={'wk-rtag--' + 'abc'[i]} onClick={() => openInspector(tag)} />
+                    ))}
+                  </div>
+                  <span className="wk-rack-tap">Tap a tag to inspect</span>
+                </div>
+                <div className="wk-browse-copy">
+                  <h1 className="wk-h1 wk-h1--browse">Choose your<br />apparel</h1>
+                  <p className="wk-note">Check the <strong>Product Display Rack and Clothing Tag</strong>. Note the style, fit and fabric you like.</p>
+                </div>
               </div>
-              <button type="button" className="wk-rack-link" onClick={() => setSheet({ type: 'catalog' })}>
-                See the full rack list, specs &amp; prices →
+              <button type="button" className="wk-rack-open" onClick={() => setSheet({ type: 'catalog' })}>
+                <IoInformationCircleOutline className="wk-rack-open-ico" aria-hidden="true" />
+                <span>See the full rack list, specs &amp; prices</span>
+                <IoArrowForward className="wk-rack-open-chev" aria-hidden="true" />
               </button>
               <div className="wk-hint">Ordering a hoodie, jogger, long sleeve or cargo? Ask our CSR — those are quoted case-by-case.</div>
             </div>
@@ -382,9 +575,10 @@ export default function WalkInForm() {
           {phase === 'form' && (
             <div className="wk-panel">
               <div className="wk-eyebrow">Step 2 · Sample order</div>
-              <h1 className="wk-h1" style={{ fontSize: '27px', marginBottom: '8px' }}>Build your sample</h1>
+              <h1 className="wk-h1 wk-h1--sub">Build your sample</h1>
 
               <div className="wk-dark-note">
+                <IoInformationCircleOutline className="wk-dark-note-ico" aria-hidden="true" />
                 <span>This quote is for a <strong>sample, priced per piece</strong>. A sample is required before mass production.</span>
               </div>
 
@@ -552,7 +746,7 @@ export default function WalkInForm() {
           {phase === 'quote' && (
             <div className="wk-panel">
               <div className="wk-eyebrow">Sample quotation · per piece</div>
-              <h1 className="wk-h1" style={{ fontSize: '27px' }}>Here's your quote</h1>
+              <h1 className="wk-h1 wk-h1--sub">Here's your quote</h1>
               <p className="wk-note">A ballpark based on your specs — final figure confirmed before your sample.</p>
 
               <div className="wk-spec-box">
@@ -578,6 +772,7 @@ export default function WalkInForm() {
               </div>
 
               <div className="wk-quote" id="wkQuoteCard">
+                <div className="wk-quote-head">Sample quotation</div>
                 {breakdown.lines.map((l) => (
                   <div className="wk-quote-row wk-quote-muted" key={l.key}>
                     <span>{l.label}</span>
@@ -607,20 +802,39 @@ export default function WalkInForm() {
               </div>
 
               <div className="wk-quote-tools">
-                <button type="button" className="wk-quote-tool" onClick={copyQuote}>
-                  {copied
-                    ? <><IoCheckmarkCircle className="wk-quote-ok" /><span className="wk-quote-ok">Copied</span></>
-                    : <><IoCopyOutline /> Copy quotation</>}
+                <button type="button" className={'wk-quote-tool' + (copied ? ' wk-quote-tool--ok' : '')} onClick={copyQuote}>
+                  <span className="wk-quote-tool-ico">{copied ? <IoCheckmarkCircle /> : <IoCopyOutline />}</span>
+                  <span className="wk-quote-tool-body">
+                    <span className="wk-quote-tool-t">{copied ? 'Copied!' : 'Copy quote'}</span>
+                    <span className="wk-quote-tool-s">{copied ? 'Ready to paste' : 'Text to clipboard'}</span>
+                  </span>
                 </button>
                 <button type="button" className="wk-quote-tool" onClick={() => window.print()}>
-                  <IoDownloadOutline /> Save as PDF
+                  <span className="wk-quote-tool-ico"><IoDownloadOutline /></span>
+                  <span className="wk-quote-tool-body">
+                    <span className="wk-quote-tool-t">Save as PDF</span>
+                    <span className="wk-quote-tool-s">Print-ready copy</span>
+                  </span>
                 </button>
               </div>
 
               {showAddress && (
                 <div className="wk-spec-box">
                   <div className="wk-spec-head">Delivery address</div>
-                  <AddressPicker value={delivery} onChange={setDelivery} />
+                  {ready && (isAuthenticated ? (
+                    <AddressPicker value={delivery} onChange={setDelivery} />
+                  ) : (
+                    <div className="wk-signin">
+                      <p className="wk-signin-copy">
+                        Sign in to add your delivery address — so it's saved to your account
+                        and your order shows up in My Orders.
+                      </p>
+                      <button type="button" className="wk-signin-btn" onClick={signInToContinue}>
+                        Sign in to continue <IoArrowForward />
+                      </button>
+                      <p className="wk-signin-sub">Your built order is kept — you'll come right back here.</p>
+                    </div>
+                  ))}
                 </div>
               )}
 
@@ -630,7 +844,10 @@ export default function WalkInForm() {
         </div>
       </main>
 
-      <footer className="wk-foot">
+      {/* wk-foot--rail: the form phase flips the bar to the prototype's black "live
+          estimate" rail (tiny label + big Anton price + gold CTA); every other phase
+          is a white action bar. Visual modifier only — same buttons, same handlers. */}
+      <footer className={'wk-foot' + (phase === 'form' ? ' wk-foot--rail' : '')}>
         {phase === 'form' && (
           <>
             <div className="wk-foot-price">
@@ -638,7 +855,7 @@ export default function WalkInForm() {
               <span className="wk-foot-v">{priced ? peso(t.perPc) : 'Ask CSR'}</span>
             </div>
             <div className="wk-foot-actions">
-              <button className="wk-foot-primary wk-foot-gold" onClick={() => setPhase('quote')}>See quotation</button>
+              <button className="wk-foot-primary wk-foot-gold" onClick={() => setPhase('quote')}>See quotation <IoArrowForward /></button>
             </div>
           </>
         )}
@@ -646,7 +863,7 @@ export default function WalkInForm() {
           <div className="wk-foot-actions wk-foot-actions--full">
             <button className="wk-foot-ghost" onClick={() => setPhase('form')}>Change</button>
             <button className="wk-foot-primary wk-foot-gold" onClick={handlePlaceOrder} disabled={placing || (showAddress && !delivery)}>
-              {placing ? 'Placing…' : 'Place order'}
+              {placing ? 'Placing…' : <>Place order <IoArrowForward /></>}
             </button>
           </div>
         )}
@@ -660,30 +877,17 @@ export default function WalkInForm() {
                 Back
               </button>
             )}
-            {phase === 'welcome' && <button className="wk-foot-primary wk-foot-gold" onClick={() => setPhase('browse')}>Get started</button>}
-            {phase === 'browse' && <button className="wk-foot-primary" onClick={() => setPhase('assist')}>Continue</button>}
-            {phase === 'assist-yes' && <button className="wk-foot-primary wk-foot-gold" onClick={() => setPhase('form')}>Continue</button>}
+            {phase === 'welcome' && <button className="wk-foot-primary wk-foot-gold" onClick={() => setPhase('browse')}>Get started <IoArrowForward /></button>}
+            {phase === 'browse' && <button className="wk-foot-primary" onClick={() => setPhase('assist')}>Continue <IoArrowForward /></button>}
+            {phase === 'assist-yes' && <button className="wk-foot-primary wk-foot-gold" onClick={() => setPhase('form')}>Continue <IoArrowForward /></button>}
           </div>
         )}
       </footer>
 
       {sheet?.type === 'inspect' && (
-        <Sheet title="Reading a rack tag" subtitle="Tap a line to see what it means" onClose={closeSheet}>
-          <RackTagCard tag={sheet.tag} large activeField={activeField} onFieldTap={setActiveField} />
-          <div className="wk-tag-legend">
-            {TAG_FIELDS.map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                className={'wk-tag-legend-item' + (activeField === f.id ? ' wk-tag-legend-item--on' : '')}
-                onClick={() => setActiveField(f.id)}
-              >
-                <span className="wk-tag-legend-t">{f.label}</span>
-                <span className="wk-tag-legend-d">{f.desc}</span>
-              </button>
-            ))}
-          </div>
-          <div className="wk-hint">Every piece on the rack carries a tag like this.</div>
+        <Sheet title="Reading a rack tag" subtitle="What each line on the tag means" onClose={closeSheet}>
+          <TagInspector tag={sheet.tag} activeField={activeField} onFieldTap={setActiveField} />
+          <div className="wk-hint">Every piece on the rack carries a tag like this. Tap any line to circle it.</div>
         </Sheet>
       )}
 
@@ -723,6 +927,7 @@ export default function WalkInForm() {
           <div className="wk-hint">Prices are per piece for your sample. 1-color print is included in the printed base price.</div>
         </Sheet>
       )}
+      </div>
     </div>
   )
 }

@@ -19,12 +19,40 @@
   --wk-ink-2: #42423f;
   --wk-ink-3: #5c5b54;
 
-  min-height: 100vh; display: flex; flex-direction: column; background: var(--wk-cream);
-  color: var(--wk-black);
+  height: 100vh; height: 100dvh; overflow: hidden;
+  display: flex; flex-direction: column; align-items: center;
+  background: var(--wk-cream); color: var(--wk-black);
+  -webkit-tap-highlight-color: transparent;
 }
-.wk-head { padding: 16px; display: flex; align-items: center; gap: 14px; }
+
+/* The device shell — the prototype's .sas-device: on a phone it IS the screen
+   (full width/height); on desktop it becomes a centered phone-frame card with the
+   phone's own proportions, rounded corners and a deep shadow. Everything — header,
+   rail, scroll area, pinned footer, sheets — lives inside this frame. */
+.wk-device {
+  position: relative; width: 100%; max-width: 430px; flex: 1; min-height: 0;
+  display: flex; flex-direction: column; background: var(--wk-cream);
+}
+@media (min-width: 820px) {
+  .wk-page { padding: 22px 16px 26px; }
+  .wk-device {
+    flex: 0 1 auto; max-height: 100%; aspect-ratio: 430 / 900;
+    border-radius: 26px; overflow: hidden;
+    border: 1px solid var(--wk-line);
+    box-shadow: 0 26px 70px rgba(20, 20, 20, 0.2);
+  }
+}
+
+/* Top chrome (exit + step label + phase rail) is a WHITE surface on the cream body,
+   closed by a hairline — the prototype's .sas-top. Without it the header, the rail and
+   the scrolling content all share one cream field and read as a single undifferentiated
+   block; the white band is what separates "app chrome" from "what you're ordering". */
+.wk-head {
+  flex: none; padding: 14px 16px 10px; display: flex; align-items: center; gap: 14px;
+  background: var(--wk-white);
+}
 .wk-exit {
-  width: 38px; height: 38px; border-radius: 50%; border: none;
+  width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--wk-line);
   background: var(--wk-note); color: var(--wk-black); font-size: 18px; cursor: pointer;
   display: grid; place-items: center; flex: none;
 }
@@ -35,19 +63,39 @@
 }
 .wk-step-label svg { font-size: 16px; }
 
-/* Phase nav (Welcome / Browse / Assistance) — shown instead of the numbered progress bar
-   before the customer reaches the order form itself. */
-.wk-phase-nav { display: flex; gap: 6px; margin: 0 16px 4px; }
-.wk-phase-dot { flex: 1; height: 3px; border-radius: 999px; background: rgba(20, 20, 20, 0.12); }
-.wk-phase-dot--on { background: var(--wk-black); }
+/* Phase rail — the prototype's labeled step row (● WELCOME — ● BROWSE — …): tiny
+   uppercase labels with dots, active step in ink + yellow dot, single scrolling line. */
+.wk-phase-nav {
+  flex: none; display: flex; align-items: center; gap: 7px; padding: 0 16px 11px;
+  overflow-x: auto; scrollbar-width: none;
+  background: var(--wk-white); border-bottom: 1px solid var(--wk-line);
+  box-shadow: 0 1px 3px rgba(20, 20, 20, 0.04);
+}
+.wk-phase-nav::-webkit-scrollbar { display: none; }
+.wk-phase-step {
+  display: inline-flex; align-items: center; gap: 6px; flex: none; white-space: nowrap;
+  font-size: 9.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+  color: rgba(20, 20, 20, 0.32); transition: color 0.3s ease;
+}
+.wk-phase-step + .wk-phase-step::before { content: ''; width: 14px; height: 1px; background: var(--wk-line); flex: none; }
+.wk-phase-step .wk-phase-dot { width: 7px; height: 7px; flex: none; border-radius: 50%; background: rgba(20, 20, 20, 0.15); transition: background 0.3s ease; }
+.wk-phase-step--on { color: var(--wk-black); }
+.wk-phase-step--on .wk-phase-dot { background: var(--wk-yellow); box-shadow: 0 0 0 3px rgba(233, 212, 0, 0.28); }
 
-.wk-main { flex: 1; display: flex; justify-content: center; padding: 10px 16px calc(96px + env(safe-area-inset-bottom)); }
-.wk-inner { width: 100%; max-width: 560px; }
+/* The device's own scroll area — the footer no longer overlays content, so no giant
+   bottom padding; inputs keep scroll-margin so the keyboard never hides the caret. */
+.wk-main {
+  flex: 1; min-height: 0;
+  overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+  padding: 14px 16px 24px;
+}
+.wk-inner { width: 100%; max-width: 560px; margin: 0 auto; }
 .wk-panel { display: flex; flex-direction: column; gap: 20px; }
 .wk-h1 {
   margin: 0; font-family: var(--wk-font); font-weight: 400;
   font-size: clamp(24px, 6vw, 32px); line-height: 1.02; text-transform: uppercase; letter-spacing: 0.01em;
 }
+.wk-h1--sub { font-size: 27px; }
 
 .wk-garments { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 .wk-garment {
@@ -70,7 +118,7 @@
 .wk-qty-row { display: flex; align-items: center; gap: 14px; margin-top: 4px; }
 .wk-qty-label { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--wk-black); }
 .wk-qty-btn {
-  width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid var(--wk-black); background: var(--wk-white);
+  width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid var(--wk-black); background: var(--wk-white);
   font-size: 18px; font-weight: 800; cursor: pointer; font-family: inherit;
 }
 .wk-qty-val { font-family: var(--wk-font); font-size: 22px; min-width: 60px; text-align: center; }
@@ -87,11 +135,15 @@
 
 /* Disclosure-gate quote card — the ×qty + full-total breakdown shown before the sample
    fee is charged (the customer must see this before paying, per the pricing model). */
-.wk-quote { background: var(--wk-white); border: 1.5px solid var(--wk-line); border-radius: 14px; padding: 6px 16px 14px; }
+.wk-quote { background: var(--wk-white); border: 1.5px solid var(--wk-line); border-radius: 14px; padding: 0 16px 14px; overflow: hidden; }
+.wk-quote-head {
+  margin: 0 -16px 4px; padding: 8px 14px; background: #F4F1E9; border-bottom: 1.5px solid var(--wk-line);
+  font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--wk-gray);
+}
 .wk-quote-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--wk-rule); font-size: 12.5px; }
 .wk-quote-row--hero { border-bottom: none; padding-bottom: 2px; }
 .wk-quote-row--hero span:first-child { font-family: var(--wk-font); font-size: 16px; text-transform: uppercase; }
-.wk-quote-perpc { font-family: var(--wk-font); font-size: 26px; color: var(--wk-gold); }
+.wk-quote-perpc { font-family: var(--wk-font); font-size: clamp(28px, 8vw, 34px); line-height: 1; color: var(--wk-gold); }
 .wk-quote-muted { color: var(--wk-ink-3); }
 .wk-quote-muted span:last-child { font-weight: 700; color: var(--wk-black); }
 .wk-quote-total { border-top: none; margin-top: 2px; padding-top: 10px; }
@@ -100,17 +152,28 @@
 .wk-quote-split { margin-top: 2px; }
 .wk-quote-min { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--wk-line); font-size: 11.5px; color: var(--wk-gray); line-height: 1.5; }
 
-/* Emphasized — the customer's likely to want to save/share the quote before deciding.
-   Place order stays the standard wk-foot-primary size (shared kiosk touch target). */
-.wk-quote-tools { display: flex; gap: 12px; flex-wrap: wrap; }
+/* Emphasized — the customer's likely to want to save/share the quote before deciding
+   (deliberate hierarchy: these stay more prominent than Place order). Now tactile
+   icon-tile cards, with the green "Copied!" pop from the prototype. */
+.wk-quote-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .wk-quote-tool {
-  display: inline-flex; align-items: center; gap: 9px;
-  border: 2px solid var(--wk-black); background: var(--wk-black); color: var(--wk-white);
-  cursor: pointer; font-family: inherit; font-weight: 800; font-size: 14.5px;
-  padding: 15px 26px; border-radius: 999px;
+  display: flex; align-items: center; gap: 11px; text-align: left;
+  background: var(--wk-white); border: 1.5px solid var(--wk-line); border-radius: 14px;
+  padding: 13px 14px; min-height: 64px; cursor: pointer; font-family: inherit;
+  transition: transform 0.14s ease, border-color 0.2s ease, background-color 0.2s ease;
 }
-.wk-quote-tool:hover { opacity: 0.88; }
-.wk-quote-ok { color: #6fdc8c; }
+.wk-quote-tool:hover { transform: translateY(-1px); border-color: var(--wk-black); }
+.wk-quote-tool:active { transform: scale(0.97); }
+.wk-quote-tool-ico {
+  display: grid; place-items: center; width: 36px; height: 36px; flex: none;
+  border-radius: 10px; background: var(--wk-black); color: var(--wk-yellow); font-size: 17px;
+}
+.wk-quote-tool-body { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.wk-quote-tool-t { font-family: var(--wk-font); font-size: 13px; text-transform: uppercase; letter-spacing: 0.02em; color: var(--wk-black); }
+.wk-quote-tool-s { font-size: 10px; font-weight: 600; color: var(--wk-gray); }
+.wk-quote-tool--ok { border-color: #178a4c; background: #f0faf3; }
+.wk-quote-tool--ok .wk-quote-tool-ico { background: #178a4c; color: #fff; animation: wk-pop 0.35s cubic-bezier(0.22, 1.2, 0.36, 1) both; }
+.wk-quote-tool--ok .wk-quote-tool-t { color: #178a4c; }
 
 /* Save as PDF — print only the quote card */
 @media print {
@@ -121,6 +184,7 @@
     width: 100% !important; box-shadow: none !important; border: none !important;
     margin: 0 !important; padding: 24px !important;
   }
+  #wkQuoteCard * { animation: none !important; transition: none !important; }
 }
 
 /* Dark callout at the top of the order form — "this is a sample, priced per piece" */
@@ -130,17 +194,18 @@
 }
 .wk-dark-note span { font-size: 11.5px; line-height: 1.45; color: rgba(255, 255, 255, 0.85); font-weight: 500; }
 .wk-dark-note strong { color: var(--wk-yellow); }
+.wk-dark-note-ico { flex: none; font-size: 16px; color: var(--wk-yellow); margin-top: 1px; }
 
 /* Numbered form sections — single continuous scroll, not paginated steps */
 .wk-section { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--wk-noteline); }
 .wk-section:first-of-type { margin-top: 16px; }
 .wk-section-num {
   display: inline-flex; align-items: center; gap: 8px; margin: 0 0 10px;
-  font-family: var(--wk-font); font-size: 16px; text-transform: uppercase; letter-spacing: 0.02em; color: var(--wk-black);
+  font-family: var(--wk-font); font-size: 17px; text-transform: uppercase; letter-spacing: 0.02em; color: var(--wk-black);
 }
 .wk-section-n {
-  display: grid; place-items: center; width: 22px; height: 22px; border-radius: 6px;
-  background: var(--wk-black); color: var(--wk-yellow); font-family: var(--wk-font); font-size: 11px; flex: none;
+  display: grid; place-items: center; width: 24px; height: 24px; border-radius: 7px;
+  background: var(--wk-black); color: var(--wk-yellow); font-family: var(--wk-font); font-size: 12px; flex: none;
 }
 .wk-note-box {
   display: flex; gap: 6px; align-items: flex-start; background: var(--wk-note);
@@ -167,10 +232,11 @@
 .wk-opt {
   display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
   background: var(--wk-white); border: 1.5px solid var(--wk-line); border-radius: 12px; padding: 11px 12px;
-  cursor: pointer; font-family: inherit; text-align: left; transition: transform 0.14s ease, border-color 0.14s ease;
+  cursor: pointer; font-family: inherit; text-align: left;
+  transition: transform 0.14s ease, border-color 0.14s ease, background-color 0.14s ease;
   min-width: 0;
 }
-.wk-grid--sizes .wk-opt { align-items: center; text-align: center; padding: 9px 2px; }
+.wk-grid--sizes .wk-opt { align-items: center; justify-content: center; text-align: center; padding: 9px 2px; min-height: 52px; }
 .wk-opt:hover { transform: translateY(-1px); }
 .wk-opt--on { background: var(--wk-black); border-color: var(--wk-black); }
 .wk-opt-t { font-family: var(--wk-font); font-weight: 400; font-size: 13px; color: var(--wk-black); text-transform: uppercase; letter-spacing: 0.01em; }
@@ -186,36 +252,53 @@
 }
 .wk-swatch-chip {
   width: 38px; height: 38px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px rgba(20, 20, 20, 0.14);
+  transition: box-shadow 0.18s ease, transform 0.14s ease;
 }
 .wk-swatch--on .wk-swatch-chip { box-shadow: 0 0 0 2.5px var(--wk-white), 0 0 0 5px var(--wk-black); }
 .wk-swatch--on .wk-swatch-name { color: var(--wk-black); }
 
-/* Pinned bottom bar — live per-piece / total price + primary action, always
-   visible while building the order (mirrors the guided walkthrough's own
-   sticky estimate bar, .gw-im-bar). */
+/* Pinned bottom bar — the prototype's app-shell footer: a white action bar holding
+   ONE full-width pill (black, or yellow for money/forward actions), flipping to the
+   black "live estimate" rail (.wk-foot--rail) on the form phase. A flex child of the
+   device shell now (not position: fixed), so it pins to the frame's bottom on desktop
+   and to the screen's bottom on a phone — same architecture as the prototype. */
 .wk-foot {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  background: var(--wk-black); color: var(--wk-white);
-  padding: 14px 18px calc(14px + env(safe-area-inset-bottom));
+  flex: none; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: var(--wk-white); color: var(--wk-black);
+  border-top: 1px solid var(--wk-line);
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
 }
+.wk-foot--rail { background: var(--wk-black); color: var(--wk-white); border-top-color: var(--wk-black); }
 .wk-foot-price { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .wk-foot-k { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; color: rgba(255, 255, 255, 0.5); }
-.wk-foot-v { font-family: var(--wk-font); font-size: 22px; color: var(--wk-yellow); white-space: nowrap; }
+.wk-foot-v { font-family: var(--wk-font); font-size: 24px; line-height: 1; color: var(--wk-yellow); white-space: nowrap; }
 .wk-foot-actions { display: flex; align-items: center; gap: 10px; flex: none; }
 .wk-foot-ghost {
-  background: transparent; color: var(--wk-white); border: 1.5px solid rgba(255, 255, 255, 0.3);
-  font-family: var(--wk-font); font-size: 14px; padding: 15px 18px;
-  border-radius: 15px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.03em;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; color: var(--wk-black); border: 1.5px solid rgba(20, 20, 20, 0.25);
+  font-family: var(--wk-font); font-size: 15px; min-height: 54px; padding: 0 20px;
+  border-radius: 999px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.03em;
+  transition: transform 0.14s ease;
 }
+.wk-foot--rail .wk-foot-ghost { color: var(--wk-white); border-color: rgba(255, 255, 255, 0.3); }
 .wk-foot-primary {
-  background: var(--wk-white); color: var(--wk-black); border: none; font-family: var(--wk-font);
-  font-size: 16px; padding: 15px 20px; border-radius: 15px; cursor: pointer;
-  text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap;
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  flex: 1; min-height: 54px;
+  background: var(--wk-black); color: var(--wk-white); border: none;
+  font-family: var(--wk-font); font-size: 18px; padding: 14px 22px; border-radius: 999px;
+  cursor: pointer; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap;
+  transition: transform 0.14s ease;
 }
+.wk-foot-primary svg { font-size: 19px; flex: none; }
+.wk-foot-primary:active, .wk-foot-ghost:active { transform: scale(0.97); }
 .wk-foot-primary:disabled { opacity: 0.6; cursor: default; }
 .wk-foot-gold { background: var(--wk-yellow); color: var(--wk-black); }
 .wk-foot-actions--full { flex: 1; justify-content: flex-end; }
+/* Assist phase: the lone Back button stretches so the bar never looks empty */
+.wk-foot-actions--full .wk-foot-ghost:only-child { flex: 1; }
+/* The form-phase rail CTA sizes to content (the price owns the left side) */
+.wk-foot--rail .wk-foot-primary { flex: none; font-size: 15px; min-height: 50px; padding: 0 18px; }
 
 /* Welcome */
 .wk-eyebrow { font-size: 9.5px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--wk-gray); margin-bottom: 4px; }
@@ -223,15 +306,73 @@
 .wk-welcome-steps { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
 .wk-welcome-step { display: flex; align-items: center; gap: 11px; font-size: 13px; font-weight: 600; color: var(--wk-ink-2); }
 .wk-welcome-n {
-  display: grid; place-items: center; width: 22px; height: 22px; border-radius: 6px;
-  background: var(--wk-black); color: var(--wk-yellow); font-family: var(--wk-font); font-size: 11px; flex: none;
+  display: grid; place-items: center; width: 24px; height: 24px; border-radius: 7px;
+  background: var(--wk-black); color: var(--wk-yellow); font-family: var(--wk-font); font-size: 12px; flex: none;
 }
 
-/* Browse — rack tag samples */
-.wk-rack-grid { display: flex; flex-direction: column; gap: 12px; }
-.wk-rack-link {
-  align-self: flex-start; background: none; border: none; padding: 0; cursor: pointer;
-  font-family: inherit; font-size: 13px; font-weight: 700; color: var(--wk-black); text-decoration: underline;
+/* Browse — the prototype's split layout: fanned mini-hangtag stack left, copy right.
+   The fan is a picture of the physical rack tags; each mini tag is tappable and the
+   offsets are px-based so the fan spacing doesn't drift with container height. */
+.wk-browse-split { display: flex; gap: 16px; align-items: flex-start; }
+.wk-browse-copy { flex: 1; min-width: 0; padding-top: 4px; }
+.wk-h1--browse { font-size: clamp(22px, 5.6vw, 28px); margin-bottom: 8px; }
+
+.wk-rack-visual { flex: 0 0 148px; width: 148px; display: flex; flex-direction: column; align-items: center; gap: 7px; }
+/* 44px vertical steps: every tag keeps a ≥44px exposed band — a real fingertip
+   target — while still reading as an overlapped fan of hangtags. */
+.wk-rack-stack { position: relative; width: 100%; height: 208px; }
+.wk-rtag {
+  position: absolute; width: 104px; padding: 0; text-align: left;
+  background: var(--wk-white); border: 1px solid var(--wk-line); border-radius: 10px; overflow: hidden;
+  box-shadow: 0 8px 18px rgba(20, 20, 20, 0.14); cursor: pointer; font-family: inherit;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.wk-rtag--a { top: 0; left: 2%; transform: rotate(-8deg); z-index: 1; }
+.wk-rtag--b { top: 44px; left: 26%; transform: rotate(5deg); z-index: 2; }
+.wk-rtag--c { top: 88px; left: 4%; transform: rotate(-3deg); z-index: 3; }
+.wk-rtag:hover, .wk-rtag:focus-visible { z-index: 5; box-shadow: 0 12px 24px rgba(20, 20, 20, 0.2); }
+.wk-rtag--a:active { transform: rotate(-8deg) scale(0.95); }
+.wk-rtag--b:active { transform: rotate(5deg) scale(0.95); }
+.wk-rtag--c:active { transform: rotate(-3deg) scale(0.95); }
+.wk-rtag-bar {
+  display: block; background: var(--wk-black); color: var(--wk-white); font-family: var(--wk-font);
+  font-size: 7.5px; letter-spacing: 0.03em; text-transform: uppercase; padding: 5px 7px; text-align: center;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.wk-rtag--ovr .wk-rtag-bar { background: #274b9c; } /* oversized cuts wear the blue bar, same as the physical tags */
+.wk-rtag-body { display: block; padding: 7px 9px 9px; }
+.wk-rtag-lbl { display: block; font-size: 6.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--wk-gray); }
+.wk-rtag-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; }
+.wk-rtag-size { font-family: var(--wk-font); font-size: 17px; line-height: 0.95; color: var(--wk-black); }
+.wk-rtag-method { font-size: 6px; font-weight: 800; letter-spacing: 0.02em; text-transform: uppercase; color: var(--wk-gray); text-align: right; line-height: 1.3; max-width: 52px; }
+.wk-rtag-fabric { display: block; font-size: 8.5px; font-weight: 800; text-transform: uppercase; color: var(--wk-black); margin-top: 1px; }
+.wk-rtag-price { display: block; font-family: var(--wk-font); font-size: 13px; color: var(--wk-black); margin-top: 4px; }
+.wk-rack-tap {
+  background: var(--wk-yellow); color: var(--wk-black); font-size: 8px; font-weight: 800;
+  letter-spacing: 0.1em; text-transform: uppercase; padding: 5px 10px; border-radius: 999px;
+  box-shadow: 0 3px 8px rgba(20, 20, 20, 0.2); white-space: nowrap;
+}
+
+/* "See the full rack list" — the prototype's light note-row with icon + chevron */
+.wk-rack-open {
+  display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
+  background: var(--wk-note); border: 1px solid var(--wk-noteline); border-radius: 12px;
+  padding: 12px; min-height: 48px; cursor: pointer; font-family: inherit;
+  font-size: 12px; font-weight: 700; color: var(--wk-black);
+  transition: transform 0.14s ease, border-color 0.15s ease;
+}
+.wk-rack-open:hover { border-color: var(--wk-black); }
+.wk-rack-open:active { transform: scale(0.98); }
+.wk-rack-open-ico { font-size: 17px; color: var(--wk-gold); flex: none; }
+.wk-rack-open-chev { margin-left: auto; font-size: 15px; flex: none; }
+
+/* Very narrow phones: shrink the fan column, keep the proportions */
+@media (max-width: 360px) {
+  .wk-rack-visual { flex-basis: 118px; width: 118px; }
+  .wk-rtag { width: 92px; }
+  .wk-rtag-size { font-size: 14px; }
+  .wk-rtag-price { font-size: 11px; }
+  .wk-rack-stack { height: 198px; }
 }
 
 /* Rack hangtag — mirrors the physical tag: dark header bar, logo mark, tappable fields. */
@@ -261,19 +402,64 @@
 .wk-tag--lg .wk-tag-field-val { font-size: 22px; }
 .wk-tag--lg .wk-tag-body { padding: 18px 20px; }
 
-.wk-tag-legend { display: flex; flex-direction: column; gap: 7px; margin-top: 14px; }
+.wk-tag-legend { display: flex; flex-direction: column; gap: 7px; margin-top: 2px; }
 .wk-tag-legend-item {
   text-align: left; background: var(--wk-white); border: 1.5px solid var(--wk-line); border-radius: 12px;
-  padding: 10px 11px; cursor: pointer; font: inherit; display: flex; flex-direction: column; gap: 2px;
+  padding: 10px 11px; cursor: pointer; font: inherit; display: flex; align-items: flex-start; gap: 10px;
   transition: border-color 0.25s ease, background 0.25s ease;
 }
 .wk-tag-legend-item--on { border-color: var(--wk-black); background: #FFFBE8; }
+.wk-tag-legend-n {
+  display: grid; place-items: center; width: 24px; height: 24px; flex: none; border-radius: 50%;
+  border: 2px solid var(--wk-black); font-family: var(--wk-font); font-size: 12px; color: var(--wk-black);
+  margin-top: 1px;
+}
+.wk-tag-legend-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .wk-tag-legend-t { font-weight: 800; font-size: 12px; color: var(--wk-black); }
 .wk-tag-legend-d { font-size: 10.5px; color: var(--wk-ink-3); line-height: 1.45; }
 
-/* Bottom sheet — shared by the tag inspector and the full catalog */
+/* Tag inspector — annotated-tag stage: measured ink rings drawing around each field
+   (stroke-dashoffset transition, staggered from TagInspector), numbered badges, Replay. */
+.wk-insp-stage { position: relative; padding: 20px 26px 18px; }
+.wk-insp-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 3; }
+.wk-insp-ring {
+  fill: none; stroke: var(--wk-black); stroke-width: 2.4; stroke-linecap: round; opacity: 0.95;
+  transition: stroke-dashoffset 0.55s ease;
+}
+.wk-insp-num { fill: var(--wk-black); font-family: var(--wk-font); font-size: 13px; opacity: 0; transition: opacity 0.25s ease; }
+.wk-insp-num--on { opacity: 1; }
+.wk-insp-replay {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px; align-self: center;
+  margin-bottom: 4px; padding: 9px 16px; min-height: 38px;
+  background: var(--wk-white); border: 1.5px solid var(--wk-line); border-radius: 999px; cursor: pointer;
+  font-family: inherit; font-size: 10.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--wk-ink-2); transition: transform 0.14s ease, border-color 0.15s ease;
+}
+.wk-insp-replay:hover { border-color: var(--wk-black); }
+.wk-insp-replay:active { transform: scale(0.95); }
+.wk-insp-replay svg { font-size: 14px; }
+
+/* Sign-in gate at the address step — a guest can build and read the whole quote, but
+   adding an address (and therefore placing the order) needs an account, so the address
+   actually lands in their address book. Mirrors the online quote's gate. */
+.wk-signin { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 14px; background: var(--wk-white); }
+.wk-signin-copy { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--wk-ink-2); }
+.wk-signin-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px; align-self: stretch;
+  min-height: 50px; padding: 12px 20px;
+  background: var(--wk-yellow); color: var(--wk-black); border: none; border-radius: 999px; cursor: pointer;
+  font-family: var(--wk-font); font-size: 15px; text-transform: uppercase; letter-spacing: 0.03em;
+  transition: transform 0.14s ease;
+}
+.wk-signin-btn:active { transform: scale(0.97); }
+.wk-signin-btn svg { font-size: 17px; }
+.wk-signin-sub { margin: 0; font-size: 10.5px; color: var(--wk-gray); }
+
+/* Bottom sheet — shared by the tag inspector and the full catalog. Absolutely
+   positioned within the device shell, so on desktop it slides up INSIDE the
+   phone frame instead of covering the whole browser window. */
 .wk-sheet-overlay {
-  position: fixed; inset: 0; z-index: 40; background: rgba(12, 12, 12, 0.55);
+  position: absolute; inset: 0; z-index: 40; background: rgba(12, 12, 12, 0.55);
   display: flex; align-items: flex-end; justify-content: center;
 }
 .wk-sheet {
@@ -372,7 +558,46 @@
 @keyframes wk-pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(233, 212, 0, 0.65); } 70% { box-shadow: 0 0 0 16px rgba(233, 212, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(233, 212, 0, 0); } }
 @keyframes wk-dest-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
 
+/* Motion layer — the prototype's screen transitions and press feedback. Phases
+   hard-mount ({phase === 'x' && …}), so the .wk-panel entry animation re-fires on
+   every phase change for free. prefers-reduced-motion is neutralized globally
+   (global.css forces animation-duration: 0.001ms on *), and fill-mode: both means
+   content still lands in its final visible state there. */
+@keyframes wk-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes wk-pop { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes wk-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes wk-sheet-up { from { transform: translateY(28px); opacity: 0.5; } to { transform: none; opacity: 1; } }
+
+.wk-panel { animation: wk-rise 0.4s ease both; }
+.wk-map { animation: wk-rise 0.45s ease both; }
+.wk-sheet-overlay { animation: wk-fade 0.25s ease both; }
+.wk-sheet { animation: wk-sheet-up 0.32s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+
+.wk-opt:active, .wk-garment:active, .wk-tag-legend-item:active { transform: scale(0.97); }
+.wk-swatch:active .wk-swatch-chip { transform: scale(0.9); }
+.wk-qty-btn { transition: transform 0.14s ease; }
+.wk-qty-btn:active { transform: scale(0.94); }
+
 .wk-callout {
   margin-top: 3px; padding: 4px 7px; border-radius: 10px; background: var(--wk-note);
   border: 1px solid var(--wk-noteline); font-size: 9.5px; line-height: 1.3; color: var(--wk-ink-3); font-weight: 500;
 }
+
+/* AddressPicker blending — AddressPicker.css consumes the site-wide tokens, so
+   re-skinning it inside the kiosk is just re-pointing those tokens under a .wk-page
+   scope. AddressPicker.css itself is untouched; the standard checkout's QuoteSummary
+   keeps its own look. */
+.wk-page .ap {
+  --line: var(--wk-line);
+  --muted: var(--wk-gray);
+  --ink: var(--wk-black);
+  --ink-soft: var(--wk-ink-3);
+  --gold-ink: var(--wk-gold);
+  padding: 12px 14px; background: var(--wk-white); /* .ap mounts bare inside .wk-spec-box */
+}
+.wk-page .ap-item-default { font-family: inherit; font-weight: 800; } /* drop the mono face inside the kiosk */
+.wk-page .ap-input { font-size: 16px; } /* iOS no-zoom threshold — AddressPicker's own 14px would zoom on focus */
+
+/* Mobile hardening */
+.wk-input { scroll-margin-bottom: 150px; } /* focused inputs scroll clear of the pinned footer/keyboard */
+.wk-sheet-body { overscroll-behavior: contain; } /* no scroll chaining behind an open sheet */

@@ -34,7 +34,7 @@ export default function DirectForm() {
     return r?.form ? { ...DEFAULT_GARMENT_FORM, ...r.form, qty: r.qty || DEFAULT_GARMENT_FORM.qty } : DEFAULT_GARMENT_FORM
   })
   const [showQuote, setShowQuote] = useState(false)
-  const { placeOrder } = useCheckout()
+  const { placeOrder, redirectToSignIn } = useCheckout()
 
   // Consume the reorder seed once so a refresh starts fresh.
   useEffect(() => { clearReorder() }, [])
@@ -53,6 +53,7 @@ export default function DirectForm() {
             qty={form.qty}
             onChange={() => setShowQuote(false)}
             onProceed={(delivery) => placeOrder({ path: 'instant', form: { ...form, hasDesign }, qty: form.qty, delivery })}
+            onSignIn={() => redirectToSignIn({ path: 'instant', form: { ...form, hasDesign }, qty: form.qty })}
           />
         </div>
         <Footer />

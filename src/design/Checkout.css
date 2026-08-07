@@ -1,0 +1,5 @@
+/* src/design/Checkout.css — post-sign-in resume screen (re-shows QuoteSummary with the
+   address step already open, so a guest who just signed in can pick/save a real address). */
+.checkout-page { background: var(--paper); min-height: 100vh; color: var(--ink); }
+.checkout-quote-wrap { padding: 40px 16px 80px; max-width: 760px; margin: 0 auto; }
+.checkout-err { margin: 14px 0 0; font-size: 13px; color: #c0392b; text-align: center; }
