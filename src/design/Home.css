@@ -118,30 +118,6 @@
   color: var(--ok);
   font-size: 16px;
 }
-.hm-mockup-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 13.5px;
-  color: var(--gold-ink);
-  align-self: flex-start;
-}
-.hm-mockup-link svg {
-  transition: transform 0.2s ease;
-}
-.hm-mockup-link:hover {
-  color: var(--ink);
-}
-.hm-mockup-link:hover svg {
-  transform: translateX(4px);
-}
-
 .hm-hero-model {
   position: absolute;
   right: 0;

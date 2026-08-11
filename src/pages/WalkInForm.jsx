@@ -7,9 +7,10 @@
 //
 // Full garment config reusing the SAME engine as the online paths (useGarmentForm /
 // data/orderConfig.js) — a walk-in order prices and states identically to a guided or
-// instant one, it's just entered at the in-store kiosk. The only walk-in-specific piece
-// is the color step, which uses the business's official 20-color reference (SHIRT_COLORS)
-// instead of the smaller per-fabric palette the online paths use.
+// instant one, it's just entered at the in-store kiosk. The color step uses the business's
+// official 20-color reference (SHIRT_COLORS) — this used to be walk-in-only, but as of
+// 2026-08-11 the online paths (GuidedWalkthrough/DirectForm) switched to it too, so all
+// three now share the same palette. See orderConfig.js's own comment on SHIRT_COLORS.
 //
 // Screen structure is a direct port of the team's sorbetes-walkin.html prototype: a
 // single scrolling order form (numbered sections, not paginated steps) that hands off
@@ -30,7 +31,7 @@ import AddressPicker from '../components/AddressPicker.jsx'
 import { useGarmentForm, DEFAULT_GARMENT_FORM } from '../hooks/useGarmentForm.js'
 import {
   STYLES, ORDERABLE_STYLES, FITS, SIZES, COLLARS, SLEEVES, FABRICS, SHIRT_COLORS,
-  PRINT_COLOR_OPTIONS, PRINT_CHOICES, PLACEMENTS, PRINT_COLOR_FEE,
+  PRINT_COLOR_OPTIONS, BACK_PRINT_COLOR_OPTIONS, PRINT_CHOICES, PLACEMENTS, PRINT_COLOR_FEE,
   hemsFor, showsPrice, styleById, sizePricesFor, priceBreakdown, peso, MIN_QTY,
 } from '../data/orderConfig.js'
 import floorplanSrc from '../assets/walkin-floorplan.webp'
@@ -125,6 +126,17 @@ function Option({ title, sub, selected, onClick }) {
   )
 }
 
+// Front + back read from one shared color pool (see CLAUDE.md §3), but the customer
+// picks each placement's color count separately — this just formats that pair for
+// display. "Front only" has no back count to show at all.
+function printSummaryText(form) {
+  const front = form.printColors || 1
+  if (form.placement === 'Front + back') {
+    return `${front}-color front + ${form.printColorsBack || 1}-color back`
+  }
+  return `${front}-color · ${form.placement}`
+}
+
 // Disclosure-gate quote text (§3 of CLAUDE.md — the customer must see the ×MIN_QTY
 // minimum and the full total before the sample fee is charged, not just per-piece price).
 function buildWalkInQuoteText(form, sh, hasDesign, breakdown, t, label, phone) {
@@ -138,7 +150,7 @@ function buildWalkInQuoteText(form, sh, hasDesign, breakdown, t, label, phone) {
     (sh.isPant ? 'Leg opening: ' : 'Hem: ') + form.hem,
     'Fabric: ' + form.fabric,
     'Color: ' + form.color,
-    hasDesign ? 'Print: ' + form.printColors + '-color · ' + form.placement : 'Print: Plain (no print)',
+    hasDesign ? 'Print: ' + printSummaryText(form) : 'Print: Plain (no print)',
     'Quantity: ' + form.qty + ' pcs',
     label ? 'Design / label: ' + label : null,
     phone ? 'Contact: ' + phone : null,
@@ -681,7 +693,21 @@ export default function WalkInForm() {
 
                   {hasDesign && (
                     <>
-                      <div className="wk-field-label">Print colors</div>
+                      {/* Placement asked FIRST, on purpose — the print-colors fields below
+                          read form.placement directly, no separate "did they tap it" gate.
+                          Every field in this form (fit, collar, fabric...) already shows its
+                          default-driven content immediately without requiring an explicit
+                          tap first; placement's default ('Front only') is no different — see
+                          CLAUDE.md §12, 2026-08-11. */}
+                      <div className="wk-field-label">Placement</div>
+                      <div className="wk-grid">
+                        {PLACEMENTS.map((p) => (
+                          <Option key={p.label} title={p.label} sub={p.sub} selected={form.placement === p.label}
+                            onClick={() => set({ placement: p.label })} />
+                        ))}
+                      </div>
+
+                      <div className="wk-field-label">{form.placement === 'Front + back' ? 'Front print colors' : 'Print colors'}</div>
                       <div className="wk-grid">
                         {PRINT_COLOR_OPTIONS.map((o) => (
                           <Option
@@ -701,12 +727,29 @@ export default function WalkInForm() {
                         </div>
                       )}
 
-                      <div className="wk-field-label">Placement</div>
-                      <div className="wk-grid">
-                        {PLACEMENTS.map((p) => (
-                          <Option key={p.label} title={p.label} sub={p.sub} selected={form.placement === p.label} onClick={() => set({ placement: p.label })} />
-                        ))}
-                      </div>
+                      {form.placement === 'Front + back' && (
+                        <>
+                          <div className="wk-field-label">Back print colors</div>
+                          <div className="wk-grid">
+                            {BACK_PRINT_COLOR_OPTIONS.map((o) => (
+                              <Option
+                                key={o.n}
+                                title={o.label}
+                                sub={o.sub}
+                                selected={o.n === 5 ? (form.printColorsBack || 1) >= 5 : form.printColorsBack === o.n}
+                                onClick={() => set({ printColorsBack: o.n === 5 ? Math.max(5, form.printColorsBack || 5) : o.n })}
+                              />
+                            ))}
+                          </div>
+                          {(form.printColorsBack || 1) >= 5 && (
+                            <div className="wk-fields">
+                              <input className="wk-input" type="number" min="5" max="99" value={form.printColorsBack}
+                                onChange={(e) => set({ printColorsBack: Math.max(5, Math.min(99, parseInt(e.target.value, 10) || 5)) })} />
+                              <div className="wk-hint">{form.printColorsBack} colors · +{peso(20 * form.printColorsBack)} / pc</div>
+                            </div>
+                          )}
+                        </>
+                      )}
 
                       <div className="wk-field-label">Design details</div>
                       <textarea className="wk-input" rows="3" value={notes}
@@ -761,7 +804,7 @@ export default function WalkInForm() {
                     [sh.isPant ? 'Leg opening' : 'Hem', form.hem],
                     ['Fabric', form.fabric],
                     ['Color', form.color],
-                    ['Print', hasDesign ? `${form.printColors}-color · ${form.placement}` : 'None (plain)'],
+                    ['Print', hasDesign ? printSummaryText(form) : 'None (plain)'],
                   ].filter(Boolean).map(([k, v]) => (
                     <div className="wk-spec-cell" key={k}>
                       <div className="wk-spec-lbl">{k}</div>

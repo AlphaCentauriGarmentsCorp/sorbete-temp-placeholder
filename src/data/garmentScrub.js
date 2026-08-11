@@ -8,6 +8,14 @@
 // The color swatch step has no video equivalent (can't recolor a filmed garment), so
 // once the "color" part is reached we swap to a static photo of the selected color and
 // stay on it for the rest of the walkthrough.
+//
+// Design-upload preview (added 2026-08-11, see GuidedWalkthrough.jsx's designFront/
+// designBack steps): once we're on a static photo anyway, the customer can upload their own
+// artwork and see it laid over that same photo — front photo for front design, back photo
+// (backPhotoFor(), below) for back design. This is a LIVE PREVIEW ONLY — the uploaded file
+// never leaves the browser, isn't sent with the order, and isn't stored anywhere. It only
+// shows up where a real photo already exists to lay it over (front: Standard fit today; back:
+// wherever backPhotoFor() resolves) — Oversized fit has no photo at all, so no preview there.
 
 const BASE = '/garment-scrub'
 
@@ -126,11 +134,81 @@ const BOXY_PROCLUB_COLORS = [
   ['White', 'White_box_proclub.png', '#FFFFFF'],
 ]
 
+// Back-view color photos — organized by FIT ONLY, no per-collar split (owner's call: the
+// back view doesn't differ enough between Standard and Pro Club collar to justify separate
+// shoots, so one back photo per fit+color is reused across both). Consequence: Boxy's names
+// match perfectly either way (BOXY_STANDARD_COLORS/BOXY_PROCLUB_COLORS already use identical
+// names), but Standard fit only exactly matches STANDARD_COLORS (has "Christmas Green") —
+// PROCLUB_COLORS' one differing name, "Green", has no back photo. backPhotoFor() returns
+// null for that case (and for Oversized, which has none at all) rather than guessing.
+const BACK_STANDARD_COLORS = [
+  ['Ash Gray', 'ash_gray_std_std.png'],
+  ['Black', 'Black_std_std.png'],
+  ['Brown', 'brown_std_std.png'],
+  ['Christmas Green', 'Christmas_green_std_std.png'],
+  ['Cream', 'cream_std_std.png'],
+  ['Dark Royal Blue', 'Dk_Royal_blue_std_std.png'],
+  ['Emerald Green', 'emerald_green_std_std.png'],
+  ['Fatigue', 'fatigue_std_std.png'],
+  ['Ivory', 'ivory_std_std.png'],
+  ['Light Royal Blue', 'Lt_Royal_blue_std_std.png'],
+  ['Mocha', 'mocca_std_std.png'],
+  ['Mustard Gold', 'mustard_gold_std_std.png'],
+  ['Navy Blue', 'navy_blue_std_std.png'],
+  ['Off White', 'off_white_std_std.png'],
+  ['Pink', 'pink_std_std.png'],
+  ['Red', 'red_std_std.png'],
+  ['Royal Blue', 'royal_blue_std_std.png'],
+  ['Silver Gray', 'silver_gray_std_std.png'],
+  ['Special Gray', 'spc_gray_std_std.png'],
+  ['White', 'white_std_std.png'],
+]
+
+const BACK_BOXY_COLORS = [
+  ['Ash Gray', 'ash_gray_boxy.png'],
+  ['Black', 'black_boxy.png'],
+  ['Brown', 'brown_boxy.png'],
+  ['Cream', 'cream_boxy.png'],
+  ['Dark Royal Blue', 'Dk_Royal_blue_boxy.png'],
+  ['Emerald Green', 'emerald_green_boxy.png'],
+  ['Fatigue', 'fatigue_boxy.png'],
+  ['Green', 'green_boxy.png'],
+  ['Ivory', 'Ivory_boxy.png'],
+  ['Light Royal Blue', 'Lt_Royal_blue_boxy.png'],
+  ['Mocha', 'mocca_boxy.png'],
+  ['Mustard Gold', 'mustard_gold_boxy.png'],
+  ['Navy Blue', 'navy_blue_boxy.png'],
+  ['Off White', 'off_white_boxy.png'],
+  ['Pink', 'pink_boxy.png'],
+  ['Red', 'red_boxy.png'],
+  ['Royal Blue', 'Royal_blue_boxy.png'],
+  ['Silver Gray', 'silver_gray_boxy.png'],
+  ['Special Gray', 'spcl_gray_boxy.png'],
+  ['White', 'white_boxy.png'],
+]
+
+const BACK_COLORS_BY_FIT = {
+  Standard: { dir: 'standard', colors: BACK_STANDARD_COLORS },
+  Boxy: { dir: 'boxy', colors: BACK_BOXY_COLORS },
+}
+
+// Back-view photo for a fit+color, or null if this exact combo isn't covered (see comment
+// above). Filenames here are case-sensitive on real hosting even though this dev machine's
+// filesystem won't complain about a mismatch — keep this list byte-exact with what's on disk.
+export function backPhotoFor(fit, colorName) {
+  const entry = BACK_COLORS_BY_FIT[fit]
+  if (!entry) return null
+  const found = entry.colors.find(([name]) => name === colorName)
+  return found ? `${BASE}/back/${entry.dir}/${found[1]}` : null
+}
+
+// Assets live under three subfolders (see public/garment-scrub/README.md): videos/,
+// front/<combo>/ (color-swap photos, front view), and back/<fit>/ (back view, see above).
 function makeVariant(key, video, colorDir, colors) {
   return {
     key,
-    video: `${BASE}/${video}`,
-    colors: colors.map(([name, file, hex]) => ({ name, hex, src: `${BASE}/${colorDir}/${file}` })),
+    video: `${BASE}/videos/${video}`,
+    colors: colors.map(([name, file, hex]) => ({ name, hex, src: `${BASE}/front/${colorDir}/${file}` })),
   }
 }
 
@@ -139,8 +217,8 @@ function makeVariant(key, video, colorDir, colors) {
 export const SCRUB_VARIANTS = {
   'standard-standard': makeVariant('standard-standard', 'standard-standard.mp4', 'standard-standard', STANDARD_COLORS),
   'standard-proclub': makeVariant('standard-proclub', 'standard-proclub.mp4', 'standard-proclub', PROCLUB_COLORS),
-  'boxy-standard': makeVariant('boxy-standard', 'boxy-standard.mp4', 'box_standard_clr', BOXY_STANDARD_COLORS),
-  'boxy-proclub': makeVariant('boxy-proclub', 'boxy-proclub.mp4', 'box_proclub_clr', BOXY_PROCLUB_COLORS),
+  'boxy-standard': makeVariant('boxy-standard', 'boxy-standard.mp4', 'boxy-standard', BOXY_STANDARD_COLORS),
+  'boxy-proclub': makeVariant('boxy-proclub', 'boxy-proclub.mp4', 'boxy-proclub', BOXY_PROCLUB_COLORS),
 }
 
 // form.fit -> form.collar label (data/orderConfig.js COLLARS) -> SCRUB_VARIANTS key.

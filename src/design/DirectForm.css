@@ -1,44 +1,78 @@
-/* src/design/DirectForm.css (ported verbatim from reused component) */
-.df-page { background: var(--paper); min-height: 100vh; color: var(--ink); }
-.df-body { max-width: 860px; margin: 0 auto; padding: 32px 16px 140px; }
-.df-back { background: none; border: none; font: inherit; font-weight: 700; color: var(--muted); cursor: pointer; padding: 6px 0; }
-.df-title { font-family: var(--font-display); font-weight: 900; text-transform: uppercase; font-size: clamp(30px, 5vw, 44px); margin: 8px 0 6px; }
-.df-lead { color: #4a4740; margin: 0 0 20px; }
+/* src/design/DirectForm.css (ported verbatim from reused component)
+   Re-themed 2026-08-11 to match the walk-in kiosk's color palette + display font, per the
+   owner's request ("gusto ko consistent yung color theme ng sa order online sa form sa
+   walkin"). Values copied straight from WalkInForm.css's --wk-* tokens (same pattern already
+   used for QuoteSummary.css's --wkq-* — see CLAUDE.md §7) — scoped locally as --df-* so this
+   stays this file's own tokens, not a change to the shared global theme other pages still use. */
+.df-page {
+  --df-black: #141414;
+  --df-yellow: #E9D400;
+  --df-cream: #EDEBE4;
+  --df-line: #E4E3DE;
+  --df-muted: #5c5b54;
+  --df-font: 'Anton', sans-serif;
+  background: var(--df-cream); min-height: 100vh; color: var(--df-black);
+}
+.df-body { max-width: 860px; margin: 0 auto; padding: 32px 16px 128px; }
+.df-back { background: none; border: none; font: inherit; font-weight: 700; color: var(--df-muted); cursor: pointer; padding: 6px 0; }
+.df-title { font-family: var(--df-font); font-weight: 400; text-transform: uppercase; font-size: clamp(30px, 5vw, 44px); margin: 8px 0 6px; }
+.df-lead { color: var(--df-muted); margin: 0 0 20px; }
 
-.df-section { padding: 22px 0; border-bottom: 1px solid rgba(18, 18, 18, 0.1); }
-.df-h2 { font-family: var(--font-display); font-weight: 900; font-size: 19px; text-transform: uppercase; margin: 0 0 12px; }
-.df-label { font-size: 11.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 16px 0 8px; }
-.df-hint { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--muted-2); }
+.df-section { padding: 22px 0; border-bottom: 1px solid var(--df-line); }
+.df-h2 { font-family: var(--df-font); font-weight: 400; font-size: 19px; text-transform: uppercase; margin: 0 0 12px; }
+.df-label { font-size: 11.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--df-muted); margin: 16px 0 8px; }
+.df-hint { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--df-muted); }
 
 .df-grid { display: flex; flex-wrap: wrap; gap: 8px; }
 .df-grid--sizes .df-card { flex: 0 1 92px; text-align: center; }
 .df-grid--wide .df-card { flex: 1 1 200px; }
 
-.df-card { flex: 1 1 150px; background: var(--card); border: 1px solid rgba(18, 18, 18, 0.14); border-radius: 12px; padding: 9px 12px; cursor: pointer; transition: transform 0.14s ease; }
+.df-card { flex: 1 1 150px; background: #fff; border: 1px solid var(--df-line); border-radius: 12px; padding: 9px 12px; cursor: pointer; transition: transform 0.14s ease; }
 .df-card:hover { transform: translateY(-1px); }
-.df-card--on { background: var(--ink); border-color: var(--ink); }
-.df-card-t { font-family: var(--font-display); font-weight: 800; font-size: 13px; line-height: 1.2; color: var(--ink); }
-.df-card-s { font-size: 11px; margin-top: 2px; color: var(--muted); }
-.df-card--on .df-card-t { color: var(--gold); }
+.df-card--on { background: var(--df-black); border-color: var(--df-black); }
+.df-card-t { font-family: var(--df-font); font-weight: 400; font-size: 14px; line-height: 1.2; color: var(--df-black); text-transform: uppercase; letter-spacing: 0.01em; }
+.df-card-s { font-size: 11px; margin-top: 2px; color: var(--df-muted); }
+.df-card--on .df-card-t { color: var(--df-yellow); }
 .df-card--on .df-card-s { color: rgba(255, 255, 255, 0.72); }
 
 .df-swatches { display: flex; flex-wrap: wrap; gap: 10px; }
-.df-swatch { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 62px; background: none; border: none; cursor: pointer; font: inherit; font-size: 10px; color: var(--ink-soft); text-align: center; }
-.df-swatch span { width: 38px; height: 38px; border-radius: 50%; border: 1px solid rgba(18, 18, 18, 0.16); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15); }
-.df-swatch--on span { border: 3px solid var(--ink); }
+.df-swatch { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 62px; background: none; border: none; cursor: pointer; font: inherit; font-size: 10px; color: var(--df-muted); text-align: center; }
+.df-swatch span { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--df-line); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15); }
+.df-swatch--on span { border: 3px solid var(--df-black); }
 
-.df-others input, .df-qty input { font-family: var(--font-mono); font-size: 15px; padding: 11px 13px; border: 1px solid rgba(18, 18, 18, 0.16); border-radius: 12px; background: var(--card); width: 120px; }
+.df-others input, .df-qty input { font-family: var(--font-mono); font-size: 15px; padding: 11px 13px; border: 1px solid var(--df-line); border-radius: 12px; background: #fff; width: 120px; }
 .df-others { margin-top: 12px; }
 
-.df-qty { display: flex; align-items: center; gap: 0; width: max-content; border: 1px solid rgba(18, 18, 18, 0.16); border-radius: 12px; overflow: hidden; background: var(--card); }
-.df-qty button { width: 46px; height: 46px; border: none; background: var(--card); font-size: 20px; cursor: pointer; color: var(--ink); }
-.df-qty input { width: 80px; height: 46px; border: none; border-left: 1px solid rgba(18, 18, 18, 0.14); border-right: 1px solid rgba(18, 18, 18, 0.14); text-align: center; border-radius: 0; }
+.df-qty { display: flex; align-items: center; gap: 0; width: max-content; border: 1px solid var(--df-line); border-radius: 12px; overflow: hidden; background: #fff; }
+.df-qty button { width: 46px; height: 46px; border: none; background: #fff; font-size: 20px; cursor: pointer; color: var(--df-black); }
+.df-qty input { width: 80px; height: 46px; border: none; border-left: 1px solid var(--df-line); border-right: 1px solid var(--df-line); text-align: center; border-radius: 0; }
 
-.df-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 70; background: var(--ink); color: #fff; padding: 13px clamp(16px, 4vw, 40px); display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
-.df-bar-k { font-size: 11.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255, 255, 255, 0.55); }
-.df-bar-v { font-family: var(--font-display); font-weight: 900; font-size: 30px; color: var(--gold); }
-.df-bar-v span { font-family: inherit; font-size: 14px; font-weight: 700; color: rgba(255, 255, 255, 0.6); }
-.df-bar-sub { font-size: 12.5px; color: rgba(255, 255, 255, 0.55); margin-top: 3px; }
-.df-bar-cta { background: var(--gold); color: var(--ink); border: none; cursor: pointer; font: inherit; font-weight: 700; font-size: 15px; padding: 15px 28px; border-radius: 999px; }
+/* Live-estimate bar — kept to ONE row even on a phone, same idea as WalkInForm's
+   .wk-foot--rail (price block shrinks via min-width:0, button sizes to content instead of
+   stretching full-width) rather than letting the button wrap onto its own row, which is
+   what made this bar ~171px tall on a 390px phone before this pass. Font sizes below that
+   point also follow GuidedWalkthrough's .gw-im-bar mobile scaling (@480px breakpoint) —
+   same "shrink the least essential figure first" idea, applied here since most customers on
+   this screen are on a phone. */
+.df-bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 70;
+  background: var(--df-black); color: #fff;
+  padding: 12px clamp(16px, 4vw, 40px);
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: nowrap;
+}
+.df-bar-price { min-width: 0; }
+.df-bar-k { font-size: 11.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255, 255, 255, 0.55); white-space: nowrap; }
+.df-bar-v { font-family: var(--df-font); font-weight: 400; font-size: 30px; color: var(--df-yellow); white-space: nowrap; }
+.df-bar-sub { font-size: 12.5px; color: rgba(255, 255, 255, 0.55); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.df-bar-cta { flex: none; background: var(--df-yellow); color: var(--df-black); border: none; cursor: pointer; font: inherit; font-weight: 700; font-size: 15px; padding: 15px 28px; border-radius: 999px; white-space: nowrap; }
+
+@media (max-width: 480px) {
+  .df-body { padding-bottom: 104px; } /* bar is 75px tall here — was 140px, sized for the old 171px-tall bar */
+  .df-bar { padding: 10px 14px; gap: 10px; }
+  .df-bar-k { font-size: 9px; }
+  .df-bar-v { font-size: 20px; }
+  .df-bar-sub { font-size: 10px; }
+  .df-bar-cta { font-size: 13px; padding: 11px 16px; }
+}
 
 .df-quote-wrap { padding: 40px 16px 80px; }

@@ -79,9 +79,6 @@ export default function Home() {
               </button>
               <div className="hm-hero-meta" data-reveal>
                 <span className="hm-trust"><IoCheckmarkCircle /> Free etiketa + ziploc packing · 1-color print included</span>
-                <button className="hm-mockup-link" onClick={() => navigate('?page=mockup')}>
-                  👕 See your brand on our tee <IoArrowForward />
-                </button>
               </div>
             </div>
           </div>

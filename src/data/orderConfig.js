@@ -100,7 +100,12 @@ export const FABRICS = [
   { label: 'Premium Tee — 280 GSM',      sub: 'Premium hand-feel line',      value: 'Premium 280 GSM' },
 ]
 
-// Catalog colors available PER FABRIC/GSM. Plus a free custom hex picker in the UI.
+// Catalog colors available PER FABRIC/GSM — kept for FabricPrintGuide.jsx's own reference
+// page only (it genuinely wants to show which colors each fabric comes in). As of
+// 2026-08-11, none of the three order-BUILDING screens read from this anymore — they all
+// use SHIRT_COLORS below instead (the owner's explicit call — see CLAUDE.md §7/§12,
+// "gamitin mo sa order online path yung establish na natin na 20 colors"). Do not wire this
+// back into an order-building screen without checking with the owner first.
 export const COLORS_BY_FABRIC = {
   '220 GSM':         ['Black', 'White', 'Navy', 'Heather Grey', 'Red'],
   'CVC 240 GSM':     ['Black', 'White', 'Navy', 'Sage Green', 'Maroon', 'Heather Grey', 'Red', 'Royal Blue', 'Mustard', 'Forest'],
@@ -113,9 +118,11 @@ export const COLOR_HEX = {
   Forest:'#2f5d3a', Bone:'#e7e0cf', Chocolate:'#4a352a', Olive:'#6b6a3a',
 }
 
-// The business's official 20-color reference card (name + HEX) — one universal palette
-// used by the walk-in flow's color picker, not tied to fabric/GSM like COLORS_BY_FABRIC
-// above (which is a smaller, per-fabric list for the online guided/instant paths).
+// The business's official 20-color reference card (name + HEX) — one universal palette,
+// the same 20 regardless of fabric/GSM. As of 2026-08-11, ALL THREE order-building paths
+// use this (GuidedWalkthrough and DirectForm's own fallback color step, plus WalkInForm,
+// which always did) — see SHIRT_COLOR_HEX below for the derived name->hex lookup the online
+// paths use for their 3D/SVG fallback tint.
 export const SHIRT_COLORS = [
   { name: 'Black', hex: '#111111' },
   { name: 'White', hex: '#FFFFFF' },
@@ -138,6 +145,13 @@ export const SHIRT_COLORS = [
   { name: 'Special Gray', hex: '#A9A9A9' },
   { name: 'Silver Gray', hex: '#C0C0C0' },
 ]
+
+// Name -> hex, derived from SHIRT_COLORS above — for anywhere that needs to tint by color
+// name against the full 20-color list (the online paths' own color picker below, and the
+// 3D-stage/flat-SVG fallback tint for fits with no filmed footage). Deliberately NOT the
+// same lookup as COLOR_HEX above, which only covers COLORS_BY_FABRIC's smaller per-fabric
+// names and stays as-is for FabricPrintGuide.jsx's own separate use.
+export const SHIRT_COLOR_HEX = Object.fromEntries(SHIRT_COLORS.map((c) => [c.name, c.hex]))
 
 export const PRINT_COLOR_FEE = 20
 export const FREE_PRINT_COLORS = 1   // one colour is already inside the printed base

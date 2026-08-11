@@ -12,8 +12,9 @@ import { useCheckout } from '../hooks/useCheckout.js'
 import { useGarmentForm, DEFAULT_GARMENT_FORM } from '../hooks/useGarmentForm.js'
 import { loadReorder, clearReorder } from '../utils/draftOrder.js'
 import {
-  ORDERABLE_STYLES, FITS, SIZES, SIZE_PRICES, COLLARS, SLEEVES, FABRICS, colorsFor, COLOR_HEX,
-  PRINT_COLOR_OPTIONS, PRINT_CHOICES, PLACEMENTS, hemsFor, showsPrice, styleById, peso, MIN_QTY,
+  ORDERABLE_STYLES, FITS, SIZES, COLLARS, SLEEVES, FABRICS, SHIRT_COLORS,
+  PRINT_COLOR_OPTIONS, BACK_PRINT_COLOR_OPTIONS, PRINT_CHOICES, PLACEMENTS,
+  hemsFor, showsPrice, sizePricesFor, peso, MIN_QTY,
 } from '../data/orderConfig.js'
 import '../design/DirectForm.css'
 
@@ -40,7 +41,6 @@ export default function DirectForm() {
   useEffect(() => { clearReorder() }, [])
 
   const hems = hemsFor(form.style)
-  const colors = colorsFor(form.fabric)
   const priced = showsPrice(form.style)
 
   if (showQuote) {
@@ -94,19 +94,18 @@ export default function DirectForm() {
 
           <div className="df-label">Sample size <span className="df-hint">(pick one — quantity is set below)</span></div>
           <div className="df-grid df-grid--sizes">
-            {SIZES.map((sz) => {
-              const p = (SIZE_PRICES[form.fit] || SIZE_PRICES.Standard)[sz]
-              const add = styleById(form.style).addPerPc
-              return (
+            {(() => {
+              const prices = sizePricesFor(form.style, form.fit)
+              return SIZES.map((sz) => (
                 <Card
                   key={sz}
                   title={sz}
-                  sub={priced ? peso(p + add) + ' / pc' : 'Sample size'}
+                  sub={priced && prices ? peso(prices[sz]) + ' / pc' : 'Sample size'}
                   selected={form.size === sz}
                   onClick={() => set({ size: sz })}
                 />
-              )
-            })}
+              ))
+            })()}
           </div>
 
           {sh.collar && (
@@ -149,17 +148,17 @@ export default function DirectForm() {
             ))}
           </div>
 
-          <div className="df-label">Color <span className="df-hint">(available for {form.fabric})</span></div>
+          <div className="df-label">Color</div>
           <div className="df-swatches">
-            {colors.map((c) => (
+            {SHIRT_COLORS.map((c) => (
               <button
-                key={c}
-                className={'df-swatch' + (form.color === c ? ' df-swatch--on' : '')}
-                title={c}
-                onClick={() => set({ color: c })}
+                key={c.name}
+                className={'df-swatch' + (form.color === c.name ? ' df-swatch--on' : '')}
+                title={c.name}
+                onClick={() => set({ color: c.name })}
               >
-                <span style={{ background: COLOR_HEX[c] || '#ccc' }} />
-                {c}
+                <span style={{ background: c.hex }} />
+                {c.name}
               </button>
             ))}
           </div>
@@ -180,7 +179,21 @@ export default function DirectForm() {
 
             {hasDesign && (
               <>
-                <div className="df-label">Print colors</div>
+                {/* Placement asked FIRST, on purpose — the print-colors fields below read
+                    form.placement directly, no separate "did they tap it" gate. Every
+                    field in this form already shows its default-driven content
+                    immediately without requiring an explicit tap first; placement's
+                    default ('Front only') is no different — see CLAUDE.md §12,
+                    2026-08-11. */}
+                <div className="df-label">Placement</div>
+                <div className="df-grid">
+                  {PLACEMENTS.map((p) => (
+                    <Card key={p.label} title={p.label} sub={p.sub} selected={form.placement === p.label}
+                      onClick={() => set({ placement: p.label })} />
+                  ))}
+                </div>
+
+                <div className="df-label">{form.placement === 'Front + back' ? 'Front print colors' : 'Print colors'}</div>
                 <div className="df-grid">
                   {PRINT_COLOR_OPTIONS.map((o) => (
                     <Card
@@ -203,12 +216,32 @@ export default function DirectForm() {
                   </div>
                 )}
 
-                <div className="df-label">Placement</div>
-                <div className="df-grid">
-                  {PLACEMENTS.map((p) => (
-                    <Card key={p.label} title={p.label} sub={p.sub} selected={form.placement === p.label} onClick={() => set({ placement: p.label })} />
-                  ))}
-                </div>
+                {form.placement === 'Front + back' && (
+                  <>
+                    <div className="df-label">Back print colors</div>
+                    <div className="df-grid">
+                      {BACK_PRINT_COLOR_OPTIONS.map((o) => (
+                        <Card
+                          key={o.n}
+                          title={o.label}
+                          sub={o.sub}
+                          selected={o.n === 5 ? (form.printColorsBack || 1) >= 5 : form.printColorsBack === o.n}
+                          onClick={() => set({ printColorsBack: o.n === 5 ? Math.max(5, form.printColorsBack || 5) : o.n })}
+                        />
+                      ))}
+                    </div>
+                    {(form.printColorsBack || 1) >= 5 && (
+                      <div className="df-others">
+                        <div className="df-label">Number of colors</div>
+                        <input
+                          type="number" min="5" max="99" value={form.printColorsBack}
+                          onChange={(e) => set({ printColorsBack: Math.max(5, Math.min(99, parseInt(e.target.value, 10) || 5)) })}
+                        />
+                        <div className="df-hint">{form.printColorsBack} colors · +{peso(20 * form.printColorsBack)} / pc</div>
+                      </div>
+                    )}
+                  </>
+                )}
               </>
             )}
           </section>
@@ -231,9 +264,9 @@ export default function DirectForm() {
 
       {/* sticky live estimate */}
       <div className="df-bar">
-        <div>
-          <div className="df-bar-k">Live estimate</div>
-          <div className="df-bar-v">{peso(t.perPc)} <span>/ pc</span></div>
+        <div className="df-bar-price">
+          <div className="df-bar-k">Live estimate · per pc</div>
+          <div className="df-bar-v">{peso(t.perPc)}</div>
           <div className="df-bar-sub">{peso(t.total)} total · {peso(t.grandTotal)} incl. sample fee</div>
         </div>
         <button className="df-bar-cta" onClick={() => setShowQuote(true)}>See quotation →</button>

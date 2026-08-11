@@ -7,11 +7,10 @@ import StickyCTA from '../components/StickyCTA.jsx'
 import Home from './Home.jsx'
 import ChoosePath from './ChoosePath.jsx'
 import Auth from './Auth.jsx'
-import Mockup from './Mockup.jsx'
 
 // Phase 2 — ordering flow
 import GuidedWalkthrough from './GuidedWalkthrough.jsx'
-import ComingSoon from './ComingSoon.jsx'
+import DirectForm from './DirectForm.jsx'
 import WalkInsInfo from './WalkInsInfo.jsx'
 import WalkInForm from './WalkInForm.jsx'
 import Checkout from './Checkout.jsx'
@@ -66,14 +65,10 @@ function routePage(page) {
   if (page === 'get-in-touch') return <GetInTouch />
   if (page === 'quick-quote') return <QuickQuote />
   if (page === 'pricing') return <Pricing />
-  if (page === 'mockup') return <Mockup />
 
   // Ordering flow (Phase 2) — quote-building is open to guests.
-  // Current focus is the guided walkthrough + walk-in kiosk — the instant builder
-  // isn't open yet, so its route (and every button that points to it) shows a
-  // "coming soon" stub instead.
   if (page === 'walkthrough') return <GuidedWalkthrough />
-  if (page === 'direct-form') return <ComingSoon />
+  if (page === 'direct-form') return <DirectForm />
   if (page === 'walk-ins') return <WalkInsInfo />
   // Walk-in is guest-friendly up to the quote — the sign-in gate lives at the address
   // step inside WalkInForm itself (same placement as the online paths), so an in-store

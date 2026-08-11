@@ -28,6 +28,43 @@
 }
 .gw-scrub-video--on, .gw-scrub-image--on { opacity: 1; }
 
+/* design-upload live preview (designFront/designBack steps) — preview only, see
+   garmentScrub.js's file header. left/top/width are set inline per-layer (x/y/size state,
+   % of the stage) — this just handles the anchor, drag affordance, and "simple overlay, not
+   a realistic mockup" look (no warp to the fabric's angle or folds). touch-action:none is
+   load-bearing: without it, dragging a layer on a phone would also scroll the page, since
+   the whole walkthrough is itself scroll-driven. */
+.gw-design-overlay {
+  position: absolute; max-width: 320px;
+  transform: translate(-50%, -50%); object-fit: contain;
+  touch-action: none; cursor: grab; user-select: none;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
+}
+.gw-design-overlay:active { cursor: grabbing; }
+.gw-design-back-stage { position: absolute; inset: 0; background: #111; }
+.gw-design-back-photo {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; object-position: center 20%;
+}
+.gw-design-back-missing {
+  position: absolute; inset: 0; display: grid; place-items: center; padding: 10%;
+  text-align: center; color: rgba(255, 255, 255, 0.72);
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em;
+}
+
+/* design-upload panel controls (side panel) — one row per uploaded layer */
+.gw-design-panel { display: flex; flex-direction: column; gap: 10px; }
+.gw-design-input { display: none; }
+.gw-design-pick {
+  background: var(--ink); color: var(--gold); border: none; border-radius: 10px;
+  padding: 11px 14px; font-family: var(--font-display); font-weight: 800; font-size: 13px;
+  text-align: left; cursor: pointer;
+}
+.gw-design-file { display: flex; align-items: center; gap: 8px; }
+.gw-design-filename { flex: 1 1 auto; min-width: 0; font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gw-design-size { flex: 0 0 64px; accent-color: var(--ink); }
+.gw-design-remove { flex: 0 0 auto; background: none; border: none; padding: 0; color: #b4442e; font-size: 11px; font-weight: 700; text-decoration: underline; cursor: pointer; }
+
 /* floating HUD — glass panels layered over the live 3D */
 .gw-im-hud { position: absolute; inset: 0; pointer-events: none; }
 .gw-im-hud > * { pointer-events: auto; }

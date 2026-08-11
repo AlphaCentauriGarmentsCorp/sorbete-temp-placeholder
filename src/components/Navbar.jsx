@@ -132,8 +132,8 @@ export default function Navbar() {
         )}
       </header>
 
-      {/* Documented as global chrome in the prototype (appears on Home + Mockup headers alike).
-          Not sticky — scrolls away with the page, unlike the nav bar above. */}
+      {/* Global chrome, shown under the nav on every page. Not sticky — scrolls away with
+          the page, unlike the nav bar above. */}
       <div className="trust-strip">
         <div className="trust-strip-inner">
           Direct factory — Quezon City &nbsp;·&nbsp; In-house production &nbsp;·&nbsp; Min. {MIN_QTY} pcs
