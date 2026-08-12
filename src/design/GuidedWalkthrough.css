@@ -138,6 +138,9 @@
 .gw-swatch span { width: 100%; aspect-ratio: 1; border-radius: 3px 12px 3px 3px; border: 1px solid rgba(18, 18, 18, 0.16); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15); }
 .gw-swatch--on span { border: 2.5px solid var(--ink); }
 
+.gw-swatch-groups { display: flex; flex-direction: column; gap: 14px; }
+.gw-color-group-label { font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); background: var(--gold); display: inline-block; padding: 3px 9px; border-radius: 999px; margin-bottom: 8px; }
+
 .gw-others { margin-top: 12px; }
 .gw-others input { font-family: var(--font-mono); font-size: 15px; padding: 11px 13px; border: 1px solid rgba(18, 18, 18, 0.16); border-radius: 12px; background: var(--card); width: 120px; }
 
@@ -177,6 +180,18 @@
   .gw-im-panel .gw-cards .gw-card { flex: 0 0 auto; min-width: 128px; }
   .gw-im-panel .gw-swatches { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; }
   .gw-im-panel .gw-swatch { flex: 0 0 auto; }
+  /* Category groups (added 2026-08-12) would otherwise stack 7 deep here, each with its
+     own scroller — that eats most of a phone screen and defeats this panel's whole
+     "bottom strip" design. Lay the GROUPS out horizontally instead, so the panel stays
+     one label-row + one swatch-row tall and the customer scrolls sideways through
+     categories, exactly like the single ungrouped strip did before grouping existed. */
+  .gw-im-panel .gw-swatch-groups {
+    flex-direction: row; overflow-x: auto; gap: 16px; padding-bottom: 2px;
+  }
+  .gw-im-panel .gw-color-group { flex: 0 0 auto; }
+  /* only the outer strip scrolls now — inner rows just size to their content */
+  .gw-im-panel .gw-swatch-groups .gw-swatches { overflow-x: visible; padding-bottom: 0; }
+  .gw-im-panel .gw-color-group-label { font-size: 9px; padding: 2px 8px; margin-bottom: 6px; }
   .gw-im-bar { padding: 9px 14px; gap: 12px; }
   .gw-bar-v { font-size: 21px; }
   .gw-bar-stats { gap: 16px; }
@@ -235,6 +250,8 @@
   .gw-im-panel .gw-inline-label { font-size: 8.5px; margin-bottom: 6px; }
   .gw-im-panel .gw-swatches { gap: 6px; }
   .gw-im-panel .gw-swatch { width: 42px; font-size: 8px; gap: 3px; }
+  .gw-im-panel .gw-swatch-groups { gap: 12px; }
+  .gw-im-panel .gw-color-group-label { font-size: 8px; padding: 2px 7px; margin-bottom: 5px; }
 
   /* bottom bar: smaller type to match */
   .gw-bar-k { font-size: 9.5px; }

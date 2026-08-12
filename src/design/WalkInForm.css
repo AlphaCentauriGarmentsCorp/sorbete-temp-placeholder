@@ -257,6 +257,14 @@
 .wk-swatch--on .wk-swatch-chip { box-shadow: 0 0 0 2.5px var(--wk-white), 0 0 0 5px var(--wk-black); }
 .wk-swatch--on .wk-swatch-name { color: var(--wk-black); }
 
+.wk-color-group { margin-bottom: 16px; }
+.wk-color-group:last-child { margin-bottom: 0; }
+.wk-color-group-label {
+  font-size: 9.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--wk-black); background: var(--wk-yellow); display: inline-block;
+  padding: 3px 10px; border-radius: 999px; margin-bottom: 8px;
+}
+
 /* Pinned bottom bar — the prototype's app-shell footer: a white action bar holding
    ONE full-width pill (black, or yellow for money/forward actions), flipping to the
    black "live estimate" rail (.wk-foot--rail) on the form phase. A flex child of the

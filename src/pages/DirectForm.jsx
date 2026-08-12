@@ -12,7 +12,7 @@ import { useCheckout } from '../hooks/useCheckout.js'
 import { useGarmentForm, DEFAULT_GARMENT_FORM } from '../hooks/useGarmentForm.js'
 import { loadReorder, clearReorder } from '../utils/draftOrder.js'
 import {
-  ORDERABLE_STYLES, FITS, SIZES, COLLARS, SLEEVES, FABRICS, SHIRT_COLORS,
+  ORDERABLE_STYLES, FITS, SIZES, COLLARS, SLEEVES, FABRICS, colorsForFabric, groupColorsByCategory,
   PRINT_COLOR_OPTIONS, BACK_PRINT_COLOR_OPTIONS, PRINT_CHOICES, PLACEMENTS,
   hemsFor, showsPrice, sizePricesFor, peso, MIN_QTY,
 } from '../data/orderConfig.js'
@@ -149,19 +149,24 @@ export default function DirectForm() {
           </div>
 
           <div className="df-label">Color</div>
-          <div className="df-swatches">
-            {SHIRT_COLORS.map((c) => (
-              <button
-                key={c.name}
-                className={'df-swatch' + (form.color === c.name ? ' df-swatch--on' : '')}
-                title={c.name}
-                onClick={() => set({ color: c.name })}
-              >
-                <span style={{ background: c.hex }} />
-                {c.name}
-              </button>
-            ))}
-          </div>
+          {groupColorsByCategory(colorsForFabric(form.fabric)).map((group) => (
+            <div className="df-color-group" key={group.slug}>
+              <div className="df-color-group-label">{group.label}</div>
+              <div className="df-swatches">
+                {group.colors.map((c) => (
+                  <button
+                    key={c.name}
+                    className={'df-swatch' + (form.color === c.name ? ' df-swatch--on' : '')}
+                    title={c.name}
+                    onClick={() => set({ color: c.name })}
+                  >
+                    <span style={{ background: c.hex }} />
+                    {c.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
         </section>
 
         {/* 3 · Print & Design */}

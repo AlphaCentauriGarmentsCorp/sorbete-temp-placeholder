@@ -23,10 +23,10 @@
 .hm-steps [data-reveal]:nth-child(3) { transition-delay: 0.14s; }
 .hm-steps [data-reveal]:nth-child(4) { transition-delay: 0.21s; }
 
-/* ---- hero (cut-out model bleeds far-right + into the bottom-right corner) ---- */
+/* ---- hero (framed product photo on a fanned stack of cards, copy on the left) ---- */
 .hm-hero {
   position: relative;
-  z-index: 2; /* lets the model overflow down over the stats band */
+  z-index: 2;
   overflow: visible;
   padding-top: 24px;
 }
@@ -36,6 +36,10 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 26px 16px 56px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 400px);
+  align-items: center;
+  gap: 40px;
 }
 .hm-hero-copy {
   position: relative;
@@ -118,28 +122,95 @@
   color: var(--ok);
   font-size: 16px;
 }
-.hm-hero-model {
-  position: absolute;
-  right: 0;
-  bottom: -72px; /* bleeds down over the top of the stats band */
-  height: clamp(460px, 56vw, 780px);
-  width: auto;
-  max-width: 52vw;
-  object-fit: contain;
-  object-position: bottom right;
-  z-index: 2;
-  pointer-events: none;
-  filter: drop-shadow(-18px 24px 40px rgba(18, 18, 18, 0.16));
-  animation: hm-model-in 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) both,
-    hm-model-float 7s ease-in-out 0.9s infinite;
+.hm-hero-art {
+  position: relative;
+  justify-self: end;
+  width: 100%;
+  max-width: 380px;
+  aspect-ratio: 4 / 5;
 }
-@keyframes hm-model-in {
-  from { opacity: 0; transform: translate(28px, 20px); }
+.hm-hero-fan {
+  position: absolute;
+  inset: 0;
+  border-radius: 28px;
+  background: var(--gold);
+}
+.hm-hero-fan--a {
+  transform: rotate(-7deg) translate(-12px, 10px);
+  opacity: 0.45;
+}
+.hm-hero-fan--b {
+  transform: rotate(5deg) translate(14px, -8px);
+  opacity: 0.8;
+}
+.hm-hero-fan--c {
+  background: rgba(18, 18, 18, 0.07);
+}
+.hm-hero-card {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  border-radius: 28px;
+  overflow: hidden;
+  background: var(--ink);
+  box-shadow: 0 30px 60px rgba(18, 18, 18, 0.22);
+  animation: hm-card-in 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) both,
+    hm-card-float 7s ease-in-out 0.9s infinite;
+}
+.hm-hero-photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  filter: brightness(0.9);
+  animation: hm-photo-shuffle-in 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+.hm-hero-rail {
+  position: absolute;
+  top: 50%;
+  right: -24px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  transform: translateY(-50%);
+}
+.hm-hero-rail-dot {
+  width: 9px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--line);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: height 0.2s ease, background 0.2s ease;
+}
+.hm-hero-rail-dot:hover {
+  background: var(--muted-2);
+}
+.hm-hero-rail-dot:focus-visible {
+  outline: 2px solid var(--gold-ink);
+  outline-offset: 2px;
+}
+.hm-hero-rail-dot--on,
+.hm-hero-rail-dot--on:hover {
+  height: 26px;
+  background: var(--gold);
+  box-shadow: 0 0 0 3px rgba(255, 212, 0, 0.18);
+}
+@keyframes hm-card-in {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
   to { opacity: 1; transform: none; }
 }
-@keyframes hm-model-float {
+@keyframes hm-card-float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes hm-photo-shuffle-in {
+  from { opacity: 0; transform: scale(1.04); }
+  to { opacity: 1; transform: none; }
 }
 
 /* ---- stats (thick black band, big gold figures) ----
@@ -375,35 +446,36 @@
 
 /* ---- responsive ---- */
 @media (max-width: 980px) {
-  .hm-hero-model {
-    height: clamp(360px, 62vw, 560px);
-    max-width: 58vw;
-    bottom: -48px;
+  .hm-hero-inner {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
+    gap: 28px;
   }
   .hm-hero-copy {
     max-width: 62%;
   }
+  /* At this width the art column sits close enough to the viewport edge that
+     the rail's overhang, and the fan sheets' own rotation, both push past it
+     and cause horizontal scroll — the margin below buys back that overhang. */
+  .hm-hero-art {
+    margin-right: 24px;
+  }
+  .hm-hero-rail {
+    display: none;
+  }
 }
 @media (max-width: 760px) {
-  .hm-hero {
-    display: flex;
-    flex-direction: column-reverse;
-  }
   .hm-hero-inner {
+    grid-template-columns: 1fr;
     padding-top: 10px;
   }
   .hm-hero-copy {
     max-width: 100%;
   }
-  .hm-hero-model {
-    position: static;
-    display: block;
-    height: auto;
-    width: min(76%, 320px);
-    max-width: none;
-    margin: 6px auto -8px;
-    filter: drop-shadow(0 20px 34px rgba(18, 18, 18, 0.18));
-    animation: hm-model-in 0.8s ease both;
+  .hm-hero-art {
+    order: -1;
+    justify-self: center;
+    width: min(78%, 340px);
+    margin: 6px auto 4px;
   }
   .hm-stats-inner {
     grid-template-columns: repeat(2, 1fr);

@@ -1,6 +1,10 @@
 // src/pages/Home.jsx — landing page (front door).
-// Reference-matched hero: cut-out model bleeds to the far right + bottom-right corner (no
-// container), thick black stats band, and light scroll-reveal / hover motion throughout.
+// Hero art: a fanned stack of cards behind a framed product photo, auto-rotating through
+// real Sorbetes product shots every few seconds with a clickable dot rail — the same
+// carousel the old sorbetes-frontend project's own homepage used (hp-hero-media), ported
+// here with its actual 7 photos (public/img/hero/hero-1..7.jpg). Thick black stats band and
+// light scroll-reveal / hover motion throughout the rest of the page.
+import { useEffect, useState } from 'react'
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
 import {
@@ -11,6 +15,9 @@ import { navigate } from '../utils/navigation.js'
 import { peso, MIN_QTY, SAMPLE_FEE, SIZE_PRICES } from '../data/orderConfig.js'
 import { useScrollReveal } from '../hooks/useScrollReveal.js'
 import '../design/Home.css'
+
+const HERO_IMAGES = [1, 2, 3, 4, 5, 6, 7].map((n) => `/img/hero/hero-${n}.jpg`)
+const HERO_INTERVAL_MS = 3000
 
 // Figures taken from the client's reference design (their own marketing copy). Swap any that
 // aren't accurate for the business — unlike prices, these aren't derived from orderConfig.
@@ -51,12 +58,21 @@ const STEPS = [
 
 export default function Home() {
   useScrollReveal()
+  const [heroIndex, setHeroIndex] = useState(0)
+
+  // Auto-advance, same 3s cadence as the old homepage's carousel — paused implicitly
+  // whenever the tab isn't the active one costs nothing extra to handle since the
+  // interval just keeps ticking in the background at negligible cost.
+  useEffect(() => {
+    const id = setInterval(() => setHeroIndex((i) => (i + 1) % HERO_IMAGES.length), HERO_INTERVAL_MS)
+    return () => clearInterval(id)
+  }, [])
 
   return (
     <div className="page">
       <Navbar />
       <div className="page-body">
-        {/* hero — cut-out model bleeds to the far right + bottom-right corner */}
+        {/* hero — framed product photo on a fanned stack of cards */}
         <section className="hm-hero">
           <div className="hm-hero-inner">
             <div className="hm-hero-copy">
@@ -81,8 +97,36 @@ export default function Home() {
                 <span className="hm-trust"><IoCheckmarkCircle /> Free etiketa + ziploc packing · 1-color print included</span>
               </div>
             </div>
+
+            <div className="hm-hero-art" data-reveal>
+              <span className="hm-hero-fan hm-hero-fan--a" aria-hidden="true" />
+              <span className="hm-hero-fan hm-hero-fan--b" aria-hidden="true" />
+              <span className="hm-hero-fan hm-hero-fan--c" aria-hidden="true" />
+              <div className="hm-hero-card">
+                <img
+                  key={heroIndex}
+                  className="hm-hero-photo"
+                  src={HERO_IMAGES[heroIndex]}
+                  alt="A custom garment produced by Sorbetes"
+                  loading="eager"
+                  fetchPriority="high"
+                />
+              </div>
+              <div className="hm-hero-rail" role="tablist" aria-label="Hero photos">
+                {HERO_IMAGES.map((_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    role="tab"
+                    aria-selected={i === heroIndex}
+                    aria-label={`Show photo ${i + 1}`}
+                    className={'hm-hero-rail-dot' + (i === heroIndex ? ' hm-hero-rail-dot--on' : '')}
+                    onClick={() => setHeroIndex(i)}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
-          <img className="hm-hero-model" src="/img/hero-model.webp" alt="" aria-hidden="true" loading="eager" fetchPriority="high" />
         </section>
 
         {/* stats band */}

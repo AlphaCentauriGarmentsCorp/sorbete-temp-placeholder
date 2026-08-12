@@ -5,34 +5,45 @@
 // Usage: <QuoteSummary form={form} qty={qty} onChange={goEditOrder} onProceed={placeOrder} />
 import { useRef, useState } from 'react'
 import { IoCopyOutline, IoCheckmarkCircle, IoDownloadOutline } from 'react-icons/io5'
-import { quoteTotals, priceBreakdown, peso, styleById, MIN_QTY } from '../data/orderConfig.js'
+import {
+  quoteTotals, priceBreakdown, printColorsSummary, peso, styleById,
+  showFor, showsPrice, MIN_QTY, QUOTE_MIN_NOTE_TAIL,
+} from '../data/orderConfig.js'
 import { copyToClipboard } from '../utils/format.js'
 import AddressPicker from '../components/AddressPicker.jsx'
 import { useSession } from '../context/SessionContext.jsx'
 import '../design/QuoteSummary.css'
 
-function buildQuoteText(f, qty) {
+// Kept structurally identical to WalkInForm.jsx's buildWalkInQuoteText() — same row order,
+// same labels, same PRICE BREAKDOWN section — so a quote pasted from the online paths reads
+// the same as one pasted from the kiosk. The kiosk's version additionally carries its own
+// walk-in-only fields (design label / contact number) and says "Walk-in Quotation" in the
+// header, which is deliberate: those identify where the quote came from.
+function buildQuoteText(f, sh, breakdown, qty) {
   const { perPc, total, sampleFee, grandTotal, dp, bal } = quoteTotals(f, qty)
-  const colors = f.printColors || 1
+  const priced = showsPrice(f.style)
   return [
     'Sorbetes Apparel — Quotation', '',
     'Style: ' + styleById(f.style).label,
-    'Fit: ' + (f.fit || '—'),
+    sh.fit ? 'Fit: ' + f.fit : null,
     'Size: ' + (f.size || '—'),
-    'Collar: ' + (f.collar || '—'),
-    'Sleeve: ' + (f.sleeve || '—'),
-    'Hem: ' + (f.hem || '—'),
+    sh.collar ? 'Collar: ' + f.collar : null,
+    sh.sleeve ? 'Sleeve: ' + f.sleeve : null,
+    (sh.isPant ? 'Leg opening: ' : 'Hem: ') + (f.hem || '—'),
     'Fabric: ' + f.fabric,
     'Color: ' + (f.color || '—'),
-    f.hasDesign ? 'Print colors: ' + colors : 'Print: Plain (no print)',
+    f.hasDesign ? 'Print: ' + printColorsSummary(f) : 'Print: Plain (no print)',
     f.hasDesign && f.placement ? 'Placement: ' + f.placement : null,
     'Quantity: ' + (qty || 0) + ' pcs', '',
-    'Price per piece: ' + peso(perPc),
-    'Garment total: ' + peso(total),
+    'PRICE BREAKDOWN (per piece)',
+    ...breakdown.lines.map((l) => l.label + ': ' + (l.key === 'base' ? peso(l.amount) : (l.amount ? '+' + peso(l.amount) : 'Included'))),
+    '',
+    'Per piece: ' + (priced ? peso(perPc) : 'Quoted by staff'),
+    'Garment total × ' + (qty || 0) + ' pcs: ' + (priced ? peso(total) : '—'),
     'Sample fee: ' + peso(sampleFee),
-    'Total (incl. sample fee): ' + peso(grandTotal),
-    '60% downpayment: ' + peso(dp),
-    '40% balance at pickup: ' + peso(bal),
+    'Total (incl. sample fee): ' + (priced ? peso(grandTotal) : '—'),
+    '60% downpayment: ' + (priced ? peso(dp) : '—'),
+    '40% balance at pickup: ' + (priced ? peso(bal) : '—'),
   ].filter(Boolean).join('\n')
 }
 
@@ -44,10 +55,13 @@ export default function QuoteSummary({ form, qty = 50, onChange, onProceed, onSi
   const timer = useRef(null)
   const t = quoteTotals(form, qty)
   const breakdown = priceBreakdown(form)
-  const colors = form.printColors || 1
+  // Same derivation the kiosk's own panel uses, so both hide the rows that don't apply to
+  // the chosen style instead of printing a "—" placeholder for them.
+  const sh = showFor(form.style, form.printChoice)
+  const priced = showsPrice(form.style)
 
   const copyQuote = () => {
-    const text = buildQuoteText(form, qty)
+    const text = buildQuoteText(form, sh, breakdown, qty)
     copyToClipboard(text).then(() => {
       setCopied(true)
       clearTimeout(timer.current)
@@ -62,17 +76,20 @@ export default function QuoteSummary({ form, qty = 50, onChange, onProceed, onSi
     if (delivery) onProceed(delivery)
   }
 
+  // Row order/labels/conditions deliberately mirror WalkInForm.jsx's own spec grid — see
+  // the note on buildQuoteText above.
   const cells = [
-    ['Style / fit', styleById(form.style).label + ' · ' + (form.fit || '—')],
+    ['Style', styleById(form.style).label],
+    sh.fit && ['Fit', form.fit || '—'],
     ['Size', form.size || '—'],
-    ['Collar', form.collar || '—'],
-    ['Sleeve', form.sleeve || '—'],
-    ['Hem', form.hem || '—'],
+    sh.collar && ['Collar', form.collar || '—'],
+    sh.sleeve && ['Sleeve', form.sleeve || '—'],
+    [sh.isPant ? 'Leg opening' : 'Hem', form.hem || '—'],
     ['Fabric', form.fabric || '—'],
     ['Color', form.color || '—'],
-    ['Print', form.hasDesign ? colors + '-color' : 'Plain (no print)'],
-    ['Placement', form.hasDesign ? (form.placement || '—') : '—'],
-  ]
+    ['Print', form.hasDesign ? printColorsSummary(form) : 'Plain (no print)'],
+    form.hasDesign && ['Placement', form.placement || '—'],
+  ].filter(Boolean)
 
   return (
     <div className="quote-card" id="sbQuoteCard">
@@ -100,17 +117,17 @@ export default function QuoteSummary({ form, qty = 50, onChange, onProceed, onSi
         ))}
         <div className="quote-price-row quote-price-row--hero">
           <span>Per piece</span>
-          <span className="quote-perpc">{peso(t.perPc)}</span>
+          <span className="quote-perpc">{priced ? peso(t.perPc) : 'Quoted by staff'}</span>
         </div>
-        <div className="quote-price-row quote-muted"><span>Garment total × {qty} pcs</span><span>{peso(t.total)}</span></div>
+        <div className="quote-price-row quote-muted"><span>Garment total × {qty} pcs</span><span>{priced ? peso(t.total) : '—'}</span></div>
         <div className="quote-price-row quote-muted"><span>+ Sample fee</span><span>{peso(t.sampleFee)}</span></div>
-        <div className="quote-price-row quote-total"><span>Total (incl. sample fee)</span><span>{peso(t.grandTotal)}</span></div>
+        <div className="quote-price-row quote-total"><span>Total (incl. sample fee)</span><span>{priced ? peso(t.grandTotal) : '—'}</span></div>
         <div className="quote-split">
-          <div className="quote-price-row quote-muted"><span>60% downpayment</span><span>{peso(t.dp)}</span></div>
-          <div className="quote-price-row quote-muted"><span>40% balance at pickup</span><span>{peso(t.bal)}</span></div>
+          <div className="quote-price-row quote-muted"><span>60% downpayment</span><span>{priced ? peso(t.dp) : '—'}</span></div>
+          <div className="quote-price-row quote-muted"><span>40% balance at pickup</span><span>{priced ? peso(t.bal) : '—'}</span></div>
         </div>
         <div className="quote-min">
-          Minimum order: <strong>{MIN_QTY} pcs</strong> — this quote covers the full production run.
+          Minimum order: <strong>{MIN_QTY} pcs</strong> {QUOTE_MIN_NOTE_TAIL}
         </div>
       </div>
 

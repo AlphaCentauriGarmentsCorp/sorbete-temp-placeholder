@@ -118,33 +118,141 @@ export const COLOR_HEX = {
   Forest:'#2f5d3a', Bone:'#e7e0cf', Chocolate:'#4a352a', Olive:'#6b6a3a',
 }
 
+// The official fabric catalog's own category structure ("Sorbetes-Fabric-Catalog.pdf",
+// Alpha Centauri, 2026) — 9 collections total, Hoodie Collection excluded here since
+// hoodies aren't an orderable style yet (see STYLES below, priceClass: null). `slug` is
+// the folder name used under public/garment-scrub/**/<slug>/ (2026-08-12 reorg — see
+// CATEGORY_BY_COLOR below and garmentScrub.js's own path-building).
+export const COLOR_CATEGORIES = [
+  { slug: '280-gsm',      label: '280 GSM',        sub: 'Heavyweight Cotton Series' },
+  { slug: 'greens-blues', label: 'Greens & Blues', sub: '220-240 GSM · Cool Tones' },
+  { slug: 'neutrals',     label: 'Neutrals',       sub: '220-240 GSM · Earth & Stone Tones' },
+  { slug: 'warm-tones',   label: 'Warm Tones',     sub: '220-240 GSM · Reds, Oranges & Golds' },
+  { slug: 'lights',       label: 'Lights',         sub: '220-240 GSM · Whites, Yellows & Pastels' },
+  { slug: 'pastels',      label: 'Pastels',        sub: '220-240 GSM · Soft & Muted Pastels' },
+  { slug: 'earth-tones',  label: 'Earth Tones',    sub: '220-240 GSM · Natural & Organic Hues' },
+  { slug: 'brights',      label: 'Brights',        sub: '220-240 GSM · Bold Statement Colors' },
+]
+
+// The shop's own 4 fabric options (FABRICS below) fold into just 2 real catalog GSM tiers —
+// the catalog draws no distinction between the two fabrics in each pair, so today they offer
+// literally the same colors: '220 GSM' + 'CVC 240 GSM' both pull from the 7 hue-family
+// categories above; 'CVC 280 GSM' + 'Premium 280 GSM' both pull from the '280-gsm' category
+// alone. Briefly (2026-08-12) each pair had its own physically-duplicated folder+files; that
+// was simplified the same day, once it turned out to just double file count for zero real
+// difference — now there's ONE folder per GSM tier (`220-240-gsm`, `280-gsm-tier`) shared by
+// both fabrics in the pair, not one per fabric. If the two fabrics in a pair ever need
+// genuinely different photos, this is the one mapping to revisit — it'd mean splitting the
+// shared tier folder back into two, one per fabric, and updating this map accordingly.
+export const FABRIC_SLUGS = {
+  '220 GSM': '220-240-gsm',
+  'CVC 240 GSM': '220-240-gsm',
+  'CVC 280 GSM': '280-gsm-tier',
+  'Premium 280 GSM': '280-gsm-tier',
+}
+export const CANONICAL_FABRIC_BY_CATEGORY = {
+  'greens-blues': '220-240-gsm', 'neutrals': '220-240-gsm', 'warm-tones': '220-240-gsm',
+  'lights': '220-240-gsm', 'pastels': '220-240-gsm', 'earth-tones': '220-240-gsm', 'brights': '220-240-gsm',
+  '280-gsm': '280-gsm-tier',
+}
+
 // The business's official 20-color reference card (name + HEX) — one universal palette,
 // the same 20 regardless of fabric/GSM. As of 2026-08-11, ALL THREE order-building paths
 // use this (GuidedWalkthrough and DirectForm's own fallback color step, plus WalkInForm,
 // which always did) — see SHIRT_COLOR_HEX below for the derived name->hex lookup the online
 // paths use for their 3D/SVG fallback tint.
+//
+// `category` (added 2026-08-12) maps each color to its closest match in the official fabric
+// catalog, by nearest hex distance to that category's own swatch — NOT by name alone, since
+// several names repeat across categories with genuinely different hex (e.g. the catalog has
+// four different "Black"/"Jet Black" swatches, and 280 GSM's own "Royal Blue" is actually a
+// teal, #00A88E — not a blue at all). `pantone`/`catalogHex` record which exact catalog
+// swatch each color was matched against, for reference when generating future assets.
+// Two genuine ties (identical hex across categories) worth knowing about, not silently
+// buried: Black (#111111) ties Earth Tones' and Brights' "Jet Black" (#060606) — filed under
+// Earth Tones. White (#FFFFFF) ties Lights, Earth Tones' "Cloudy White", and Brights — filed
+// under Lights, for cohesion with Off White/Ivory/Cream/Pink/Mocha, which all land there too.
 export const SHIRT_COLORS = [
-  { name: 'Black', hex: '#111111' },
-  { name: 'White', hex: '#FFFFFF' },
-  { name: 'Off White', hex: '#F2F1EE' },
-  { name: 'Ivory', hex: '#FFFEF2' },
-  { name: 'Cream', hex: '#FDFBD4' },
-  { name: 'Pink', hex: '#F7B0BB' },
-  { name: 'Light Royal Blue', hex: '#1C3F87' },
-  { name: 'Royal Blue', hex: '#02066F' },
-  { name: 'Dark Royal Blue', hex: '#041848' },
-  { name: 'Navy Blue', hex: '#00022E' },
-  { name: 'Emerald Green', hex: '#046007' },
-  { name: 'Christmas Green', hex: '#1C7A2F' },
-  { name: 'Fatigue', hex: '#41411D' },
-  { name: 'Mustard Gold', hex: '#CD7F32' },
-  { name: 'Red', hex: '#780606' },
-  { name: 'Brown', hex: '#332211' },
-  { name: 'Mocha', hex: '#C6A38A' },
-  { name: 'Ash Gray', hex: '#5B5B5B' },
-  { name: 'Special Gray', hex: '#A9A9A9' },
-  { name: 'Silver Gray', hex: '#C0C0C0' },
+  { name: 'Black',            hex: '#111111', category: 'earth-tones',  pantone: 'Black 6 C',        catalogHex: '#060606' },
+  { name: 'White',            hex: '#FFFFFF', category: 'lights',       pantone: '11-4001 TPG',      catalogHex: '#FFFFFF' },
+  { name: 'Off White',        hex: '#F2F1EE', category: 'lights',       pantone: '663 C',            catalogHex: '#FCFCFC' },
+  { name: 'Ivory',            hex: '#FFFEF2', category: 'lights',       pantone: '7499 C',           catalogHex: '#EAE9EE' },
+  { name: 'Cream',            hex: '#FDFBD4', category: 'lights',       pantone: '11-0104 TPG',      catalogHex: '#FFF8E5' },
+  { name: 'Pink',             hex: '#F7B0BB', category: 'lights',       pantone: '236 C',            catalogHex: '#F19EC2' },
+  { name: 'Light Royal Blue', hex: '#1C3F87', category: 'greens-blues', pantone: '662 C',            catalogHex: '#001A70' },
+  { name: 'Royal Blue',       hex: '#02066F', category: 'brights',      pantone: 'Blue 072 C',       catalogHex: '#0000CE' },
+  { name: 'Dark Royal Blue',  hex: '#041848', category: 'greens-blues', pantone: '282 C',            catalogHex: '#041E42' },
+  { name: 'Navy Blue',        hex: '#00022E', category: 'neutrals',     pantone: '4146 C',           catalogHex: '#1B1C34' },
+  { name: 'Emerald Green',    hex: '#046007', category: 'greens-blues', pantone: '341 C',            catalogHex: '#007A53' },
+  { name: 'Christmas Green',  hex: '#1C7A2F', category: 'greens-blues', pantone: '7736 C',           catalogHex: '#006B38' },
+  { name: 'Fatigue',          hex: '#41411D', category: '280-gsm',      pantone: '5743 C',           catalogHex: '#3E4827' },
+  { name: 'Mustard Gold',     hex: '#CD7F32', category: 'warm-tones',   pantone: '7414 C',           catalogHex: '#C16C18' },
+  { name: 'Red',              hex: '#780606', category: '280-gsm',      pantone: '1815 C',           catalogHex: '#7C2529' },
+  { name: 'Brown',            hex: '#332211', category: '280-gsm',      pantone: '4625 C',           catalogHex: '#4F2C1D' },
+  { name: 'Mocha',            hex: '#C6A38A', category: 'lights',       pantone: '480 C',            catalogHex: '#C8A696' },
+  { name: 'Ash Gray',         hex: '#5B5B5B', category: 'warm-tones',   pantone: '4131 C',           catalogHex: '#484A5B' },
+  { name: 'Special Gray',     hex: '#A9A9A9', category: 'neutrals',     pantone: '4282 C',           catalogHex: '#B2AAAC' },
+  { name: 'Silver Gray',      hex: '#C0C0C0', category: 'pastels',      pantone: 'Cool Gray 2 C',    catalogHex: '#CECFD0' },
+
+  // Added 2026-08-12 — the Lights category's remaining 11 colors, real photos shot for all
+  // 4 front combos + both back fits (see garmentScrub.js). This completes Lights (17/17).
+  // Unlike the original 20, `hex` here IS the catalog's own value (catalogHex duplicates it)
+  // — there's no separate "business reference card" value to reconcile against for these.
+  // "Light Mint Green" spelled out rather than the catalog's "Lt. Mint Green", matching how
+  // "Light Royal Blue"/"Dark Royal Blue" above already spell theirs out instead of abbreviating.
+  { name: 'Regent Yellow',    hex: '#F6EB61', category: 'lights', pantone: '604 C',  catalogHex: '#F6EB61' },
+  { name: 'Corn Yellow',      hex: '#D6DCE5', category: 'lights', pantone: '2002 C', catalogHex: '#D6DCE5' },
+  { name: 'Lemon Yellow',     hex: '#D5FFA4', category: 'lights', pantone: '372 C',  catalogHex: '#D5FFA4' },
+  { name: 'Light Yellow',     hex: '#F3E900', category: 'lights', pantone: '3945 C', catalogHex: '#F3E900' },
+  { name: 'Lime Green',       hex: '#93F9C2', category: 'lights', pantone: '2253 C', catalogHex: '#93F9C2' },
+  { name: 'Light Mint Green', hex: '#D1FAFA', category: 'lights', pantone: '317 C',  catalogHex: '#D1FAFA' },
+  { name: 'Source Green',     hex: '#BAD2BA', category: 'lights', pantone: '5595 C', catalogHex: '#BAD2BA' },
+  { name: 'Mint Green',       hex: '#9EE3D8', category: 'lights', pantone: '324 C',  catalogHex: '#9EE3D8' },
+  { name: 'Sea Green',        hex: '#59ACC1', category: 'lights', pantone: '2226 C', catalogHex: '#59ACC1' },
+  { name: 'Sky Blue',         hex: '#829AC4', category: 'lights', pantone: '2141 C', catalogHex: '#829AC4' },
+  { name: 'Powder Mint',      hex: '#D4F8FF', category: 'lights', pantone: '290 C',  catalogHex: '#D4F8FF' },
 ]
+
+// name -> category slug, for anywhere (garmentScrub.js) that needs to resolve a color's
+// category without importing the full SHIRT_COLORS objects.
+export const CATEGORY_BY_COLOR = Object.fromEntries(SHIRT_COLORS.map((c) => [c.name, c.category]))
+
+// Added 2026-08-12 — restores per-fabric color restriction (owner's explicit call,
+// reversing the 2026-08-11 "one universal list" decision above once the fabric catalog
+// categorization made a real per-fabric pool possible again). A color is available for a
+// fabric when its category's GSM tier (CANONICAL_FABRIC_BY_CATEGORY) matches that fabric's
+// own tier (FABRIC_SLUGS) — e.g. picking '220 GSM' or 'CVC 240 GSM' shows all 28 colors in
+// the seven 220-240 GSM hue-family categories; picking 'CVC 280 GSM' or 'Premium 280 GSM'
+// shows only the 3 colors in the '280-gsm' category (Fatigue, Red, Brown) — a real, sharp
+// drop from 31 to 3, not a bug if you see it happen.
+export function colorsForFabric(fabricValue) {
+  const tier = FABRIC_SLUGS[fabricValue]
+  return SHIRT_COLORS.filter((c) => CANONICAL_FABRIC_BY_CATEGORY[c.category] === tier)
+}
+
+// Same check by color NAME instead of a SHIRT_COLORS object — for filtering
+// garmentScrub.js's per-combo photo arrays, which include names not in SHIRT_COLORS at all
+// (e.g. 'Green', the non-canonical Boxy-shoot leftover — always kept available rather than
+// silently vanishing, since it was never part of this categorization in the first place).
+export function isColorAvailableForFabric(colorName, fabricValue) {
+  const category = CATEGORY_BY_COLOR[colorName]
+  if (!category) return true
+  return CANONICAL_FABRIC_BY_CATEGORY[category] === FABRIC_SLUGS[fabricValue]
+}
+
+// Groups an already-filtered color list (SHIRT_COLORS entries, or garmentScrub.js's own
+// {name, hex, src} photo objects — anything with a `.name`) into { slug, label, colors }
+// buckets, in COLOR_CATEGORIES' own order, for display with section headers instead of one
+// flat grid. Colors with no known category (e.g. 'Green', the non-canonical Boxy-shoot
+// leftover) land in a trailing "Other" bucket rather than silently disappearing.
+export function groupColorsByCategory(colors) {
+  const groups = COLOR_CATEGORIES
+    .map((cat) => ({ ...cat, colors: colors.filter((c) => CATEGORY_BY_COLOR[c.name] === cat.slug) }))
+    .filter((g) => g.colors.length > 0)
+  const uncategorized = colors.filter((c) => !CATEGORY_BY_COLOR[c.name])
+  if (uncategorized.length) groups.push({ slug: 'uncategorized', label: 'Other', colors: uncategorized })
+  return groups
+}
 
 // Name -> hex, derived from SHIRT_COLORS above — for anywhere that needs to tint by color
 // name against the full 20-color list (the online paths' own color picker below, and the
@@ -198,6 +306,30 @@ export function printColors(f) {
   return { front, back, sleeve, total: front + back + sleeve }
 }
 
+/**
+ * Human-readable print-colour summary for the quote screens' "Your specs" rows and the
+ * copied/PDF quote text — e.g. "2-color front + 4-color back", or just "2-color" when
+ * there's no back print.
+ *
+ * Deliberately derives from printColors() above, the SAME function the charge itself uses,
+ * rather than reading f.printColors/f.printColorsBack raw — so the counts a customer reads
+ * can never drift from the counts they're actually billed for (the clamping and the
+ * "Front only means no back print" rule both live in printColors(), not here). Added
+ * 2026-08-12 after the online quote screen was found showing only the FRONT count while
+ * its own price breakdown right below it correctly charged front + back.
+ */
+export function printColorsSummary(f) {
+  // hasDesign is forced on deliberately. printColors() returns all-zeros without it, and
+  // callers don't consistently carry it ON the form object — WalkInForm keeps hasDesign as
+  // a separate variable beside `form`, while QuoteSummary receives `{ ...form, hasDesign }`
+  // already merged. Both branch to a "Plain (no print)" label themselves before calling
+  // this, so by the time we're here a design definitely exists; forcing it makes this safe
+  // to call with either shape instead of silently rendering "0-color" (which it did, caught
+  // on the walk-in kiosk the same day this helper was added).
+  const { front, back } = printColors({ ...f, hasDesign: true })
+  return back > 0 ? `${front}-color front + ${back}-color back` : `${front}-color`
+}
+
 // One pool across every placement, minus the single colour baked into the base.
 export function printCharge(f) {
   const { total } = printColors(f)
@@ -220,6 +352,16 @@ export const PLACEMENTS = [
 
 export const MIN_QTY = 50
 export const SAMPLE_FEE = 1000 // added to the grand total on the quote
+
+// The minimum-quantity disclosure line, shared verbatim by BOTH quote screens
+// (QuoteSummary.jsx for the two online paths, WalkInForm.jsx's own panel for the kiosk).
+// Lives here rather than being written out twice because the two copies had already drifted
+// once — the kiosk's said "not just today's sample piece" while the online one stopped at
+// "full production run". This is the §3 disclosure gate's actual wording, so it matters that
+// every path says the same thing. "the sample piece" rather than "today's" so it reads
+// correctly online too, not just standing in the store.
+export const QUOTE_MIN_NOTE_TAIL =
+  '— this quote covers the full production run, not just the sample piece.'
 
 // ---- sample-defect handling (FRONTEND-BUILD-SPEC §4) ---------------------
 // After the physical sample, the SELLER (not the client) classifies any requested

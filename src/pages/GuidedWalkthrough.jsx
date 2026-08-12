@@ -17,7 +17,8 @@ import { useCheckout } from '../hooks/useCheckout.js'
 import { useGarmentForm } from '../hooks/useGarmentForm.js'
 import { scrubVariantFor, backPhotoFor } from '../data/garmentScrub.js'
 import {
-  ORDERABLE_STYLES, FITS, SIZES, COLLARS, SLEEVES, FABRICS, SHIRT_COLORS, SHIRT_COLOR_HEX,
+  ORDERABLE_STYLES, FITS, SIZES, COLLARS, SLEEVES, FABRICS, colorsForFabric, SHIRT_COLOR_HEX,
+  isColorAvailableForFabric, groupColorsByCategory,
   PRINT_COLOR_OPTIONS, BACK_PRINT_COLOR_OPTIONS, PRINT_CHOICES, PLACEMENTS, hemsFor, showsPrice, styleById, sizePricesFor, peso,
 } from '../data/orderConfig.js'
 import '../design/GuidedWalkthrough.css'
@@ -424,18 +425,23 @@ export default function GuidedWalkthrough() {
               </div>
             )}
             {active.key === 'color' && (
-              <div className="gw-swatches">
-                {scrubVariant
-                  ? scrubVariant.colors.map((c) => (
-                    <button key={c.name} className={'gw-swatch' + (form.color === c.name ? ' gw-swatch--on' : '')} title={c.name} onClick={() => set({ color: c.name })}>
-                      <span style={{ background: c.hex }} />{c.name}
-                    </button>
-                  ))
-                  : SHIRT_COLORS.map((c) => (
-                    <button key={c.name} className={'gw-swatch' + (form.color === c.name ? ' gw-swatch--on' : '')} title={c.name} onClick={() => set({ color: c.name })}>
-                      <span style={{ background: c.hex }} />{c.name}
-                    </button>
-                  ))}
+              <div className="gw-swatch-groups">
+                {groupColorsByCategory(
+                  scrubVariant
+                    ? scrubVariant.colors.filter((c) => isColorAvailableForFabric(c.name, form.fabric))
+                    : colorsForFabric(form.fabric)
+                ).map((group) => (
+                  <div className="gw-color-group" key={group.slug}>
+                    <div className="gw-color-group-label">{group.label}</div>
+                    <div className="gw-swatches">
+                      {group.colors.map((c) => (
+                        <button key={c.name} className={'gw-swatch' + (form.color === c.name ? ' gw-swatch--on' : '')} title={c.name} onClick={() => set({ color: c.name })}>
+                          <span style={{ background: c.hex }} />{c.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 

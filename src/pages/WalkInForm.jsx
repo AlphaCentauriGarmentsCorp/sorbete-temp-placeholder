@@ -7,10 +7,11 @@
 //
 // Full garment config reusing the SAME engine as the online paths (useGarmentForm /
 // data/orderConfig.js) — a walk-in order prices and states identically to a guided or
-// instant one, it's just entered at the in-store kiosk. The color step uses the business's
-// official 20-color reference (SHIRT_COLORS) — this used to be walk-in-only, but as of
-// 2026-08-11 the online paths (GuidedWalkthrough/DirectForm) switched to it too, so all
-// three now share the same palette. See orderConfig.js's own comment on SHIRT_COLORS.
+// instant one, it's just entered at the in-store kiosk. The color step reads
+// colorsForFabric(form.fabric) — as of 2026-08-11 all three paths briefly shared one flat
+// 20(+)-color list regardless of fabric, then as of 2026-08-12 that was reversed: each
+// fabric now only offers the colors in its own fabric-catalog category pool. See
+// orderConfig.js's own comment on colorsForFabric()/SHIRT_COLORS for the full history.
 //
 // Screen structure is a direct port of the team's sorbetes-walkin.html prototype: a
 // single scrolling order form (numbered sections, not paginated steps) that hands off
@@ -30,9 +31,10 @@ import { getJSON, setJSON, remove } from '../utils/storage.js'
 import AddressPicker from '../components/AddressPicker.jsx'
 import { useGarmentForm, DEFAULT_GARMENT_FORM } from '../hooks/useGarmentForm.js'
 import {
-  STYLES, ORDERABLE_STYLES, FITS, SIZES, COLLARS, SLEEVES, FABRICS, SHIRT_COLORS,
+  STYLES, ORDERABLE_STYLES, FITS, SIZES, COLLARS, SLEEVES, FABRICS, colorsForFabric, groupColorsByCategory,
   PRINT_COLOR_OPTIONS, BACK_PRINT_COLOR_OPTIONS, PRINT_CHOICES, PLACEMENTS, PRINT_COLOR_FEE,
-  hemsFor, showsPrice, styleById, sizePricesFor, priceBreakdown, peso, MIN_QTY,
+  hemsFor, showsPrice, styleById, sizePricesFor, priceBreakdown, printColorsSummary, peso, MIN_QTY,
+  QUOTE_MIN_NOTE_TAIL,
 } from '../data/orderConfig.js'
 import floorplanSrc from '../assets/walkin-floorplan.webp'
 import '../design/WalkInForm.css'
@@ -126,16 +128,9 @@ function Option({ title, sub, selected, onClick }) {
   )
 }
 
-// Front + back read from one shared color pool (see CLAUDE.md §3), but the customer
-// picks each placement's color count separately — this just formats that pair for
-// display. "Front only" has no back count to show at all.
-function printSummaryText(form) {
-  const front = form.printColors || 1
-  if (form.placement === 'Front + back') {
-    return `${front}-color front + ${form.printColorsBack || 1}-color back`
-  }
-  return `${front}-color · ${form.placement}`
-}
+// Placement used to be appended here because this grid had no Placement row of its own;
+// as of 2026-08-12 it has one (matching QuoteSummary.jsx), so this is now just the shared
+// colour-count text, identical on all three paths.
 
 // Disclosure-gate quote text (§3 of CLAUDE.md — the customer must see the ×MIN_QTY
 // minimum and the full total before the sample fee is charged, not just per-piece price).
@@ -150,7 +145,8 @@ function buildWalkInQuoteText(form, sh, hasDesign, breakdown, t, label, phone) {
     (sh.isPant ? 'Leg opening: ' : 'Hem: ') + form.hem,
     'Fabric: ' + form.fabric,
     'Color: ' + form.color,
-    hasDesign ? 'Print: ' + printSummaryText(form) : 'Print: Plain (no print)',
+    hasDesign ? 'Print: ' + printColorsSummary(form) : 'Print: Plain (no print)',
+    hasDesign && form.placement ? 'Placement: ' + form.placement : null,
     'Quantity: ' + form.qty + ' pcs',
     label ? 'Design / label: ' + label : null,
     phone ? 'Contact: ' + phone : null,
@@ -668,15 +664,20 @@ export default function WalkInForm() {
                 </div>
 
                 <div className="wk-field-label">Color</div>
-                <div className="wk-swatches">
-                  {SHIRT_COLORS.map((c) => (
-                    <button key={c.name} type="button" className={'wk-swatch' + (form.color === c.name ? ' wk-swatch--on' : '')}
-                      onClick={() => set({ color: c.name })}>
-                      <span className="wk-swatch-chip" style={{ background: c.hex }} />
-                      <span className="wk-swatch-name">{c.name}</span>
-                    </button>
-                  ))}
-                </div>
+                {groupColorsByCategory(colorsForFabric(form.fabric)).map((group) => (
+                  <div className="wk-color-group" key={group.slug}>
+                    <div className="wk-color-group-label">{group.label}</div>
+                    <div className="wk-swatches">
+                      {group.colors.map((c) => (
+                        <button key={c.name} type="button" className={'wk-swatch' + (form.color === c.name ? ' wk-swatch--on' : '')}
+                          onClick={() => set({ color: c.name })}>
+                          <span className="wk-swatch-chip" style={{ background: c.hex }} />
+                          <span className="wk-swatch-name">{c.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
 
               {hasPrintStep && (
@@ -789,7 +790,7 @@ export default function WalkInForm() {
           {phase === 'quote' && (
             <div className="wk-panel">
               <div className="wk-eyebrow">Sample quotation · per piece</div>
-              <h1 className="wk-h1 wk-h1--sub">Here's your quote</h1>
+              <h1 className="wk-h1 wk-h1--sub">Here’s your quote</h1>
               <p className="wk-note">A ballpark based on your specs — final figure confirmed before your sample.</p>
 
               <div className="wk-spec-box">
@@ -804,7 +805,8 @@ export default function WalkInForm() {
                     [sh.isPant ? 'Leg opening' : 'Hem', form.hem],
                     ['Fabric', form.fabric],
                     ['Color', form.color],
-                    ['Print', hasDesign ? printSummaryText(form) : 'None (plain)'],
+                    ['Print', hasDesign ? printColorsSummary(form) : 'Plain (no print)'],
+                    hasDesign && ['Placement', form.placement || '—'],
                   ].filter(Boolean).map(([k, v]) => (
                     <div className="wk-spec-cell" key={k}>
                       <div className="wk-spec-lbl">{k}</div>
@@ -840,7 +842,7 @@ export default function WalkInForm() {
                   <div className="wk-quote-row wk-quote-muted"><span>40% balance at pickup</span><span>{priced ? peso(t.bal) : '—'}</span></div>
                 </div>
                 <div className="wk-quote-min">
-                  Minimum order: <strong>{MIN_QTY} pcs</strong> — this quote covers the full production run, not just today's sample piece.
+                  Minimum order: <strong>{MIN_QTY} pcs</strong> {QUOTE_MIN_NOTE_TAIL}
                 </div>
               </div>
 

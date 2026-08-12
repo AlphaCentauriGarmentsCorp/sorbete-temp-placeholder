@@ -2,7 +2,7 @@
 // (Path A) and DirectForm (Path B). Both read the same src/data/orderConfig.js catalog
 // and previously reimplemented this state + derivation layer independently.
 import { useMemo, useState } from 'react'
-import { FITS, hemsFor, showFor, quoteTotals, MIN_QTY } from '../data/orderConfig.js'
+import { FITS, hemsFor, showFor, quoteTotals, MIN_QTY, colorsForFabric } from '../data/orderConfig.js'
 
 export const DEFAULT_GARMENT_FORM = {
   style: 'plain-tee', fit: 'Standard', size: 'M',
@@ -32,13 +32,19 @@ export function useGarmentForm(initialForm = DEFAULT_GARMENT_FORM) {
       hem: nextHems.some((h) => h.label === form.hem) ? form.hem : nextHems[0].label,
     })
   }
-  // Color no longer depends on fabric — all three ordering paths pick from the same
-  // 20-color SHIRT_COLORS list (data/orderConfig.js) regardless of fabric/GSM, so there's
-  // nothing left to revalidate here. (This also fixes a real bug this used to have: it
-  // reset the customer's color choice to the old, smaller per-fabric list's first color
-  // whenever fabric changed, discarding anything outside that shorter list — including on
-  // WalkInForm, which already only ever offered the full 20-color list.)
-  const pickFabric = (value) => set({ fabric: value })
+  // Color depends on fabric again as of 2026-08-12 (owner's explicit call, reversing the
+  // 2026-08-11 "one universal list" note that used to be here) — each fabric now only
+  // offers the colors in its own catalog-matched category pool (colorsForFabric()). So this
+  // DOES need to revalidate on fabric change once more: if the current color isn't in the
+  // new fabric's pool, fall back to that pool's first color. This is the same shape of
+  // revalidation the 2026-08-11 fix removed for being buggy — the difference is the
+  // restriction itself is intentional now, not an accidental smaller list, so resetting to
+  // a real default here is correct instead of silently-losing-your-choice.
+  const pickFabric = (value) => {
+    const pool = colorsForFabric(value)
+    const colorStillValid = pool.some((c) => c.name === form.color)
+    set({ fabric: value, color: colorStillValid ? form.color : pool[0]?.name ?? form.color })
+  }
 
   const totals = quoteTotals({ ...form, hasDesign }, form.qty)
 

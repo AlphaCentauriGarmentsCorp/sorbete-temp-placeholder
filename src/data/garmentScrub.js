@@ -16,8 +16,40 @@
 // never leaves the browser, isn't sent with the order, and isn't stored anywhere. It only
 // shows up where a real photo already exists to lay it over (front: Standard fit today; back:
 // wherever backPhotoFor() resolves) — Oversized fit has no photo at all, so no preview there.
+//
+// Category + GSM-tier subfolders (category added 2026-08-12, GSM-tier layer added same day
+// right after): every front/<combo>/ and back/<fit>/ folder now nests
+// <gsm-tier-slug>/<category-slug>/ underneath it — e.g.
+// front/standard-standard/220-240-gsm/lights/White_std_std.webp — instead of a flat
+// front/standard-standard/White_std_std.webp. makeVariant()/backPhotoFor() below resolve
+// each color's category (CATEGORY_BY_COLOR) and that category's GSM tier
+// (CANONICAL_FABRIC_BY_CATEGORY) to build the path. There are only 2 tier folders
+// (`220-240-gsm`, `280-gsm-tier`) even though the shop has 4 fabric *options* — see that
+// map's own comment in orderConfig.js for why they share one folder each instead of one per
+// fabric (an earlier same-day version briefly had 4 folders with duplicated files; that was
+// simplified once it turned out the paired fabrics never actually differ).
+
+import { CATEGORY_BY_COLOR, CANONICAL_FABRIC_BY_CATEGORY } from './orderConfig.js'
 
 const BASE = '/garment-scrub'
+
+// 'Green' (used only in the boxy-fit photo shoots below) isn't one of the official 20
+// colors on the business's reference card — see the existing comment on BOXY_STANDARD_COLORS
+// for why it exists at all. CATEGORY_BY_COLOR has no entry for it, so it needs its own
+// fallback here purely so its file has a category folder to live in; it stays out of
+// data/orderConfig.js's SHIRT_COLORS and off every color picker.
+const FALLBACK_CATEGORY_BY_COLOR = { Green: 'greens-blues' }
+
+function categoryFor(colorName) {
+  return CATEGORY_BY_COLOR[colorName] ?? FALLBACK_CATEGORY_BY_COLOR[colorName] ?? 'uncategorized'
+}
+
+// The <fabric-slug>/<category-slug> path segment for a color, e.g. '220-gsm/lights'.
+function categoryPathFor(colorName) {
+  const category = categoryFor(colorName)
+  const fabric = CANONICAL_FABRIC_BY_CATEGORY[category] ?? '220-gsm'
+  return `${fabric}/${category}`
+}
 
 // part key -> video currentTime (seconds). Any part not listed here (fabric, print
 // choice/colors, placement — nothing after color that has its own camera angle) holds
@@ -59,6 +91,19 @@ const STANDARD_COLORS = [
   ['Silver Gray', 'silver_gray_std_std.webp', '#C0C0C0'],
   ['Special Gray', 'spcl_gray_std_std.webp', '#A9A9A9'],
   ['White', 'White_std_std.webp', '#FFFFFF'],
+  // Lights category, completed 2026-08-12 (see orderConfig.js's SHIRT_COLORS for the same
+  // 11 colors' hex/Pantone reference).
+  ['Regent Yellow', 'regent_yellow_std_std.png', '#F6EB61'],
+  ['Corn Yellow', 'Corn_yellow_std_std.png', '#D6DCE5'],
+  ['Lemon Yellow', 'Lemon_yellow_std_std.png', '#D5FFA4'],
+  ['Light Yellow', 'Light_yellow_std_std.png', '#F3E900'],
+  ['Lime Green', 'Lime_green_std_std.png', '#93F9C2'],
+  ['Light Mint Green', 'lt_mint_green_std_std.png', '#D1FAFA'],
+  ['Source Green', 'source_green_std_std.png', '#BAD2BA'],
+  ['Mint Green', 'mint_green_std_std.png', '#9EE3D8'],
+  ['Sea Green', 'sea_green_std_std.png', '#59ACC1'],
+  ['Sky Blue', 'sky_blue_std_std.png', '#829AC4'],
+  ['Powder Mint', 'powder_mint_std_std.png', '#D4F8FF'],
 ]
 
 const PROCLUB_COLORS = [
@@ -82,6 +127,21 @@ const PROCLUB_COLORS = [
   ['Silver Gray', 'silver_gray_std_pc.webp', '#C0C0C0'],
   ['Special Gray', 'special_gray_std_pc.webp', '#A9A9A9'],
   ['White', 'White_std_pc.webp', '#FFFFFF'],
+  // Lights category, completed 2026-08-12. NOTE: 'light_lime_green_std_pc.png' is a filename
+  // typo in the asset drop (says "lime", not "mint") — the actual photo shows the correct
+  // pale mint/cyan Light Mint Green, visually confirmed before wiring this in. Left as-is on
+  // disk rather than renamed, same as this file's other tolerated filename quirks.
+  ['Regent Yellow', 'regent_yellow_std_pc.png', '#F6EB61'],
+  ['Corn Yellow', 'corn_yellow_std_pc.png', '#D6DCE5'],
+  ['Lemon Yellow', 'lemon_yellow_std_pc.png', '#D5FFA4'],
+  ['Light Yellow', 'light_yellow_std_pc.png', '#F3E900'],
+  ['Lime Green', 'lime_green_std_pc.png', '#93F9C2'],
+  ['Light Mint Green', 'light_lime_green_std_pc.png', '#D1FAFA'],
+  ['Source Green', 'source_green_std_pc.png', '#BAD2BA'],
+  ['Mint Green', 'mint_green_std_pc.png', '#9EE3D8'],
+  ['Sea Green', 'sea_green_std_pc.png', '#59ACC1'],
+  ['Sky Blue', 'sky_blue_std_pc.png', '#829AC4'],
+  ['Powder Mint', 'powder_mint_std_pc.png', '#D4F8FF'],
 ]
 
 // Boxy shoot uses 'Green' where Standard used 'Christmas Green' — same inconsistency
@@ -107,6 +167,18 @@ const BOXY_STANDARD_COLORS = [
   ['Silver Gray', 'silver_gray_box_std.png', '#C0C0C0'],
   ['Special Gray', 'special_gray_box_std.png', '#A9A9A9'],
   ['White', 'White_box_std.png', '#FFFFFF'],
+  // Lights category, completed 2026-08-12.
+  ['Regent Yellow', 'regent_yellow_box_std.png', '#F6EB61'],
+  ['Corn Yellow', 'corn_yellow_box_std.png', '#D6DCE5'],
+  ['Lemon Yellow', 'lemon_yellow_box_std.png', '#D5FFA4'],
+  ['Light Yellow', 'light_yellow_box_std.png', '#F3E900'],
+  ['Lime Green', 'lime_green_box_std.png', '#93F9C2'],
+  ['Light Mint Green', 'light_mint_green_box_std.png', '#D1FAFA'],
+  ['Source Green', 'source_green_box_std.png', '#BAD2BA'],
+  ['Mint Green', 'mint_green_box_std.png', '#9EE3D8'],
+  ['Sea Green', 'sea_green_box_std.png', '#59ACC1'],
+  ['Sky Blue', 'sky_blue_box_std.png', '#829AC4'],
+  ['Powder Mint', 'powder_mint_box_std.png', '#D4F8FF'],
 ]
 
 // Note: 'pink_box_std.png' lives in the proclub folder despite its _std suffix — a
@@ -132,6 +204,20 @@ const BOXY_PROCLUB_COLORS = [
   ['Silver Gray', 'silver_gray_box_pc.png', '#C0C0C0'],
   ['Special Gray', 'special_gray_box_pc.png', '#A9A9A9'],
   ['White', 'White_box_proclub.png', '#FFFFFF'],
+  // Lights category, completed 2026-08-12. NOTE: 'source_box_pc.png' is missing "green" in
+  // its filename (asset-drop typo) — visually confirmed it's the correct Source Green photo
+  // before wiring this in.
+  ['Regent Yellow', 'regent_yellow_box_pc.png', '#F6EB61'],
+  ['Corn Yellow', 'corn_yellow_box_pc.png', '#D6DCE5'],
+  ['Lemon Yellow', 'lemon_yellow_box_pc.png', '#D5FFA4'],
+  ['Light Yellow', 'light_yellow_box_pc.png', '#F3E900'],
+  ['Lime Green', 'lime_green_box_pc.png', '#93F9C2'],
+  ['Light Mint Green', 'light_mint_box_pc.png', '#D1FAFA'],
+  ['Source Green', 'source_box_pc.png', '#BAD2BA'],
+  ['Mint Green', 'mint_green_box_pc.png', '#9EE3D8'],
+  ['Sea Green', 'sea_green_box_pc.png', '#59ACC1'],
+  ['Sky Blue', 'sky_blue_box_pc.png', '#829AC4'],
+  ['Powder Mint', 'powder_mint_box_pc.png', '#D4F8FF'],
 ]
 
 // Back-view color photos — organized by FIT ONLY, no per-collar split (owner's call: the
@@ -162,6 +248,18 @@ const BACK_STANDARD_COLORS = [
   ['Silver Gray', 'silver_gray_std_std.png'],
   ['Special Gray', 'spc_gray_std_std.png'],
   ['White', 'white_std_std.png'],
+  // Lights category, completed 2026-08-12.
+  ['Regent Yellow', 'regent_yellow_std.png'],
+  ['Corn Yellow', 'corn_yellow_std.png'],
+  ['Lemon Yellow', 'lemon_yellow_std.png'],
+  ['Light Yellow', 'light_yellow_std.png'],
+  ['Lime Green', 'lime_green_std.png'],
+  ['Light Mint Green', 'light_mint_green_std.png'],
+  ['Source Green', 'source_green_std.png'],
+  ['Mint Green', 'mint_green_std.png'],
+  ['Sea Green', 'sea_green_std.png'],
+  ['Sky Blue', 'sky_blue_std.png'],
+  ['Powder Mint', 'powder_mint_std.png'],
 ]
 
 const BACK_BOXY_COLORS = [
@@ -185,6 +283,18 @@ const BACK_BOXY_COLORS = [
   ['Silver Gray', 'silver_gray_boxy.png'],
   ['Special Gray', 'spcl_gray_boxy.png'],
   ['White', 'white_boxy.png'],
+  // Lights category, completed 2026-08-12.
+  ['Regent Yellow', 'regent_yellow_boxy.png'],
+  ['Corn Yellow', 'corn_yellow_boxy.png'],
+  ['Lemon Yellow', 'lemon_yellow_boxy.png'],
+  ['Light Yellow', 'light_yellow_boxy.png'],
+  ['Lime Green', 'lime_green_boxy.png'],
+  ['Light Mint Green', 'light_mint_green_boxy.png'],
+  ['Source Green', 'source_green_boxy.png'],
+  ['Mint Green', 'mint_green_boxy.png'],
+  ['Sea Green', 'sea_green_boxy.png'],
+  ['Sky Blue', 'sky_blue_boxy.png'],
+  ['Powder Mint', 'powder_mint_boxy.png'],
 ]
 
 const BACK_COLORS_BY_FIT = {
@@ -199,16 +309,19 @@ export function backPhotoFor(fit, colorName) {
   const entry = BACK_COLORS_BY_FIT[fit]
   if (!entry) return null
   const found = entry.colors.find(([name]) => name === colorName)
-  return found ? `${BASE}/back/${entry.dir}/${found[1]}` : null
+  return found ? `${BASE}/back/${entry.dir}/${categoryPathFor(colorName)}/${found[1]}` : null
 }
 
 // Assets live under three subfolders (see public/garment-scrub/README.md): videos/,
-// front/<combo>/ (color-swap photos, front view), and back/<fit>/ (back view, see above).
+// front/<combo>/<fabric>/<category>/ (color-swap photos, front view), and
+// back/<fit>/<fabric>/<category>/ (back view, see above).
 function makeVariant(key, video, colorDir, colors) {
   return {
     key,
     video: `${BASE}/videos/${video}`,
-    colors: colors.map(([name, file, hex]) => ({ name, hex, src: `${BASE}/front/${colorDir}/${file}` })),
+    colors: colors.map(([name, file, hex]) => ({
+      name, hex, src: `${BASE}/front/${colorDir}/${categoryPathFor(name)}/${file}`,
+    })),
   }
 }
 
