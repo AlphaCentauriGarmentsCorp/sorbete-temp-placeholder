@@ -211,6 +211,176 @@ export const SHIRT_COLORS = [
   { name: 'Sea Green',        hex: '#59ACC1', category: 'lights', pantone: '2226 C', catalogHex: '#59ACC1' },
   { name: 'Sky Blue',         hex: '#829AC4', category: 'lights', pantone: '2141 C', catalogHex: '#829AC4' },
   { name: 'Powder Mint',      hex: '#D4F8FF', category: 'lights', pantone: '290 C',  catalogHex: '#D4F8FF' },
+
+  // Added 2026-08-13 — every remaining catalog color, all 8 non-Hoodie categories, 112
+  // colors, so the color step can show the FULL catalog instead of only the ~31 colors that
+  // already had real photos. Most of these have NO photo yet — that's now an expected,
+  // handled state (see GuidedWalkthrough.jsx's colorHasPhoto / GarmentScrub.jsx's
+  // last-known-good fallback), not a gap to close before shipping this. `hex` is always the
+  // catalog's own value here (catalogHex duplicates it), same as the 2026-08-12 Lights batch
+  // — there's no separate "business reference card" value to reconcile for a color nobody
+  // has picked/named before.
+  //
+  // NAME COLLISIONS: the catalog itself repeats ~20 names across categories with genuinely
+  // different hex (its own line items, not a data error) — e.g. three different "Mustard"s,
+  // three different "Cream"s. Per the owner's explicit call, every colliding name is
+  // suffixed "(Category)" so both/all stay individually pickable instead of one silently
+  // overwriting another in CATEGORY_BY_COLOR/SHIRT_COLOR_HEX (both keyed by plain `name`).
+  // ⚠️ One asymmetry this creates, unavoidably: the 31 colors above were already shipped
+  // under plain (unsuffixed) names tied to real photo filenames on disk — renaming any of
+  // them would break those file paths. So where a NEW color collides with one of THOSE, only
+  // the new one gets suffixed (e.g. "Royal Blue (280 GSM)" here, while the original "Royal
+  // Blue" above stays plain) — the existing name always wins the plain form.
+  //
+  // TRUE DUPLICATES (identical name AND hex across two catalog pages — the literal same
+  // swatch listed twice) are added ONCE, not twice: Jet Black/White (already covered by the
+  // existing Black/White above), Neutrals' Midnight Blue (identical hex to Neutrals' own
+  // Navy Blue), and Earth Tones' Khaki/Army Green (each identical to Brights' own listing of
+  // the same name+hex — added once, under Earth Tones).
+  //
+  // Genuinely DIFFERENT names that happen to share a hex (e.g. "Dark Green" / "Bottle
+  // Green", both #183028) are NOT deduplicated — the catalog lists them as distinct named
+  // line items, so each gets its own pickable entry.
+
+  // --- 280 GSM (16 new; Fatigue/Red/Brown already covered above) ---
+  { name: 'Cream (280 GSM)',   hex: '#F2F0A1', category: '280-gsm', pantone: 'Yellow 0131 C', catalogHex: '#F2F0A1' },
+  { name: 'Mocha (280 GSM)',   hex: '#BAA58D', category: '280-gsm', pantone: '4253 C',        catalogHex: '#BAA58D' },
+  { name: 'Mustard (280 GSM)', hex: '#9F7D23', category: '280-gsm', pantone: '7557 C',        catalogHex: '#9F7D23' },
+  { name: 'Rust (280 GSM)',    hex: '#864A33', category: '280-gsm', pantone: '7581 C',        catalogHex: '#864A33' },
+  { name: 'Bright Red',        hex: '#BA0020', category: '280-gsm', pantone: '3517 C',        catalogHex: '#BA0020' },
+  { name: 'Lt. Grey',          hex: '#A2AAAD', category: '280-gsm', pantone: '429 C',         catalogHex: '#A2AAAD' },
+  { name: 'Dk. Gray',          hex: '#333F48', category: '280-gsm', pantone: '432 C',         catalogHex: '#333F48' },
+  { name: 'Royal Blue (280 GSM)', hex: '#00A88E', category: '280-gsm', pantone: '3581 C',     catalogHex: '#00A88E' },
+  { name: 'China Blue (280 GSM)', hex: '#6A6A8E', category: '280-gsm', pantone: '4141 C',     catalogHex: '#6A6A8E' },
+  { name: 'Powder Blue (280 GSM)', hex: '#B9D9EB', category: '280-gsm', pantone: '290 C',     catalogHex: '#B9D9EB' },
+  { name: 'Dk. Yellow',        hex: '#D69A2D', category: '280-gsm', pantone: '7563 C',        catalogHex: '#D69A2D' },
+  { name: 'Lt. Yellow',        hex: '#F1B434', category: '280-gsm', pantone: '143 C',         catalogHex: '#F1B434' },
+  { name: 'Mint Blue',         hex: '#99D9EA', category: '280-gsm', pantone: '630 C',         catalogHex: '#99D9EA' },
+  { name: 'Dark Green',        hex: '#183028', category: '280-gsm', pantone: '5535 C',        catalogHex: '#183028' },
+  { name: 'Peach (280 GSM)',   hex: '#F4C1C4', category: '280-gsm', pantone: '692 C',         catalogHex: '#F4C1C4' },
+  { name: 'Violet (280 GSM)',  hex: '#662483', category: '280-gsm', pantone: '2607 C',        catalogHex: '#662483' },
+
+  // --- Greens & Blues (15 new; Emerald/Christmas/Lt.+Dk. Royal Blue already covered) ---
+  { name: 'Avocado Green',        hex: '#66BB44', category: 'greens-blues', pantone: '369 C',  catalogHex: '#66BB44' },
+  { name: 'Bottle Green',         hex: '#183028', category: 'greens-blues', pantone: '5535 C', catalogHex: '#183028' },
+  { name: 'Lt. Apple Green',      hex: '#8EDD65', category: 'greens-blues', pantone: '2292 C', catalogHex: '#8EDD65' },
+  { name: 'Lt. Fatigue',          hex: '#006B4F', category: 'greens-blues', pantone: '5753 C', catalogHex: '#006B4F' },
+  { name: 'Milo Green',           hex: '#05A31D', category: 'greens-blues', pantone: '3529 C', catalogHex: '#05A31D' },
+  { name: 'Fatigue (Greens & Blues)', hex: '#4E4934', category: 'greens-blues', pantone: '7771 C', catalogHex: '#4E4934' },
+  { name: 'Military Fatigue',     hex: '#6D654F', category: 'greens-blues', pantone: '4227 C', catalogHex: '#6D654F' },
+  { name: 'Aqua Green',           hex: '#00A9C9', category: 'greens-blues', pantone: '3115 C', catalogHex: '#00A9C9' },
+  { name: 'Apple Green',          hex: '#7CCC6E', category: 'greens-blues', pantone: '2269 C', catalogHex: '#7CCC6E' },
+  { name: 'Blue Green',           hex: '#5998C4', category: 'greens-blues', pantone: '2170 C', catalogHex: '#5998C4' },
+  { name: 'Jade Green',           hex: '#00A3B8', category: 'greens-blues', pantone: '322 C',  catalogHex: '#00A3B8' },
+  { name: 'China Blue (Greens & Blues)', hex: '#5C88DA', category: 'greens-blues', pantone: '2718 C', catalogHex: '#5C88DA' },
+  { name: 'Lt. Aqua Blue #3',     hex: '#005698', category: 'greens-blues', pantone: '2185 C', catalogHex: '#005698' },
+  { name: 'Dk. China Blue',       hex: '#3B3FB6', category: 'greens-blues', pantone: '2369 C', catalogHex: '#3B3FB6' },
+  { name: 'Dk. Aqua Blue',        hex: '#006298', category: 'greens-blues', pantone: '2186 C', catalogHex: '#006298' },
+
+  // --- Neutrals (16 new; Navy Blue/Special Gray already covered; Midnight Blue skipped —
+  // identical hex #1B1C34 to Navy Blue above, same category, true duplicate) ---
+  { name: 'Peacock Blue',       hex: '#326295', category: 'neutrals', pantone: '653 C',           catalogHex: '#326295' },
+  { name: 'Blue Violet',        hex: '#8BB8E8', category: 'neutrals', pantone: '278 C',            catalogHex: '#8BB8E8' },
+  { name: 'Lavender (Neutrals)', hex: '#A68ACA', category: 'neutrals', pantone: '2086 C',          catalogHex: '#A68ACA' },
+  { name: 'Violet (Neutrals)',  hex: '#2E1A47', category: 'neutrals', pantone: '2695 C',           catalogHex: '#2E1A47' },
+  { name: 'Burgundy',           hex: '#5D2A2C', category: 'neutrals', pantone: '490 C',            catalogHex: '#5D2A2C' },
+  { name: 'Khaki Brown',        hex: '#8C857B', category: 'neutrals', pantone: '403 C',            catalogHex: '#8C857B' },
+  { name: 'Choco Brown (Neutrals)', hex: '#623412', category: 'neutrals', pantone: '732 C',        catalogHex: '#623412' },
+  { name: 'Khaki (Neutrals)',   hex: '#96856E', category: 'neutrals', pantone: '4270 C',           catalogHex: '#96856E' },
+  { name: 'Gray #56',           hex: '#403A60', category: 'neutrals', pantone: '4265 C',           catalogHex: '#403A60' },
+  { name: 'Brown (Neutrals)',   hex: '#7B4931', category: 'neutrals', pantone: '7602 C',           catalogHex: '#7B4931' },
+  { name: 'Medium Gray',        hex: '#788FA4', category: 'neutrals', pantone: '2164 C',           catalogHex: '#788FA4' },
+  { name: 'Charcoal Gray',      hex: '#5B618F', category: 'neutrals', pantone: '2110 C',           catalogHex: '#5B618F' },
+  { name: 'Acid Gray',          hex: '#C6C4D2', category: 'neutrals', pantone: '5305 C',           catalogHex: '#C6C4D2' },
+  { name: 'Acid Black',         hex: '#53565A', category: 'neutrals', pantone: 'Cool Gray 11 C',   catalogHex: '#53565A' },
+  { name: 'Medium Blue',        hex: '#489FDF', category: 'neutrals', pantone: '2171 C',           catalogHex: '#489FDF' },
+  { name: 'Black (Neutrals)',   hex: '#212721', category: 'neutrals', pantone: 'Black 3 C',        catalogHex: '#212721' },
+
+  // --- Warm Tones (22 new; Mustard/Ash Gray already covered — Warm Tones' own "Mustard"
+  // 7414C is the exact catalog source "Mustard Gold" above was already matched against) ---
+  { name: 'Maroon (Warm Tones)', hex: '#6F263D', category: 'warm-tones', pantone: '209 C',  catalogHex: '#6F263D' },
+  { name: 'Coke Red',            hex: '#A50034', category: 'warm-tones', pantone: '207 C',  catalogHex: '#A50034' },
+  { name: 'Top Dye',             hex: '#B3B0C4', category: 'warm-tones', pantone: '5295 C', catalogHex: '#B3B0C4' },
+  { name: 'Red Orange',          hex: '#BA0C2F', category: 'warm-tones', pantone: '200 C',  catalogHex: '#BA0C2F' },
+  { name: 'Fuchsia',             hex: '#AC145A', category: 'warm-tones', pantone: '215 C',  catalogHex: '#AC145A' },
+  { name: 'Fuchsia Pink',        hex: '#DA1884', category: 'warm-tones', pantone: '219 C',  catalogHex: '#DA1884' },
+  { name: 'Old Rose (Warm Tones)', hex: '#D1889A', category: 'warm-tones', pantone: '4071 C', catalogHex: '#D1889A' },
+  { name: 'Lt. Old Rose',        hex: '#D08689', category: 'warm-tones', pantone: '2446 C', catalogHex: '#D08689' },
+  { name: 'Rust Lt.',            hex: '#FF5C36', category: 'warm-tones', pantone: '2436 C', catalogHex: '#FF5C36' },
+  { name: 'Melon Peach',         hex: '#FF8DA1', category: 'warm-tones', pantone: '1775 C', catalogHex: '#FF8DA1' },
+  { name: 'Ponkana',             hex: '#F4633A', category: 'warm-tones', pantone: '2026 C', catalogHex: '#F4633A' },
+  { name: 'Tangerine',           hex: '#F32301', category: 'warm-tones', pantone: '2028 C', catalogHex: '#F32301' },
+  { name: 'Dk. Mustard',         hex: '#835D32', category: 'warm-tones', pantone: '7575 C', catalogHex: '#835D32' },
+  { name: 'Rust (Warm Tones)',   hex: '#E35F50', category: 'warm-tones', pantone: '2448 C', catalogHex: '#E35F50' },
+  { name: 'Carrot Orange',       hex: '#F87C56', category: 'warm-tones', pantone: '2024 C', catalogHex: '#F87C56' },
+  { name: 'Yellow Gold (Warm Tones)', hex: '#E78D2D', category: 'warm-tones', pantone: '3588 C', catalogHex: '#E78D2D' },
+  { name: 'Feu Gold',            hex: '#F8B700', category: 'warm-tones', pantone: '3514 C', catalogHex: '#F8B700' },
+  { name: 'Egg Yellow',          hex: '#F1C400', category: 'warm-tones', pantone: '7406 C', catalogHex: '#F1C400' },
+  { name: 'Luminous Green',      hex: '#9BE198', category: 'warm-tones', pantone: '2267 C', catalogHex: '#9BE198' },
+  { name: 'Canary Yellow (Warm Tones)', hex: '#F7EA48', category: 'warm-tones', pantone: '101 C', catalogHex: '#F7EA48' },
+  { name: 'Neon Green (Warm Tones)', hex: '#A4D233', category: 'warm-tones', pantone: '2299 C', catalogHex: '#A4D233' },
+  { name: 'Grass Green',         hex: '#1B806D', category: 'warm-tones', pantone: '2244 C', catalogHex: '#1B806D' },
+
+  // --- Lights: 0 new — already the first fully-covered category (17/17), see §7. ---
+
+  // --- Pastels (16 new; Silver Gray already covered) ---
+  { name: 'Canvas',              hex: '#F2EDD7', category: 'pastels', pantone: '7527 C', catalogHex: '#F2EDD7' },
+  { name: 'Lilac',                hex: '#FCCDFB', category: 'pastels', pantone: '2365 C', catalogHex: '#FCCDFB' },
+  { name: 'Dk. Peach',            hex: '#FFB7CD', category: 'pastels', pantone: '190 C',  catalogHex: '#FFB7CD' },
+  { name: 'Beige',                hex: '#E9D2B5', category: 'pastels', pantone: '7528 C', catalogHex: '#E9D2B5' },
+  { name: 'Peach (Pastels)',      hex: '#FFC7C2', category: 'pastels', pantone: '706 C',  catalogHex: '#FFC7C2' },
+  { name: 'Lt. Peach',            hex: '#FFDDE2', category: 'pastels', pantone: '698 C',  catalogHex: '#FFDDE2' },
+  { name: 'Melon',                hex: '#FF9BBF', category: 'pastels', pantone: '1915 C', catalogHex: '#FF9BBF' },
+  { name: 'Baby Pink',            hex: '#FFDEE7', category: 'pastels', pantone: '705 C',  catalogHex: '#FFDEE7' },
+  { name: 'Dk. Pink',             hex: '#FF94AE', category: 'pastels', pantone: '190 C',  catalogHex: '#FF94AE' },
+  // ⚠️ Catalog data error, kept as printed (see CLAUDE.md §7): Powder Pink's listed hex is a
+  // pale yellow, not pink — its own Pantone (691 C) is a real soft pink. Not resolved yet;
+  // the owner needs to decide whether to follow the printed hex or the printed name.
+  { name: 'Powder Pink',          hex: '#FFEFA5', category: 'pastels', pantone: '691 C',  catalogHex: '#FFEFA5' },
+  { name: 'Cannon Sunset',        hex: '#FFA38B', category: 'pastels', pantone: '1625 C', catalogHex: '#FFA38B' },
+  { name: 'Lt. Aqua Blue',        hex: '#67C9F5', category: 'pastels', pantone: '298 C',  catalogHex: '#67C9F5' },
+  { name: 'Lt. Khaki (Pastels)',  hex: '#C6BDA1', category: 'pastels', pantone: '7535 C', catalogHex: '#C6BDA1' },
+  { name: 'Powder Blue (Pastels)', hex: '#A7D2EE', category: 'pastels', pantone: '291 C', catalogHex: '#A7D2EE' },
+  { name: 'Misty',                hex: '#D7BEAF', category: 'pastels', pantone: '4755 C', catalogHex: '#D7BEAF' },
+  { name: 'Medium Pink',          hex: '#FFAFCC', category: 'pastels', pantone: '671 C',  catalogHex: '#FFAFCC' },
+
+  // --- Earth Tones (14 new; Black already covers this category's "Jet Black" exactly).
+  // Khaki and Army Green below are each identical (name AND hex) to Brights' own listing of
+  // the same swatch — added once here, not duplicated under Brights too. Choco Brown repeats
+  // TWICE within this one catalog category with different hex (a real internal catalog
+  // duplicate, not a mistake on our end) — disambiguated by Pantone code since "(Earth
+  // Tones)" alone can't tell the two apart. ---
+  { name: 'Cloudy White',           hex: '#FFFFFF', category: 'earth-tones', pantone: 'P 179-1 C', catalogHex: '#FFFFFF' },
+  { name: 'Choco Brown (Earth Tones, 2318C)', hex: '#83694E', category: 'earth-tones', pantone: '2318 C', catalogHex: '#83694E' },
+  { name: 'Lt. Khaki (Earth Tones)', hex: '#D3BA86', category: 'earth-tones', pantone: '466 C',   catalogHex: '#D3BA86' },
+  { name: 'Mocha Mousse',           hex: '#8F5F10', category: 'earth-tones', pantone: '126 C',    catalogHex: '#8F5F10' },
+  { name: 'Lime Stone',             hex: '#5D9644', category: 'earth-tones', pantone: '362 C',    catalogHex: '#5D9644' },
+  { name: 'Khaki (Earth Tones)',    hex: '#BD9D59', category: 'earth-tones', pantone: '465 C',    catalogHex: '#BD9D59' },
+  { name: 'Soft Cream',             hex: '#FFEFC1', category: 'earth-tones', pantone: '7401 C',   catalogHex: '#FFEFC1' },
+  { name: 'Army Green',             hex: '#549438', category: 'earth-tones', pantone: '363 C',    catalogHex: '#549438' },
+  { name: 'Mocha (Earth Tones)',    hex: '#9F691D', category: 'earth-tones', pantone: '1255 C',   catalogHex: '#9F691D' },
+  { name: 'Choco Brown (Earth Tones, 4695C)', hex: '#6D4837', category: 'earth-tones', pantone: '4695 C', catalogHex: '#6D4837' },
+  { name: 'Pink (Earth Tones)',     hex: '#FF5DA7', category: 'earth-tones', pantone: '212 C',    catalogHex: '#FF5DA7' },
+  { name: 'Old Rose (Earth Tones)', hex: '#FFB3AC', category: 'earth-tones', pantone: '169 C',    catalogHex: '#FFB3AC' },
+  { name: 'Cream (Earth Tones)',    hex: '#F9DF94', category: 'earth-tones', pantone: '121 C',    catalogHex: '#F9DF94' },
+  { name: 'Dk. Ash Gray',           hex: '#505059', category: 'earth-tones', pantone: '446 C',    catalogHex: '#505059' },
+
+  // --- Brights (13 new; Royal Blue already covered. Jet Black/White/Khaki/Army Green all
+  // skipped here — each is an identical name+hex duplicate of an entry already added above,
+  // under Black/White/Earth Tones respectively.) ---
+  { name: 'Canary Yellow (Brights)', hex: '#FEEB1C', category: 'brights', pantone: 'Yellow C',    catalogHex: '#FEEB1C' },
+  { name: 'Lavender (Brights)',      hex: '#9C6EC2', category: 'brights', pantone: '2583 C',      catalogHex: '#9C6EC2' },
+  { name: 'Maroon (Brights)',        hex: '#982525', category: 'brights', pantone: '187 C',       catalogHex: '#982525' },
+  { name: 'Gray',                    hex: '#8C8C8C', category: 'brights', pantone: 'Cool Gray 7 C', catalogHex: '#8C8C8C' },
+  { name: 'Yellow Gold (Brights)',   hex: '#FFBF00', category: 'brights', pantone: '116 C',       catalogHex: '#FFBF00' },
+  { name: 'Dk. Violet',              hex: '#5C2080', category: 'brights', pantone: '2613 C',      catalogHex: '#5C2080' },
+  { name: 'Dk. Bloody Red',          hex: '#D70000', category: 'brights', pantone: '485 C',       catalogHex: '#D70000' },
+  { name: 'Navy Blue (Brights)',     hex: '#1B2050', category: 'brights', pantone: '2767 C',      catalogHex: '#1B2050' },
+  { name: 'Dk. Choco Brown',         hex: '#432700', category: 'brights', pantone: '4625 C',      catalogHex: '#432700' },
+  { name: 'Rust Brown',              hex: '#91210C', category: 'brights', pantone: '1807 C',      catalogHex: '#91210C' },
+  { name: 'Mustard (Brights)',       hex: '#FFB500', category: 'brights', pantone: '1235 C',      catalogHex: '#FFB500' },
+  { name: 'Neon Green (Brights)',    hex: '#44FF44', category: 'brights', pantone: '802 C',       catalogHex: '#44FF44' },
+  { name: 'Mint Green (Brights)',    hex: '#A8DA92', category: 'brights', pantone: '2253 C',      catalogHex: '#A8DA92' },
 ]
 
 // name -> category slug, for anywhere (garmentScrub.js) that needs to resolve a color's
@@ -376,8 +546,16 @@ export const DEFECT_CLASSES = [
 ]
 export const defectFee = (classification) => (classification === 'major' ? SAMPLE_DEFECT_FEE : 0)
 
-// REMOVED from the flow entirely: Print Method step, Fulfillment step,
-// Design-file upload step. Do not re-add.
+// Walk-in-only "Modify with our artist?" add-on (2026-08-13). Rides on the sample fee as
+// one number, rather than its own line item — reads f.wantsArtistConsult, which lives in
+// the form blob the exact same way hasDesign already does. This reverses the earlier
+// "deliberately not carried over from the prototype" call (see CLAUDE.md §7/§11) and the
+// "Design-file upload step. Do not re-add." note that used to be here — the owner asked
+// for both back, scoped to the walk-in kiosk only for now (not the two online paths).
+export const ARTIST_CONSULT_FEE = 500
+// Gated on hasDesign too, same as printColors() — otherwise switching to a no-print style
+// while the toggle is still "on" would keep silently billing the ₱500.
+export const artistConsultFee = (f) => (f?.hasDesign && f?.wantsArtistConsult ? ARTIST_CONSULT_FEE : 0)
 
 // ---- helpers -------------------------------------------------------------
 
@@ -455,9 +633,10 @@ export function priceBreakdown(f) {
 export function quoteTotals(f, qty) {
   const perPc = pricePerPc(f) ?? 0
   const total = perPc * (Number(qty) || 0)
-  const grandTotal = total + SAMPLE_FEE
+  const sampleFee = SAMPLE_FEE + artistConsultFee(f)
+  const grandTotal = total + sampleFee
   const dp = Math.round(grandTotal * 0.6)
-  return { perPc, total, sampleFee: SAMPLE_FEE, grandTotal, dp, bal: grandTotal - dp }
+  return { perPc, total, sampleFee, grandTotal, dp, bal: grandTotal - dp }
 }
 
 export const peso = (n) => '₱' + Number(n || 0).toLocaleString('en-PH')

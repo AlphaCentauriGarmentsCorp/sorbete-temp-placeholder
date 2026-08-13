@@ -2,7 +2,7 @@
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
 import AccountNav from '../components/AccountNav.jsx'
-import { IoLogoGoogle } from 'react-icons/io5'
+import { IoShieldCheckmarkOutline } from 'react-icons/io5'
 import { navigate } from '../utils/navigation.js'
 import { useSession } from '../context/SessionContext.jsx'
 import { useOrders } from '../context/OrderContext.jsx'
@@ -41,7 +41,7 @@ export default function Account() {
               </div>
             </div>
             <p style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--muted)', fontSize: 13.5, margin: '16px 0 0' }}>
-              <IoLogoGoogle /> Signed in with Google
+              <IoShieldCheckmarkOutline /> Signed in
             </p>
           </div>
 

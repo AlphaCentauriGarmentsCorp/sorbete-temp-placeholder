@@ -76,7 +76,9 @@
 
 /* Delivery address — same header-strip box as the kiosk; AddressPicker re-skinned by
    re-pointing the global tokens under this scope (AddressPicker.css untouched). */
-.quote-delivery { background: var(--wkq-white); border: 1.5px solid var(--wkq-line); border-radius: 14px; overflow: hidden; margin-top: 16px; padding: 0; }
+/* scroll-margin-bottom: breathing room when scrollIntoView({ block: 'nearest' }) settles
+   this box against the bottom of the viewport — see the effect in QuoteSummary.jsx. */
+.quote-delivery { background: var(--wkq-white); border: 1.5px solid var(--wkq-line); border-radius: 14px; overflow: hidden; margin-top: 16px; padding: 0; scroll-margin-bottom: 14px; }
 .quote-delivery-h { margin: 0; padding: 8px 14px; background: #F4F1E9; border-bottom: 1.5px solid var(--wkq-line); font-family: inherit; font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--wkq-gray); }
 .quote-delivery .ap {
   --line: var(--wkq-line);
@@ -92,9 +94,10 @@
 .quote-signin { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 14px; }
 .quote-signin-copy { margin: 0; font-size: 13px; line-height: 1.5; color: var(--wkq-ink-2); }
 
-/* Place order stays deliberately small/quiet vs the tools above (owner's standing call). */
-.quote-cta { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-top: 20px; }
-.quote-change { background: none; border: none; font-family: inherit; font-size: 13px; font-weight: 700; color: var(--wkq-gray); cursor: pointer; text-decoration: underline; }
+/* Place order stays deliberately small/quiet vs the tools above (owner's standing call).
+   flex-end, not space-between: the "Change" button that used to sit opposite it was removed
+   2026-08-13, and space-between with a single child would have slid Place order to the left. */
+.quote-cta { display: flex; align-items: center; justify-content: flex-end; gap: 14px; flex-wrap: wrap; margin-top: 20px; }
 .quote-proceed {
   display: inline-flex; align-items: center; gap: 6px;
   border: 1px solid var(--wkq-line); cursor: pointer; font-family: inherit; font-weight: 700; font-size: 12px;
@@ -104,17 +107,3 @@
 .quote-proceed:active { transform: scale(0.97); }
 .quote-proceed:disabled { opacity: 0.45; cursor: default; }
 .quote-foot { margin: 14px 0 0; font-size: 12px; color: var(--wkq-gray); }
-
-/* Save as PDF — print only the quote card */
-@media print {
-  body * { visibility: hidden !important; }
-  #sbQuoteCard, #sbQuoteCard * { visibility: visible !important; }
-  #sbQuoteCard {
-    position: absolute !important; left: 0; top: 0;
-    width: 100% !important; max-width: none !important;
-    box-shadow: none !important; border: none !important;
-    margin: 0 !important; padding: 24px !important;
-  }
-  #sbQuoteCard * { animation: none !important; transition: none !important; }
-  .quote-tools, .quote-cta, .quote-foot, .quote-delivery { display: none !important; }
-}

@@ -13,70 +13,64 @@
   --df-font: 'Anton', sans-serif;
   background: var(--df-cream); min-height: 100vh; color: var(--df-black);
 }
-.df-body { max-width: 860px; margin: 0 auto; padding: 32px 16px 128px; }
-.df-back { background: none; border: none; font: inherit; font-weight: 700; color: var(--df-muted); cursor: pointer; padding: 6px 0; }
-.df-title { font-family: var(--df-font); font-weight: 400; text-transform: uppercase; font-size: clamp(30px, 5vw, 44px); margin: 8px 0 6px; }
-.df-lead { color: var(--df-muted); margin: 0 0 20px; }
+/* Type scale + rhythm ported from WalkInForm.css (owner's call 2026-08-13: "improve mo yung
+   order online, ang paggayahan mo jan... yung sa walk in"). Measured side by side at 390px
+   beforehand — this screen ran ~1px larger on every text style AND looser between them, so
+   its form stood 1581px tall against the kiosk's 1414px for the identical set of fields.
+   Values below are the kiosk's, so the two now read at the same density on a phone. */
+.df-body { max-width: 860px; margin: 0 auto; padding: 24px 16px 128px; }
+.df-back { background: none; border: none; font: inherit; font-size: 13px; font-weight: 700; color: var(--df-muted); cursor: pointer; padding: 4px 0; }
+.df-title { font-family: var(--df-font); font-weight: 400; text-transform: uppercase; font-size: clamp(27px, 5vw, 44px); margin: 6px 0 5px; }
+.df-lead { color: var(--df-muted); font-size: 13.5px; line-height: 1.5; margin: 0 0 14px; }
 
-.df-section { padding: 22px 0; border-bottom: 1px solid var(--df-line); }
-.df-h2 { font-family: var(--df-font); font-weight: 400; font-size: 19px; text-transform: uppercase; margin: 0 0 12px; }
-.df-label { font-size: 11.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--df-muted); margin: 16px 0 8px; }
+.df-section { padding: 18px 0; border-bottom: 1px solid var(--df-line); }
+.df-h2 { font-family: var(--df-font); font-weight: 400; font-size: 17px; text-transform: uppercase; margin: 0 0 10px; }
+.df-label { font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--df-muted); margin: 11px 0 5px; }
 .df-hint { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--df-muted); }
 
 .df-grid { display: flex; flex-wrap: wrap; gap: 8px; }
 .df-grid--sizes .df-card { flex: 0 1 92px; text-align: center; }
 .df-grid--wide .df-card { flex: 1 1 200px; }
 
-.df-card { flex: 1 1 150px; background: #fff; border: 1px solid var(--df-line); border-radius: 12px; padding: 9px 12px; cursor: pointer; transition: transform 0.14s ease; }
+/* min-height + centred flex column, matching .wk-opt: cards with no sub-line (Fit, Hem) are
+   title-only and collapsed to 36px once the type shrank — under the 44px touch minimum.
+   They were already thin at 38px before that; this pins every card to a real tap target
+   instead of letting content height decide. */
+.df-card {
+  flex: 1 1 150px; display: flex; flex-direction: column; justify-content: center;
+  min-height: 44px; background: #fff; border: 1px solid var(--df-line); border-radius: 12px;
+  padding: 9px 12px; cursor: pointer; transition: transform 0.14s ease;
+}
 .df-card:hover { transform: translateY(-1px); }
 .df-card--on { background: var(--df-black); border-color: var(--df-black); }
-.df-card-t { font-family: var(--df-font); font-weight: 400; font-size: 14px; line-height: 1.2; color: var(--df-black); text-transform: uppercase; letter-spacing: 0.01em; }
-.df-card-s { font-size: 11px; margin-top: 2px; color: var(--df-muted); }
+.df-card-t { font-family: var(--df-font); font-weight: 400; font-size: 13px; line-height: 1.2; color: var(--df-black); text-transform: uppercase; letter-spacing: 0.01em; }
+.df-card-s { font-size: 10px; margin-top: 2px; color: var(--df-muted); }
 .df-card--on .df-card-t { color: var(--df-yellow); }
 .df-card--on .df-card-s { color: rgba(255, 255, 255, 0.72); }
 
-.df-swatches { display: flex; flex-wrap: wrap; gap: 10px; }
-.df-swatch { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 62px; background: none; border: none; cursor: pointer; font: inherit; font-size: 10px; color: var(--df-muted); text-align: center; }
-.df-swatch span { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--df-line); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15); }
-.df-swatch--on span { border: 3px solid var(--df-black); }
+/* The colour picker moved to the shared components/ColorSwatches.jsx on 2026-08-13 — round
+   chips on every path now, so nothing swatch-shaped is left here. */
 
-.df-color-group { margin-bottom: 14px; }
-.df-color-group:last-child { margin-bottom: 0; }
-.df-color-group-label { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--df-black); background: var(--df-yellow); display: inline-block; padding: 3px 9px; border-radius: 999px; margin-bottom: 8px; }
-
-.df-others input, .df-qty input { font-family: var(--font-mono); font-size: 15px; padding: 11px 13px; border: 1px solid var(--df-line); border-radius: 12px; background: #fff; width: 120px; }
-.df-others { margin-top: 12px; }
-
-.df-qty { display: flex; align-items: center; gap: 0; width: max-content; border: 1px solid var(--df-line); border-radius: 12px; overflow: hidden; background: #fff; }
-.df-qty button { width: 46px; height: 46px; border: none; background: #fff; font-size: 20px; cursor: pointer; color: var(--df-black); }
-.df-qty input { width: 80px; height: 46px; border: none; border-left: 1px solid var(--df-line); border-right: 1px solid var(--df-line); text-align: center; border-radius: 0; }
-
-/* Live-estimate bar — kept to ONE row even on a phone, same idea as WalkInForm's
-   .wk-foot--rail (price block shrinks via min-width:0, button sizes to content instead of
-   stretching full-width) rather than letting the button wrap onto its own row, which is
-   what made this bar ~171px tall on a 390px phone before this pass. Font sizes below that
-   point also follow GuidedWalkthrough's .gw-im-bar mobile scaling (@480px breakpoint) —
-   same "shrink the least essential figure first" idea, applied here since most customers on
-   this screen are on a phone. */
-.df-bar {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 70;
-  background: var(--df-black); color: #fff;
-  padding: 12px clamp(16px, 4vw, 40px);
-  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: nowrap;
+/* Quantity stepper — 2026-08-13: this class had NO styling at all, so it was rendering as the
+   raw browser default (unstyled buttons + a native number input, its spin arrows included) —
+   the "anyare dito?" the owner flagged. Matches the kiosk's own `.wk-qty-row/-btn/-val` shape
+   (round pill buttons + a centred value) using this page's own --df-* tokens, keeping the
+   value as a real `<input>` — unlike the kiosk's read-only span — since DirectForm already let
+   the customer type an exact quantity and that's worth keeping, not a regression to fix. */
+.df-qty { display: flex; align-items: center; gap: 14px; }
+.df-qty button {
+  width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid var(--df-black);
+  background: #fff; font-family: inherit; font-size: 18px; font-weight: 800; cursor: pointer;
+  transition: transform 0.14s ease; flex: none;
 }
-.df-bar-price { min-width: 0; }
-.df-bar-k { font-size: 11.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255, 255, 255, 0.55); white-space: nowrap; }
-.df-bar-v { font-family: var(--df-font); font-weight: 400; font-size: 30px; color: var(--df-yellow); white-space: nowrap; }
-.df-bar-sub { font-size: 12.5px; color: rgba(255, 255, 255, 0.55); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.df-bar-cta { flex: none; background: var(--df-yellow); color: var(--df-black); border: none; cursor: pointer; font: inherit; font-weight: 700; font-size: 15px; padding: 15px 28px; border-radius: 999px; white-space: nowrap; }
-
-@media (max-width: 480px) {
-  .df-body { padding-bottom: 104px; } /* bar is 75px tall here — was 140px, sized for the old 171px-tall bar */
-  .df-bar { padding: 10px 14px; gap: 10px; }
-  .df-bar-k { font-size: 9px; }
-  .df-bar-v { font-size: 20px; }
-  .df-bar-sub { font-size: 10px; }
-  .df-bar-cta { font-size: 13px; padding: 11px 16px; }
+.df-qty button:active { transform: scale(0.94); }
+.df-qty input {
+  width: 84px; height: 44px; border: 1.5px solid var(--df-line); border-radius: 10px;
+  background: #fff; text-align: center; font-family: var(--df-font); font-size: 18px;
+  color: var(--df-black); -moz-appearance: textfield;
 }
+.df-qty input::-webkit-outer-spin-button,
+.df-qty input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.df-qty input:focus { outline: none; border-color: var(--df-black); }
 
 .df-quote-wrap { padding: 40px 16px 80px; }

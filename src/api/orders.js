@@ -69,6 +69,18 @@ export function requestChanges(orderId, message, attachment) {
 }
 
 /**
+ * Attach the customer's own design file to an already-created order (walk-in kiosk
+ * only, today — see CLAUDE.md §7). Fired as a follow-up request right after placeOrder()
+ * succeeds, same shape as submitPayment/requestChanges — order creation itself stays a
+ * plain JSON POST, the file rides a separate authenticated multipart request.
+ */
+export function uploadDesignFile(orderId, file) {
+  const body = new FormData()
+  body.append('design_file', file)
+  return api.post(`/orders/${orderId}/design-file`, body).then((r) => r.order)
+}
+
+/**
  * Same blob-fetch workaround as fetchPaymentProof — timeline attachments (e.g. a
  * request-changes reference photo) live behind the same bearer-token-gated route.
  */

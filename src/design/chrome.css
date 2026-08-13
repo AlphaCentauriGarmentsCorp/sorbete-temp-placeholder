@@ -266,13 +266,16 @@
   color: #eceae2;
   margin-top: auto;
 }
+/* One row of labelled groups: brand, the three nav columns, then contact/hours/social.
+   Every block below the brand sits under its own heading — that grouping is the whole point
+   of the 2026-08-13 reorganisation (see Footer.jsx). */
 .foot-inner {
   max-width: 1100px;
   margin: 0 auto;
   padding: 54px 16px 34px;
   display: grid;
-  grid-template-columns: 1.2fr 2fr;
-  gap: 40px;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr 1.6fr;
+  gap: 40px 28px;
 }
 .foot-word {
   font-family: var(--font-display);
@@ -285,31 +288,23 @@
   color: rgba(255, 255, 255, 0.62);
   font-size: 14px;
   line-height: 1.6;
-  max-width: 40ch;
-  margin: 10px 0 16px;
+  max-width: 34ch;
+  margin: 10px 0 0;
 }
-.foot-addr {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
-  margin-bottom: 16px;
-}
-.foot-chat {
-  padding: 11px 20px;
-}
-.foot-cols {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-}
+
 .foot-h {
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--gold);
-  margin-bottom: 12px;
+  margin: 0 0 12px;
+  font-weight: 700;
 }
+.foot-h--spaced { margin-top: 26px; }
+
+.foot-list { list-style: none; margin: 0; padding: 0; }
+
 .foot-link {
   display: block;
   background: none;
@@ -321,13 +316,76 @@
   color: rgba(255, 255, 255, 0.78);
   padding: 6px 0;
 }
-.foot-link:hover {
-  color: #fff;
+.foot-link:hover { color: #fff; }
+/* Inside a .foot-line the icon already provides the row's leading, so the link must not add
+   its own block padding on top of it or the row sits lower than its neighbours. */
+.foot-link--inline { padding: 0; }
+
+/* Contact rows: a fixed icon gutter so the address, email, phone and chat all start on the
+   same left edge no matter how many lines each one wraps to. */
+.foot-line {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  align-items: start;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.78);
 }
+.foot-ico {
+  display: flex;
+  align-items: center;
+  height: 1.5em;
+  font-size: 15px;
+  color: var(--gold);
+}
+.foot-line a {
+  color: rgba(255, 255, 255, 0.78);
+  text-decoration: none;
+}
+.foot-line a:hover { color: #fff; text-decoration: underline; }
+
+/* Two columns so the day and the time line up as a small table rather than running together
+   as one sentence. */
+.foot-hours {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 5px 0;
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.78);
+}
+.foot-hours span:first-child { color: rgba(255, 255, 255, 0.5); }
+
+.foot-socials { display: flex; gap: 10px; }
+.foot-social {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+  color: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.foot-social:hover {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--ink);
+}
+
 .foot-legal {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 18px 16px 30px;
+  /* ⚠️ The bottom padding clears the fixed .sticky-cta bar. Without it the copyright line was
+     100% covered on every page that has a footer — measured at 1280px, the legal row's top and
+     the bar's top were the same 835px, so it could never be read. The clearance is
+     unconditional because the sticky bar is suppressed on exactly the three order paths
+     (NO_STICKY_CTA in App.jsx), and those don't render a footer at all — so wherever this
+     footer exists, that bar exists too. */
+  padding: 18px 16px calc(30px + 68px + env(safe-area-inset-bottom));
   border-top: 1px solid rgba(255, 255, 255, 0.12);
   display: flex;
   justify-content: space-between;
@@ -343,24 +401,36 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 12.5px;
+  color: inherit;
+  font-size: inherit;
 }
 .foot-legal-links button:hover {
   color: #fff;
 }
 
-@media (max-width: 760px) {
-  .foot-inner {
-    grid-template-columns: 1fr;
-    gap: 28px;
-  }
-  .foot-legal {
-    flex-direction: column;
-  }
+@media (max-width: 1040px) {
+  /* Nav columns stay side by side; brand and the contact group each take the full row, since
+     the address and hours need the width more than the short link lists do. */
+  .foot-inner { grid-template-columns: repeat(3, 1fr); }
+  .foot-brand, .foot-contact { grid-column: 1 / -1; }
+  .foot-tag { max-width: 52ch; }
+}
+@media (max-width: 620px) {
+  /* Two columns rather than one: four short link lists stacked single-file makes the footer
+     absurdly tall on a phone. */
+  .foot-inner { grid-template-columns: repeat(2, 1fr); gap: 30px 20px; padding-top: 40px; }
+  .foot-legal { flex-direction: column; }
 }
 
 /* ---- global sticky CTA bar (Get Quote + Chat with us) ------------------ */
+/* Sized to match the order paths' shared QuoteBar exactly (64px tall): same vertical
+   padding, same 44px button height, same responsive side padding. It used to stand ~71px
+   with 15px button padding and no height floor.
+   The background already carried backdrop-filter, but at 0.92 opacity nothing showed
+   through for it to blur — it just read as a flat cream bar. Dropped to 0.72 so the blur
+   actually does something (owner 2026-08-13: "gusto ko rin na blurred yung background nya").
+   Kept LIGHT rather than copying QuoteBar's dark surface: the "Chat with us" button is solid
+   ink, and it would disappear into a dark bar. */
 .sticky-cta {
   position: fixed;
   left: 0;
@@ -369,9 +439,9 @@
   z-index: 75;
   display: flex;
   gap: 10px;
-  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-  background: rgba(251, 250, 247, 0.92);
-  backdrop-filter: blur(10px);
+  padding: 10px clamp(14px, 4vw, 40px) calc(10px + env(safe-area-inset-bottom));
+  background: rgba(251, 250, 247, 0.72);
+  backdrop-filter: blur(14px);
   border-top: 1px solid var(--line);
   transform: translateY(110%);
   transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -388,9 +458,26 @@
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 0.02em;
-  padding: 15px 8px;
+  /* min-height, not tall padding — same 44px touch floor the QuoteBar CTA uses. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 11px 14px;
   border-radius: 999px;
   text-align: center;
+}
+@media (max-width: 480px) {
+  .sticky-cta { gap: 8px; padding: 9px 14px calc(9px + env(safe-area-inset-bottom)); }
+  .sticky-cta-get,
+  .sticky-cta-chat { font-size: 13px; padding: 11px 10px; white-space: nowrap; }
+}
+/* On the narrowest phones "Chat with us" wrapped to two lines, which pushed the buttons to
+   52px and the bar back up to 71px — the exact bulk this pass removed. Shrink the label
+   instead so it stays one line and the bar holds its height. */
+@media (max-width: 360px) {
+  .sticky-cta-get,
+  .sticky-cta-chat { font-size: 11.5px; padding: 11px 6px; letter-spacing: 0; }
 }
 .sticky-cta-get {
   flex: 1.6;

@@ -1,0 +1,70 @@
+/* src/design/TrustedBrands.css — see components/TrustedBrands.jsx for how the seamless loop
+   works. Ported from the old frontend's `.hp-trusted` / `.hp-marquee`.
+
+   Full-bleed like .hm-stats / .hm-founders: the heading and caption stay in the 1100px
+   column, the strip itself runs edge to edge and the logos slide off both sides. */
+.tb { padding: 64px 0 8px; overflow: hidden; }
+
+.tb-head { max-width: 1100px; margin: 0 auto; padding: 0 16px; text-align: center; }
+.tb-title {
+  margin: 0; font-family: var(--font-display); font-weight: 900;
+  font-size: clamp(30px, 4.6vw, 54px); line-height: 0.95; letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.tb-sub {
+  margin: 12px 0 0; font-size: clamp(14px, 1.05vw, 17px);
+  line-height: 1.5; color: var(--ink-soft);
+}
+
+.tb-marquee {
+  position: relative;
+  margin-top: clamp(28px, 3.6vw, 46px);
+  overflow: hidden;
+  /* Fade the logos out into the page at both edges instead of letting them get guillotined by
+     the viewport — without this the strip reads as clipped rather than continuous. */
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+}
+
+.tb-track {
+  display: flex;
+  width: max-content;
+  animation: tb-scroll 26s linear infinite;
+  will-change: transform;
+}
+/* Pausing on hover lets someone actually look at a logo they recognised instead of chasing
+   it across the screen. Also pauses on keyboard focus within, for the same reason. */
+.tb-marquee:hover .tb-track,
+.tb-marquee:focus-within .tb-track { animation-play-state: paused; }
+
+.tb-card {
+  width: clamp(130px, 19vw, 250px);
+  aspect-ratio: 1 / 1;
+  /* margin-right, NOT a flex gap on the track — see the component's own note. Spacing every
+     card (including the last) is what makes the two copies exactly equal width, which is what
+     makes translateX(-50%) loop without a visible jump. */
+  margin-right: clamp(18px, 3.4vw, 52px);
+  flex: none;
+  border-radius: 6px; overflow: hidden;
+  border: 1px solid rgba(18, 18, 18, 0.1); box-sizing: border-box;
+  background: #fff;
+}
+.tb-card img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+.tb-caption {
+  max-width: 1100px; margin: clamp(26px, 3vw, 40px) auto 0; padding: 0 16px;
+  text-align: center; font-size: clamp(14px, 1.05vw, 17px); color: var(--ink-soft);
+}
+
+@keyframes tb-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The site's global reduced-motion rule already kills the animation, which would otherwise
+     leave the strip frozen with the last logos unreachable off-screen. Hand it back as a
+     normal horizontal scroller so every brand is still viewable. */
+  .tb-marquee { overflow-x: auto; -webkit-mask-image: none; mask-image: none; }
+  .tb-track { animation: none; }
+}

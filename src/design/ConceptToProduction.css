@@ -1,0 +1,86 @@
+/* src/design/ConceptToProduction.css — see components/ConceptToProduction.jsx.
+   Ported from the old frontend's `.hp-services`: yellow rule + eyebrow, an oversized heading
+   sitting beside its intro copy, then alternating text/image rows. Values follow the original
+   (clamp-scaled type, 1 : 1.4 row split, 16px rounded media) but use this site's own tokens
+   rather than the old file's hardcoded #ffce31/#000. */
+.ctp { padding: 72px 0 8px; }
+.ctp-inner { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+
+.ctp-label { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+.ctp-label-line { width: clamp(48px, 8vw, 100px); height: 0; border-top: 3px solid var(--gold); flex: none; }
+.ctp-label-text {
+  font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold-ink);
+}
+
+/* Heading and its intro copy sit side by side on desktop, stacked on a phone. */
+.ctp-intro {
+  display: flex; align-items: flex-end; flex-wrap: wrap;
+  gap: clamp(20px, 4vw, 64px); margin-bottom: clamp(36px, 5vw, 64px);
+}
+.ctp-heading {
+  margin: 0; flex: 1 1 340px;
+  font-family: var(--font-display); font-weight: 900; text-transform: uppercase;
+  font-size: clamp(32px, 5.4vw, 62px); line-height: 0.92; letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.ctp-copy {
+  margin: 0; flex: 1 1 300px; max-width: 520px;
+  font-size: clamp(14px, 1.05vw, 16px); line-height: 1.6; color: var(--ink-soft);
+}
+
+.ctp-list { display: flex; flex-direction: column; gap: clamp(40px, 5vw, 84px); }
+
+.ctp-row {
+  display: grid; grid-template-columns: 1fr 1.4fr;
+  align-items: center; gap: clamp(24px, 4vw, 72px);
+}
+/* The alternating rhythm — the point of the layout. Ordering the grid children rather than
+   reordering the markup keeps the heading before its own copy for screen readers. */
+.ctp-row--text-image .ctp-rowcopy { order: 1; }
+.ctp-row--text-image .ctp-media   { order: 2; }
+.ctp-row--image-text .ctp-rowcopy { order: 2; text-align: right; }
+.ctp-row--image-text .ctp-media   { order: 1; }
+.ctp-row--image-text .ctp-text    { margin-left: auto; }
+
+.ctp-rowcopy { display: flex; flex-direction: column; gap: 12px; }
+.ctp-title {
+  margin: 0; font-family: var(--font-display); font-weight: 900; text-transform: uppercase;
+  font-size: clamp(21px, 2.8vw, 40px); line-height: 0.98; color: var(--ink);
+}
+.ctp-text {
+  margin: 0; max-width: 480px;
+  font-size: clamp(13.5px, 1.05vw, 16px); line-height: 1.6; color: var(--ink-soft);
+}
+
+.ctp-media {
+  position: relative; width: 100%;
+  aspect-ratio: 4 / 3; /* holds the row's height before the photo loads, so nothing jumps */
+  border-radius: 16px; overflow: hidden;
+  box-shadow: 0 10px 30px rgba(18, 18, 18, 0.16);
+}
+.ctp-media img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+.ctp-cta {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin: clamp(40px, 5vw, 64px) auto 0; width: min(460px, 100%); min-height: 52px;
+  background: var(--ink); color: #fff; border: none; border-radius: 999px; cursor: pointer;
+  font-family: var(--font-display); font-weight: 800; font-size: 15px;
+  text-transform: uppercase; letter-spacing: 0.04em;
+  transition: transform 0.14s ease;
+}
+.ctp-cta:active { transform: scale(0.98); }
+
+@media (max-width: 760px) {
+  /* One column, image first in every row — alternating sides only reads as a rhythm when
+     the two actually sit side by side; stacked, it just looks inconsistent. */
+  .ctp-row,
+  .ctp-row--text-image,
+  .ctp-row--image-text { grid-template-columns: 1fr; gap: 16px; }
+  .ctp-row--text-image .ctp-rowcopy,
+  .ctp-row--image-text .ctp-rowcopy { order: 2; text-align: left; }
+  .ctp-row--text-image .ctp-media,
+  .ctp-row--image-text .ctp-media { order: 1; }
+  .ctp-row--image-text .ctp-text { margin-left: 0; }
+  .ctp-media { aspect-ratio: 16 / 10; }
+}

@@ -2,14 +2,17 @@
 // Shared quotation screen for Path A (GuidedWalkthrough) and Path B (DirectForm).
 // Ported from design-reference/04-Frontend-Update-React-Code/QuoteSummary.jsx; the proceed
 // action is now "Place order" (routes through the sign-in gate + order creation).
-// Usage: <QuoteSummary form={form} qty={qty} onChange={goEditOrder} onProceed={placeOrder} />
-import { useRef, useState } from 'react'
+// Usage: <QuoteSummary form={form} qty={qty} onProceed={placeOrder} />
+// Returning to the form is the browser Back button's job now (see hooks/useBackToForm.js) —
+// this screen carries no "Change" control of its own.
+import { useEffect, useRef, useState } from 'react'
 import { IoCopyOutline, IoCheckmarkCircle, IoDownloadOutline } from 'react-icons/io5'
 import {
   quoteTotals, priceBreakdown, printColorsSummary, peso, styleById,
   showFor, showsPrice, MIN_QTY, QUOTE_MIN_NOTE_TAIL,
 } from '../data/orderConfig.js'
 import { copyToClipboard } from '../utils/format.js'
+import { downloadQuotePdf } from '../utils/pdf.js'
 import AddressPicker from '../components/AddressPicker.jsx'
 import { useSession } from '../context/SessionContext.jsx'
 import '../design/QuoteSummary.css'
@@ -47,12 +50,26 @@ function buildQuoteText(f, sh, breakdown, qty) {
   ].filter(Boolean).join('\n')
 }
 
-export default function QuoteSummary({ form, qty = 50, onChange, onProceed, onSignIn, initialShowAddress = false }) {
+export default function QuoteSummary({ form, qty = 50, onProceed, onSignIn, initialShowAddress = false }) {
   const { isAuthenticated } = useSession()
   const [copied, setCopied] = useState(false)
   const [showAddress, setShowAddress] = useState(initialShowAddress)
   const [delivery, setDelivery] = useState(null)
   const timer = useRef(null)
+  const addressRef = useRef(null)
+  // "Place order" only REVEALS this section on its first tap (see handlePlaceOrder below) —
+  // it was easy to tap it and see nothing happen, since the newly-shown address box could
+  // land below the fold with no scroll to it. Bring it into view the moment it appears.
+  //
+  // `nearest`, NOT `start` (owner-reported 2026-08-13: "ang oa ng pag swipe... hanggang baba
+  // talaga"). `start` tries to pin the box to the TOP of the viewport, but this box sits near
+  // the end of the page, so there's nothing left to scroll past it — the browser clamps at
+  // max scroll and you land at the very bottom, a long dramatic slide for what should be a
+  // nudge. `nearest` scrolls the minimum needed to reveal it, and nothing at all if it's
+  // already visible.
+  useEffect(() => {
+    if (showAddress) addressRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }, [showAddress])
   const t = quoteTotals(form, qty)
   const breakdown = priceBreakdown(form)
   // Same derivation the kiosk's own panel uses, so both hide the rows that don't apply to
@@ -67,6 +84,13 @@ export default function QuoteSummary({ form, qty = 50, onChange, onProceed, onSi
       clearTimeout(timer.current)
       timer.current = setTimeout(() => setCopied(false), 2200)
     })
+  }
+
+  // A real, directly downloadable PDF — not window.print()'s browser dialog. Reuses the
+  // exact same text "Copy quote" already builds, so the two can't drift from each other.
+  const savePdf = () => {
+    const text = buildQuoteText(form, sh, breakdown, qty)
+    downloadQuotePdf(text, `Sorbetes-Quote-${new Date().toISOString().slice(0, 10)}.pdf`)
   }
 
   // First click reveals the address step (nothing asked for it until now); once an
@@ -139,17 +163,17 @@ export default function QuoteSummary({ form, qty = 50, onChange, onProceed, onSi
             <span className="quote-tool-s">{copied ? 'Ready to paste' : 'Text to clipboard'}</span>
           </span>
         </button>
-        <button className="quote-tool" onClick={() => window.print()}>
+        <button className="quote-tool" onClick={savePdf}>
           <span className="quote-tool-ico"><IoDownloadOutline /></span>
           <span className="quote-tool-body">
             <span className="quote-tool-t">Save as PDF</span>
-            <span className="quote-tool-s">Print-ready copy</span>
+            <span className="quote-tool-s">Downloads a PDF file</span>
           </span>
         </button>
       </div>
 
       {onProceed && showAddress && (
-        <div className="quote-delivery">
+        <div className="quote-delivery" ref={addressRef}>
           <h3 className="quote-delivery-h">Delivery address</h3>
           {isAuthenticated ? (
             <AddressPicker value={delivery} onChange={setDelivery} />
@@ -162,8 +186,10 @@ export default function QuoteSummary({ form, qty = 50, onChange, onProceed, onSi
         </div>
       )}
 
+      {/* No "Change" button — removed 2026-08-13 (owner's call). Back is now the single way
+          to return to the form, and it restores the customer's scroll position, which the
+          old Change button never did (it always dumped them at the top). */}
       <div className="quote-cta">
-        {onChange && <button className="quote-change" onClick={onChange}>Change</button>}
         {onProceed && (
           <button className="quote-proceed" disabled={showAddress && !delivery} onClick={handlePlaceOrder}>
             Place order →

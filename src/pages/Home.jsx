@@ -14,6 +14,11 @@ import {
 import { navigate } from '../utils/navigation.js'
 import { peso, MIN_QTY, SAMPLE_FEE, SIZE_PRICES } from '../data/orderConfig.js'
 import { useScrollReveal } from '../hooks/useScrollReveal.js'
+import FoundersTestimonials from '../components/FoundersTestimonials.jsx'
+import ConceptToProduction from '../components/ConceptToProduction.jsx'
+import WhyChooseUs from '../components/WhyChooseUs.jsx'
+import TrustedBrands from '../components/TrustedBrands.jsx'
+import FollowUs from '../components/FollowUs.jsx'
 import '../design/Home.css'
 
 const HERO_IMAGES = [1, 2, 3, 4, 5, 6, 7].map((n) => `/img/hero/hero-${n}.jpg`)
@@ -181,6 +186,34 @@ export default function Home() {
             ))}
           </div>
         </section>
+
+        {/* Founders Club testimonials — ported from the old frontend's homepage section,
+            rebuilt as real markup so it works on a phone (see the component's own note). */}
+        {/* Ported from the old frontend's OUR SERVICES section. */}
+        <ConceptToProduction />
+
+        {/* Ported from the old frontend's ABOUT US section. Sits after the services so the
+            page reads "what we do" → "why us" → proof, same order as over there. */}
+        <WhyChooseUs />
+
+        {/* Full-bleed like .hm-stats — the heading stays in the 1100px column, the card runs
+            edge to edge (owner: "gusto ko nakasagad sya sa gilid"). */}
+        <section className="hm-founders">
+          <div className="hm-section-head hm-founders-head" data-reveal>
+            <h2 className="hm-h2">The Founders Club</h2>
+            <p className="hm-section-sub">What the brands we produce for say about working with us.</p>
+          </div>
+          <FoundersTestimonials />
+        </section>
+
+        {/* Ported from the old frontend. Sits right after the testimonials so the two pieces
+            of social proof land together — who vouches for us, then who we produce for. */}
+        <TrustedBrands />
+
+        {/* Fifth port from the old frontend, same order as over there (trusted brands →
+            follow us). Distinct from the small "Follow us" link group in the footer itself
+            (§7) — the old site has both, at two different scales for two different jobs. */}
+        <FollowUs />
 
         {/* price anchor / final CTA */}
         <section className="hm-cta">

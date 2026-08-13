@@ -39,6 +39,13 @@ export default function GarmentScrub({ trackRef, parts, variant, colorName, onSt
   const lastRequestedTRef = useRef(-1)
   const modeRef = useRef('video') // 'video' | 'image' — mirrored into state for render
   const [mode, setMode] = useState('video')
+  // The color catalog now shows every catalog color, not just the ones this combo has been
+  // photographed in — picking one with no photo yet must not blank/break the stage. Remember
+  // the last color that DID resolve to a real photo and keep showing it until a photographed
+  // one is picked, instead of snapping back to variant.colors[0] every time. Reset per combo
+  // (same trigger as lastRequestedTRef above) since a different combo's photos are unrelated.
+  const lastGoodColorRef = useRef(null)
+  useEffect(() => { lastGoodColorRef.current = null }, [variant.key])
 
   const N = parts.length
   const colorIdx = parts.findIndex((p) => p.key === 'color')
@@ -93,7 +100,9 @@ export default function GarmentScrub({ trackRef, parts, variant, colorName, onSt
     return () => cancelAnimationFrame(raf)
   }, [trackRef, parts, N, colorIdx, onStep, variant.key])
 
-  const activeColor = variant.colors.find((c) => c.name === colorName) || variant.colors[0]
+  const foundColor = variant.colors.find((c) => c.name === colorName)
+  if (foundColor) lastGoodColorRef.current = foundColor
+  const activeColor = foundColor || lastGoodColorRef.current || variant.colors[0]
 
   return (
     <div className="gw-scrub-stage">

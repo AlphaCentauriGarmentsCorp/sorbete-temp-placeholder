@@ -9,7 +9,7 @@ import '../design/marketing.css'
 
 const STEPS = [
   { t: 'Build & quote', d: `Spec your garment online (Guided or Instant) or in-store. You get an itemized quote instantly — ${MIN_QTY}-piece minimum.` },
-  { t: 'Sign in & place', d: 'Sign in with Google to place the order. Browsing and quoting stay open to guests.' },
+  { t: 'Sign in & place', d: 'Sign in to place the order. Browsing and quoting stay open to guests.' },
   { t: `Pay the ${peso(SAMPLE_FEE)} sample fee`, d: 'A separate fee (not credited) that starts your physical sample. Pay by GCash, Maya, or bank transfer — upload proof, staff verifies.' },
   { t: 'Approve your sample', d: 'Review the physical sample. Approve it, or request changes — minor fixes are free; a major remake is a new sample fee.' },
   { t: 'Pay 60% downpayment', d: 'Once you approve, the 60% downpayment starts bulk production (7–15 days standard).' },

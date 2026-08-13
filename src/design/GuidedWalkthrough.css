@@ -94,6 +94,22 @@
 }
 @keyframes gw-cue { 0%, 100% { opacity: 0.35; transform: translate(-50%, 0); } 50% { opacity: 1; transform: translate(-50%, 5px); } }
 
+/* Shown whenever the stage is displaying a reference photo instead of the actually-picked
+   color (that color has no photo yet) — stays up for as long as that's true, not just a
+   one-off toast, since the mismatch persists across every later step too. */
+.gw-photo-notice {
+  /* .gw-im-stage is itself position:sticky/top:0, directly behind the site's own sticky
+     .nav (54px tall, z-index:80) — clamp(16px,4vh,40px), the same offset .gw-im-progress
+     uses, would sit partly UNDER that navbar here since this banner is wide/centered rather
+     than a small top-right corner label. Push it below the navbar instead. */
+  position: absolute; left: 50%; top: 66px; transform: translateX(-50%);
+  max-width: min(88%, 360px); text-align: center;
+  background: rgba(17, 17, 17, 0.82); backdrop-filter: blur(7px); color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 999px;
+  font-size: 12px; line-height: 1.4; padding: 8px 16px;
+}
+.gw-photo-notice strong { color: var(--gold); }
+
 /* options dock — minimal, subtly transparent so the garment shows through */
 .gw-im-panel {
   position: absolute; right: clamp(16px, 4vw, 56px); top: 50%; transform: translateY(-50%);
@@ -108,8 +124,6 @@
 .gw-im-panel .gw-card-t { font-size: 13px; }
 .gw-im-panel .gw-card-s { font-size: 11px; margin-top: 2px; }
 .gw-im-panel .gw-inline { margin-top: 11px; padding-top: 10px; }
-.gw-im-panel .gw-swatches { gap: 8px; }
-.gw-im-panel .gw-swatch { width: 52px; font-size: 9.5px; gap: 4px; }
 
 .gw-cards { display: flex; flex-direction: column; gap: 10px; }
 .gw-cards--row, .gw-cards--sizes { flex-direction: row; flex-wrap: wrap; }
@@ -127,19 +141,20 @@
 .gw-inline { margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(18, 18, 18, 0.1); }
 .gw-inline-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #9a9488; margin-bottom: 10px; }
 
-/* Paint-chip style swatches (ref: the customer's color-card inspo image) — a
-   square block that fills the slot's full width, cut corner top-right, name
-   below. Replaces the old small circle, which left visible dead space around
-   it in the same slot. The square scales itself off the slot width via
-   aspect-ratio, so per-breakpoint size overrides (tablet/mobile) only need to
-   resize .gw-swatch's own width — no separate span width/height to keep in sync. */
-.gw-swatches { display: flex; flex-wrap: wrap; gap: 10px; }
-.gw-swatch { display: flex; flex-direction: column; align-items: stretch; gap: 5px; width: 62px; background: none; border: none; cursor: pointer; font: inherit; font-weight: 700; font-size: 10px; color: var(--ink-soft); text-align: center; }
-.gw-swatch span { width: 100%; aspect-ratio: 1; border-radius: 3px 12px 3px 3px; border: 1px solid rgba(18, 18, 18, 0.16); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15); }
-.gw-swatch--on span { border: 2.5px solid var(--ink); }
+/* Colour swatches moved to the shared components/ColorSwatches.jsx on 2026-08-13. This path
+   used to draw SQUARE paint-chips with a cut corner while the two forms drew round ones; the
+   owner picked round for all three. Only the direction is still this file's business:
+   .cpick defaults to a horizontal strip (what this panel wants on mobile — see the ≤820px
+   block below), so desktop is the one that has to opt back into the vertical dock. */
+@media (min-width: 821px) {
+  .gw-im-panel .gw-cpick { flex-direction: column; gap: 14px; overflow-x: visible; }
+  .gw-im-panel .gw-cpick .cpick-sw { width: 52px; }
+  /* Rows must WRAP in the desktop column — nothing scrolls horizontally here, so a
+     19-colour category would otherwise run off the dock with its tail unreachable. The
+     panel's own overflow-y is what gets you to the rest. */
+  .gw-im-panel .gw-cpick .cpick-row { flex-wrap: wrap; }
+}
 
-.gw-swatch-groups { display: flex; flex-direction: column; gap: 14px; }
-.gw-color-group-label { font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); background: var(--gold); display: inline-block; padding: 3px 9px; border-radius: 999px; margin-bottom: 8px; }
 
 .gw-others { margin-top: 12px; }
 .gw-others input { font-family: var(--font-mono); font-size: 15px; padding: 11px 13px; border: 1px solid rgba(18, 18, 18, 0.16); border-radius: 12px; background: var(--card); width: 120px; }
@@ -150,15 +165,8 @@
    fixed + backdrop-filter element can visually detach from the viewport edge
    (a gap opens below it) mid-scroll on Chromium/WebKit until the compositor
    catches up, snapping back once scrolling settles or reverses. */
-.gw-im-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 70; background: rgba(17, 17, 17, 0.72); backdrop-filter: blur(12px); border-top: 1px solid rgba(255, 255, 255, 0.1); color: #fff; padding: 12px clamp(16px, 4vw, 40px); display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; transform: translateZ(0); will-change: transform; }
-.gw-bar-stats { display: flex; align-items: baseline; gap: clamp(20px, 3.4vw, 48px); flex-wrap: wrap; }
-.gw-bar-k { font-size: 11.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255, 255, 255, 0.55); }
-.gw-bar-v { font-family: var(--font-display); font-weight: 900; font-size: 30px; color: var(--gold); margin-top: 2px; }
-.gw-bar-v--sm { font-size: 18px; color: #fff; }
-.gw-bar-v span { font-family: inherit; font-size: 14px; font-weight: 700; color: rgba(255, 255, 255, 0.6); }
-.gw-bar-sub { font-size: 12.5px; color: rgba(255, 255, 255, 0.55); margin-top: 3px; }
-.gw-bar-actions { display: flex; align-items: center; }
-.gw-bar-cta { background: var(--gold); color: var(--ink); border: none; cursor: pointer; font: inherit; font-weight: 700; font-size: 15px; padding: 15px 28px; border-radius: 999px; white-space: nowrap; }
+/* The live-estimate bar moved to the shared components/QuoteBar.jsx on 2026-08-13 — its
+   translucent-black background is what that shared bar now uses on all three paths. */
 
 .gw-quote-wrap { padding: 40px 16px 80px; }
 
@@ -171,6 +179,8 @@
   .gw-im-part .gw-part-hint { display: none; }
   .gw-im-progress { top: 60px; right: 12px; }
   .gw-im-cue { display: none; }
+  /* Clear of .gw-im-part/.gw-im-progress, which both sit at top:60px here. */
+  .gw-photo-notice { top: 112px; font-size: 11px; padding: 7px 14px; }
   /* bottom strip: horizontal scroll so it barely eats vertical space */
   .gw-im-panel {
     right: 8px; left: 8px; top: auto; bottom: 82px; transform: none;
@@ -178,28 +188,13 @@
   }
   .gw-im-panel .gw-cards { flex-direction: row; overflow-x: auto; gap: 8px; padding-bottom: 2px; }
   .gw-im-panel .gw-cards .gw-card { flex: 0 0 auto; min-width: 128px; }
-  .gw-im-panel .gw-swatches { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; }
-  .gw-im-panel .gw-swatch { flex: 0 0 auto; }
-  /* Category groups (added 2026-08-12) would otherwise stack 7 deep here, each with its
-     own scroller — that eats most of a phone screen and defeats this panel's whole
-     "bottom strip" design. Lay the GROUPS out horizontally instead, so the panel stays
-     one label-row + one swatch-row tall and the customer scrolls sideways through
-     categories, exactly like the single ungrouped strip did before grouping existed. */
-  .gw-im-panel .gw-swatch-groups {
-    flex-direction: row; overflow-x: auto; gap: 16px; padding-bottom: 2px;
-  }
-  .gw-im-panel .gw-color-group { flex: 0 0 auto; }
-  /* only the outer strip scrolls now — inner rows just size to their content */
-  .gw-im-panel .gw-swatch-groups .gw-swatches { overflow-x: visible; padding-bottom: 0; }
-  .gw-im-panel .gw-color-group-label { font-size: 9px; padding: 2px 8px; margin-bottom: 6px; }
-  .gw-im-bar { padding: 9px 14px; gap: 12px; }
-  .gw-bar-v { font-size: 21px; }
-  .gw-bar-stats { gap: 16px; }
+  /* Category groups would otherwise stack 7 deep here, each its own scroller — that eats
+     most of a phone screen and defeats this panel's whole "bottom strip" design. The shared
+     .cpick already lays them out horizontally by default, so there's nothing to override at
+     this breakpoint any more; the desktop column rule above is the exception, not this. */
 }
 @media (max-width: 480px) {
   .gw-im-part { max-width: 66%; }
-  .gw-bar-actions { flex: 1; }
-  .gw-bar-cta { flex: 1; text-align: center; }
 
   /* The bar's real height on a narrow phone was ~166px (3 stats wrapping to 2
      lines + the button), while the panel above it assumed the ~82px tablet
@@ -214,14 +209,6 @@
      to the row's far edge with margin-left:auto instead of space-between, so
      the row reads as one tight cluster instead of three figures floating with
      awkward gaps between them. */
-  .gw-bar-stats { flex: 1 1 100%; align-items: baseline; gap: 16px; }
-  .gw-bar-actions { flex: 1 1 100%; }
-  .gw-bar-stat--perpc .gw-bar-v { font-size: 24px; }
-  .gw-bar-stat--qty .gw-bar-k, .gw-bar-stat--total .gw-bar-k { font-size: 8.5px; }
-  .gw-bar-stat--qty .gw-bar-v, .gw-bar-stat--total .gw-bar-v { font-size: 14px; }
-  .gw-bar-stat--total { margin-left: auto; text-align: right; }
-  .gw-bar-stat--total .gw-bar-k { white-space: normal; max-width: 108px; }
-  .gw-im-bar { padding: 8px 12px; }
   .gw-im-panel { bottom: 118px; }
 
   /* Less "white wall" glare, more of the model visible through it — lower
@@ -248,13 +235,6 @@
   .gw-im-panel .gw-card-s { font-size: 9px; }
   .gw-im-panel .gw-inline { margin-top: 7px; padding-top: 6px; }
   .gw-im-panel .gw-inline-label { font-size: 8.5px; margin-bottom: 6px; }
-  .gw-im-panel .gw-swatches { gap: 6px; }
-  .gw-im-panel .gw-swatch { width: 42px; font-size: 8px; gap: 3px; }
-  .gw-im-panel .gw-swatch-groups { gap: 12px; }
-  .gw-im-panel .gw-color-group-label { font-size: 8px; padding: 2px 7px; margin-bottom: 5px; }
 
   /* bottom bar: smaller type to match */
-  .gw-bar-k { font-size: 9.5px; }
-  .gw-bar-v { font-size: 17px; }
-  .gw-bar-cta { font-size: 13px; padding: 11px 18px; }
 }

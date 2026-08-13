@@ -1,0 +1,54 @@
+/* src/design/QuoteBar.css — see components/QuoteBar.jsx for why this is one shared bar.
+   Formation from the instant builder, background from the guided walkthrough. */
+.qbar {
+  flex: none; /* the kiosk mounts this as a device-shell flex child, not fixed */
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: nowrap;
+  /* 0.88, up from 0.72 (owner 2026-08-13: "dagdagan mo... pero wag totally 100%"). At 0.72
+     the garment photo behind the walkthrough's bar showed through enough to fight the price
+     and CTA for attention; this keeps the frosted look but lets the content read first. */
+  background: rgba(17, 17, 17, 0.88);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 10px clamp(14px, 4vw, 40px) calc(10px + env(safe-area-inset-bottom));
+  /* transform + will-change force this onto its own GPU layer — without it a fixed element
+     with backdrop-filter visually detaches from the viewport edge mid-scroll on Chromium and
+     WebKit (a gap opens below it) until the compositor catches up. Carried over from
+     GuidedWalkthrough.css's .gw-im-bar, where this was found the hard way. */
+  transform: translateZ(0);
+  will-change: transform;
+}
+.qbar--fixed { position: fixed; left: 0; right: 0; bottom: 0; z-index: 70; }
+
+/* min-width: 0 lets the info block shrink instead of forcing the CTA to wrap onto its own
+   row — that wrap is what made the instant builder's bar 171px tall before 2026-08-11. */
+.qbar-info { display: flex; flex-direction: column; min-width: 0; }
+.qbar-k {
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55); white-space: nowrap;
+}
+.qbar-v {
+  font-family: 'Anton', sans-serif; font-weight: 400; font-size: 26px; line-height: 1.1;
+  color: #E9D400; white-space: nowrap;
+}
+.qbar-sub {
+  font-size: 10.5px; color: rgba(255, 255, 255, 0.55);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.qbar-cta {
+  flex: none; background: #E9D400; color: #141414; border: none; cursor: pointer;
+  font: inherit; font-weight: 700; font-size: 14px;
+  min-height: 44px; padding: 12px 22px; border-radius: 999px; white-space: nowrap;
+  transition: transform 0.14s ease;
+}
+.qbar-cta:active { transform: scale(0.97); }
+.qbar-cta:disabled { opacity: 0.5; cursor: default; }
+
+@media (max-width: 480px) {
+  .qbar { gap: 10px; padding: 9px 14px calc(9px + env(safe-area-inset-bottom)); }
+  .qbar-v { font-size: 22px; }
+  .qbar-sub { font-size: 10px; }
+  .qbar-cta { font-size: 13px; padding: 11px 16px; }
+}

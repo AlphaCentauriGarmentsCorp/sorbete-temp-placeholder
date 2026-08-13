@@ -25,6 +25,20 @@
 .mk-feature-title { font-family: var(--font-display); font-weight: 800; font-size: 18px; margin-bottom: 6px; }
 .mk-feature-body { color: var(--muted); font-size: 14px; line-height: 1.55; }
 
+/* Founders Club page: FoundersTestimonials embed. Full-bleed like it is on Home — the
+   carousel's own CSS deliberately carries no max-width, so this just supplies the heading and
+   vertical rhythm around it rather than constraining its width. */
+.mk-founders-proof { padding: 8px 0 24px; }
+.mk-founders-proof-head { max-width: 1000px; margin: 0 auto 24px; padding: 0 16px; }
+
+/* mission & vision (OurStory) */
+.mk-mv-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+.mk-mv-card { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 28px; }
+.mk-mv-head { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+.mk-mv-icon-wrap { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--line); background: #fff; color: var(--gold-ink); font-size: 22px; flex: none; }
+.mk-mv-title { font-family: var(--font-display); font-weight: 900; text-transform: uppercase; font-size: 20px; margin: 0; }
+.mk-mv-body { color: var(--ink-soft); font-size: 14.5px; line-height: 1.65; margin: 0; }
+
 .mk-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
 .mk-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 15px; line-height: 1.5; }
 .mk-list svg { color: var(--ok); font-size: 18px; flex: none; margin-top: 2px; }
@@ -117,7 +131,7 @@
 @media (max-width: 860px) {
   .mk-hero--split { grid-template-columns: 1fr; }
   .mk-hero-media { order: -1; aspect-ratio: 16/10; }
-  .mk-grid-3, .mk-grid-2 { grid-template-columns: 1fr; }
+  .mk-grid-3, .mk-grid-2, .mk-mv-grid { grid-template-columns: 1fr; }
   .mk-stats { grid-template-columns: repeat(2, 1fr); }
   .pf-grid { grid-template-columns: repeat(2, 1fr); }
   .qq-wrap, .git-grid { grid-template-columns: 1fr; }

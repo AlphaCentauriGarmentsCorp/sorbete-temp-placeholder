@@ -7,18 +7,20 @@
 //
 // The 3D stage (GarmentStage) is lazy-loaded so three.js stays out of the main bundle;
 // browsers without WebGL fall back to a flat, still-recoloring SVG garment.
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
 import GarmentScrub from '../components/GarmentScrub.jsx'
 import QuoteSummary from './QuoteSummary.jsx'
+import QuoteBar from '../components/QuoteBar.jsx'
+import ColorSwatches from '../components/ColorSwatches.jsx'
 import { navigateBack } from '../utils/navigation.js'
+import { useBackToForm } from '../hooks/useBackToForm.js'
 import { useCheckout } from '../hooks/useCheckout.js'
 import { useGarmentForm } from '../hooks/useGarmentForm.js'
 import { scrubVariantFor, backPhotoFor } from '../data/garmentScrub.js'
 import {
   ORDERABLE_STYLES, FITS, SIZES, COLLARS, SLEEVES, FABRICS, colorsForFabric, SHIRT_COLOR_HEX,
-  isColorAvailableForFabric, groupColorsByCategory,
   PRINT_COLOR_OPTIONS, BACK_PRINT_COLOR_OPTIONS, PRINT_CHOICES, PLACEMENTS, hemsFor, showsPrice, styleById, sizePricesFor, peso,
 } from '../data/orderConfig.js'
 import '../design/GuidedWalkthrough.css'
@@ -145,6 +147,18 @@ export default function GuidedWalkthrough() {
   const [showQuote, setShowQuote] = useState(false)
   const { placeOrder, redirectToSignIn } = useCheckout()
 
+  // "See quotation" is reached at the very END of the scroll track, so returning to the top
+  // would throw away the customer's place (and, since `step` is derived from scroll, their
+  // step too). Remember the scroll position and put them back on it.
+  const trackScrollRef = useRef(0)
+  const openQuote = () => { trackScrollRef.current = window.scrollY; setShowQuote(true) }
+  // Back closes the quote instead of leaving the flow entirely — see useBackToForm.
+  useBackToForm(showQuote, () => setShowQuote(false))
+  useLayoutEffect(() => {
+    if (showQuote) window.scrollTo(0, 0)
+    else if (trackScrollRef.current) window.scrollTo(0, trackScrollRef.current)
+  }, [showQuote])
+
   // Filmed scroll-scrub footage takes priority when the current fit+collar has it
   // (works regardless of WebGL). Otherwise: 3D if supported, else a flat SVG fallback.
   // Computed before `parts` because the design-upload steps below are only offered where a
@@ -243,15 +257,13 @@ export default function GuidedWalkthrough() {
     [],
   )
 
-  // Keep the selected color valid when switching into/between filmed combos —
-  // each combo's photoshoot only covers its own palette.
-  useEffect(() => {
-    if (!scrubVariant) return
-    if (!scrubVariant.colors.some((c) => c.name === form.color)) {
-      set({ color: scrubVariant.colors[0].name })
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scrubVariant])
+  // The color step shows the FULL catalog for the fabric now (see the 'color' step below),
+  // not just whichever colors this fit+collar combo happens to have real photos for — so
+  // picking a not-yet-photographed color is a normal, expected state, not one to silently
+  // correct. GarmentScrub itself falls back to the last color that DID have a photo (or this
+  // combo's first photographed color, if none has been picked yet) rather than blanking out.
+  // `colorHasPhoto` just drives the "showing a reference photo" notice below.
+  const colorHasPhoto = !scrubVariant || scrubVariant.colors.some((c) => c.name === form.color)
 
   // GarmentScrub and GarmentStage both drive `step` themselves via onStep (reading
   // scroll every frame). Only the flat-SVG fallback needs this manual listener.
@@ -280,13 +292,16 @@ export default function GuidedWalkthrough() {
   const priced = showsPrice(form.style)
   const colorHex = SHIRT_COLOR_HEX[form.color] || '#111111'
 
+  // (Keeping the selected swatch on screen lives inside ColorSwatches now. It must never move
+  // WINDOW scroll from here — `step` is derived from window scroll, so a few px of drift would
+  // jump the customer to a different step — which the shared helper guarantees.)
+
   if (showQuote) {
     return (
       <div className="gw-page">
         <Navbar />
         <div className="gw-quote-wrap">
           <QuoteSummary form={{ ...form, hasDesign }} qty={form.qty}
-            onChange={() => { setShowQuote(false); window.scrollTo(0, 0) }}
             onProceed={(delivery) => placeOrder({ path: 'guided', form: { ...form, hasDesign }, qty: form.qty, delivery })}
             onSignIn={() => redirectToSignIn({ path: 'guided', form: { ...form, hasDesign }, qty: form.qty })} />
         </div>
@@ -369,6 +384,15 @@ export default function GuidedWalkthrough() {
               {String(Math.min(step + 1, N)).padStart(2, '0')} <span>/ {String(N).padStart(2, '0')}</span>
             </div>
             {step === 0 && <div className="gw-im-cue">Scroll to explore ↓</div>}
+            {/* Persistent (not just on the color step) — the stage keeps showing a reference
+                photo for as long as this is true, on every step after color, so the notice
+                stays up rather than only flashing once at the moment of picking. */}
+            {!colorHasPhoto && (
+              <div className="gw-photo-notice">
+                Photo not available yet for <strong>{form.color}</strong> — showing a
+                reference photo instead.
+              </div>
+            )}
 
             <aside className="gw-im-panel">
             {active.key === 'style' && (
@@ -425,24 +449,12 @@ export default function GuidedWalkthrough() {
               </div>
             )}
             {active.key === 'color' && (
-              <div className="gw-swatch-groups">
-                {groupColorsByCategory(
-                  scrubVariant
-                    ? scrubVariant.colors.filter((c) => isColorAvailableForFabric(c.name, form.fabric))
-                    : colorsForFabric(form.fabric)
-                ).map((group) => (
-                  <div className="gw-color-group" key={group.slug}>
-                    <div className="gw-color-group-label">{group.label}</div>
-                    <div className="gw-swatches">
-                      {group.colors.map((c) => (
-                        <button key={c.name} className={'gw-swatch' + (form.color === c.name ? ' gw-swatch--on' : '')} title={c.name} onClick={() => set({ color: c.name })}>
-                          <span style={{ background: c.hex }} />{c.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <ColorSwatches
+                className="gw-cpick"
+                colors={colorsForFabric(form.fabric)}
+                value={form.color}
+                onChange={(name) => set({ color: name })}
+              />
             )}
 
             {active.key === 'printChoice' && (
@@ -510,26 +522,15 @@ export default function GuidedWalkthrough() {
         </div>
       </div>
 
-      {/* immersive live estimate + see-quote (translucent) */}
-      <div className="gw-im-bar">
-        <div className="gw-bar-stats">
-          <div className="gw-bar-stat--perpc">
-            <div className="gw-bar-k">Per piece</div>
-            <div className="gw-bar-v">{peso(t.perPc)}</div>
-          </div>
-          <div className="gw-bar-stat--qty">
-            <div className="gw-bar-k">Quantity</div>
-            <div className="gw-bar-v gw-bar-v--sm">{form.qty} pcs</div>
-          </div>
-          <div className="gw-bar-stat--total">
-            <div className="gw-bar-k">Total (incl. sample fee)</div>
-            <div className="gw-bar-v gw-bar-v--sm">{peso(t.grandTotal)}</div>
-          </div>
-        </div>
-        <div className="gw-bar-actions">
-          <button className="gw-bar-cta" onClick={() => setShowQuote(true)}>See quotation →</button>
-        </div>
-      </div>
+      {/* live estimate — shared with the other two paths, see components/QuoteBar.jsx. This
+          used to be three separate stat columns that wrapped onto two rows (112px tall on a
+          phone); the qty and grand total now ride in the sub-line instead. */}
+      <QuoteBar
+        label="Live estimate · per pc"
+        price={peso(t.perPc)}
+        sub={`${form.qty} pcs · ${peso(t.grandTotal)} incl. sample fee`}
+        onCta={openQuote}
+      />
 
       <Footer />
     </div>

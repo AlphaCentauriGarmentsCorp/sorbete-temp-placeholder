@@ -17,24 +17,29 @@
 // single scrolling order form (numbered sections, not paginated steps) that hands off
 // to a separate itemized quote screen — not the earlier step-1..step-5 wizard this file
 // used to have.
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import {
   IoStorefrontOutline, IoClose, IoCopyOutline, IoCheckmarkCircle, IoDownloadOutline,
   IoArrowForward, IoPeopleOutline, IoLocationOutline, IoInformationCircleOutline,
-  IoRefreshOutline,
+  IoRefreshOutline, IoCloudUploadOutline, IoBrushOutline,
 } from 'react-icons/io5'
-import { navigate } from '../utils/navigation.js'
+import { navigate, getParam } from '../utils/navigation.js'
 import { copyToClipboard } from '../utils/format.js'
+import { downloadQuotePdf } from '../utils/pdf.js'
 import { useCheckout } from '../hooks/useCheckout.js'
+import { useBackToForm, goBackToForm } from '../hooks/useBackToForm.js'
 import { useSession } from '../context/SessionContext.jsx'
 import { getJSON, setJSON, remove } from '../utils/storage.js'
 import AddressPicker from '../components/AddressPicker.jsx'
+import QuoteBar from '../components/QuoteBar.jsx'
+import ColorSwatches from '../components/ColorSwatches.jsx'
+import { uploadDesignFile } from '../api/orders.js'
 import { useGarmentForm, DEFAULT_GARMENT_FORM } from '../hooks/useGarmentForm.js'
 import {
-  STYLES, ORDERABLE_STYLES, FITS, SIZES, COLLARS, SLEEVES, FABRICS, colorsForFabric, groupColorsByCategory,
+  STYLES, ORDERABLE_STYLES, FITS, SIZES, COLLARS, SLEEVES, FABRICS, colorsForFabric,
   PRINT_COLOR_OPTIONS, BACK_PRINT_COLOR_OPTIONS, PRINT_CHOICES, PLACEMENTS, PRINT_COLOR_FEE,
   hemsFor, showsPrice, styleById, sizePricesFor, priceBreakdown, printColorsSummary, peso, MIN_QTY,
-  QUOTE_MIN_NOTE_TAIL,
+  QUOTE_MIN_NOTE_TAIL, ARTIST_CONSULT_FEE,
 } from '../data/orderConfig.js'
 import floorplanSrc from '../assets/walkin-floorplan.webp'
 import '../design/WalkInForm.css'
@@ -54,13 +59,21 @@ const PIN_ORDER = ['entrance', 'qr', 'rack', 'csr', 'artist', 'staff', 'restroom
 const ROUTES = {
   'qr>rack': [[76, 72], [74, 79], [66, 82], [58, 80], [52, 73], [50, 66], [49.5, 60]],
   'rack>csr': [[49.5, 60], [54, 56], [57, 51], [56, 47], [51, 45], [49.8, 42]],
+  // 'Yes, let's talk' (Print & Design section) — Station 4 was defined in STATIONS from
+  // the start but never had a route until now, so it never actually appeared reachable.
+  'rack>artist': [[49.5, 60], [51, 50], [49.8, 42], [51, 32], [53, 24], [53.8, 19.4]],
 }
 // Which map state each phase shows — only these three screens carry the map, matching
-// the prototype (the order form itself and the quote screen render no map).
+// the prototype (the order form itself and the quote screen render no map). The
+// 'rack>artist' route above is shown inline inside the 'form' phase instead (see the
+// "Modify with our artist?" block), not through this phase-level lookup.
 const MAP_BY_PHASE = {
   welcome: { current: 'qr', destination: 'rack', visited: ['qr'] },
   browse: { current: 'rack', destination: null, visited: ['qr', 'rack'] },
   'assist-yes': { current: 'rack', destination: 'csr', visited: ['qr', 'rack'] },
+  // "Yes, let's talk" (Print & Design section) — its own dedicated screen, same shape as
+  // assist-yes's "routed to a station" pattern, not an inline reveal inside the form.
+  artist: { current: 'rack', destination: 'artist', visited: ['qr', 'rack'] },
 }
 
 function MapArrows({ route }) {
@@ -134,7 +147,7 @@ function Option({ title, sub, selected, onClick }) {
 
 // Disclosure-gate quote text (§3 of CLAUDE.md — the customer must see the ×MIN_QTY
 // minimum and the full total before the sample fee is charged, not just per-piece price).
-function buildWalkInQuoteText(form, sh, hasDesign, breakdown, t, label, phone) {
+function buildWalkInQuoteText(form, sh, hasDesign, breakdown, t) {
   return [
     'Sorbetes Apparel — Walk-in Quotation', '',
     'Style: ' + styleById(form.style).label,
@@ -148,15 +161,13 @@ function buildWalkInQuoteText(form, sh, hasDesign, breakdown, t, label, phone) {
     hasDesign ? 'Print: ' + printColorsSummary(form) : 'Print: Plain (no print)',
     hasDesign && form.placement ? 'Placement: ' + form.placement : null,
     'Quantity: ' + form.qty + ' pcs',
-    label ? 'Design / label: ' + label : null,
-    phone ? 'Contact: ' + phone : null,
     '',
     'PRICE BREAKDOWN (per piece)',
     ...breakdown.lines.map((l) => l.label + ': ' + (l.key === 'base' ? peso(l.amount) : (l.amount ? '+' + peso(l.amount) : 'Included'))),
     '',
     'Per piece: ' + peso(t.perPc),
     'Garment total × ' + form.qty + ' pcs: ' + peso(t.total),
-    'Sample fee: ' + peso(t.sampleFee),
+    'Sample fee: ' + peso(t.sampleFee) + (form.wantsArtistConsult ? ' (incl. design session)' : ''),
     'Total (incl. sample fee): ' + peso(t.grandTotal),
     '60% downpayment: ' + peso(t.dp),
     '40% balance at pickup: ' + peso(t.bal),
@@ -397,17 +408,44 @@ export default function WalkInForm() {
   const { isAuthenticated, ready } = useSession()
   // Consume a stashed draft once (guest built a quote, went to sign in, came back):
   // resume straight at the quote with the address step already open.
-  const draft = useRef(getJSON(WALKIN_DRAFT_KEY)).current
+  //
+  // ⚠️ ONLY when we genuinely came back from that sign-in redirect, which `?resume=1` marks
+  // (signInToContinue sets it). Owner-reported 2026-08-13: a guest who tapped "Sign in to
+  // continue" and then abandoned the auth page left this draft sitting in localStorage, and
+  // the NEXT plain visit to ?page=walk-in silently resumed it — landing on someone else's
+  // quotation and skipping Welcome/Browse entirely. On a shared in-store kiosk that means
+  // the next customer inherits the previous customer's order. (This is the same defect
+  // §11 already records in the throwaway prototype's restart() — it had made it into the
+  // real kiosk.) The draft is ONLY ever a bridge across the auth round-trip; back-navigation
+  // from the quote is in-memory + history now (see hooks/useBackToForm.js), never storage.
+  const draft = useRef(getParam('resume') === '1' ? getJSON(WALKIN_DRAFT_KEY) : null).current
+  // Always clear, resuming or not, so an abandoned draft can never linger for anyone else.
   useEffect(() => { remove(WALKIN_DRAFT_KEY) }, [])
   const { form, set, sh, hasDesign, pickStyle, pickFabric, totals: t } = useGarmentForm(
     draft?.form ? { ...DEFAULT_GARMENT_FORM, ...draft.form } : DEFAULT_GARMENT_FORM,
   )
   // 'welcome' | 'browse' | 'assist' | 'assist-yes' | 'form' | 'quote'
   const [phase, setPhase] = useState(draft ? 'quote' : 'welcome')
-  const [label, setLabel] = useState(draft?.label || '')
-  const [notes, setNotes] = useState(draft?.notes || '')
-  const [phone, setPhone] = useState(draft?.phone || '')
+  // The design file itself is never part of `form` — like GuidedWalkthrough's design-
+  // upload preview, a raw File can't ride in the JSON blob that gets sent/logged with the
+  // order. It's uploaded as its own authenticated follow-up request once the order exists
+  // (see placeWalkIn()), the same way payment proofs and change-request photos already do.
+  const [designFile, setDesignFile] = useState(null)
   const [showAddress, setShowAddress] = useState(!!draft)
+  const addressRef = useRef(null)
+  // "Place order" only REVEALS this section on its first tap (see handlePlaceOrder below) —
+  // it was easy to tap it and see nothing happen, since the newly-shown address box could
+  // land below the fold with no scroll to it. Bring it into view the moment it appears.
+  //
+  // `nearest`, NOT `start` (owner-reported 2026-08-13: "ang oa ng pag swipe... hanggang baba
+  // talaga"). `start` tries to pin the box to the TOP of the scroller, but this box sits near
+  // the end of the content, so there's nothing left to scroll past it — the browser clamps at
+  // max scroll and you land at the very bottom, a long dramatic slide for what should be a
+  // nudge. `nearest` scrolls the minimum needed to reveal it, and nothing at all if it's
+  // already visible.
+  useEffect(() => {
+    if (showAddress) addressRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }, [showAddress])
   const [delivery, setDelivery] = useState(null)
   const [placing, setPlacing] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -425,12 +463,19 @@ export default function WalkInForm() {
   const sampleSectionNum = hasPrintStep ? 4 : 3
 
   const copyQuote = () => {
-    const text = buildWalkInQuoteText(form, sh, hasDesign, breakdown, t, label, phone)
+    const text = buildWalkInQuoteText(form, sh, hasDesign, breakdown, t)
     copyToClipboard(text).then(() => {
       setCopied(true)
       clearTimeout(copyTimer.current)
       copyTimer.current = setTimeout(() => setCopied(false), 2200)
     })
+  }
+
+  // A real, directly downloadable PDF — not window.print()'s browser dialog. Reuses the
+  // exact same text "Copy quote" already builds, so the two can't drift from each other.
+  const savePdf = () => {
+    const text = buildWalkInQuoteText(form, sh, hasDesign, breakdown, t)
+    downloadQuotePdf(text, `Sorbetes-Walkin-Quote-${new Date().toISOString().slice(0, 10)}.pdf`)
   }
 
   // First click reveals the address step (nothing asked for it until now); once an
@@ -444,31 +489,71 @@ export default function WalkInForm() {
   // AddressPicker never mounts for a guest here (same rule as the online paths), so
   // an address can only ever be added while signed in and lands in their account.
   const signInToContinue = () => {
-    setJSON(WALKIN_DRAFT_KEY, { form: { ...form }, label, notes, phone })
-    navigate('?page=auth&next=' + encodeURIComponent('?page=walk-in'))
+    setJSON(WALKIN_DRAFT_KEY, { form: { ...form } })
+    // resume=1 is what authorises the draft above to be re-applied on the way back.
+    navigate('?page=auth&next=' + encodeURIComponent('?page=walk-in&resume=1'))
   }
 
   const placeWalkIn = async () => {
     if (placing) return
     setPlacing(true)
     try {
-      await placeOrder({
+      const order = await placeOrder({
         path: 'walkin',
-        form: { ...form, hasDesign, label: label.trim() || null, notes: notes.trim() || null, phone: phone.trim() || null },
+        form: { ...form, hasDesign },
         qty: form.qty,
         delivery,
       })
+      // Best-effort: the order itself is already placed at this point, so a failed
+      // upload shouldn't block anything — the customer/staff can still sort the design
+      // file out some other way, same as before this feature existed.
+      if (order && designFile) {
+        uploadDesignFile(order.id, designFile).catch((err) => console.error('Design file upload failed:', err))
+      }
     } finally {
       setPlacing(false)
     }
   }
 
-  const phaseDotKey = phase === 'assist-yes' ? 'assist' : phase === 'quote' ? 'form' : phase
+  const phaseDotKey = phase === 'assist-yes' ? 'assist' : (phase === 'quote' || phase === 'artist') ? 'form' : phase
 
   // Scrolling lives INSIDE the device shell (the phone-frame card on desktop), so a
   // phase change must reset the shell's own scroll, not the window's.
   const mainRef = useRef(null)
-  useEffect(() => { mainRef.current?.scrollTo?.({ top: 0 }) }, [phase])
+  // ...except when coming BACK to the form from an overlay phase. "See quotation" and
+  // "Yes, let's talk" are both reached near the bottom of a long form, so resetting to the
+  // top on return would dump the customer far from where they left off (owner-reported
+  // 2026-08-13). useLayoutEffect, not useEffect: restoring after paint shows a visible
+  // jump from the top.
+  const formScrollRef = useRef(0)
+  const restoreFormScrollRef = useRef(false)
+  useLayoutEffect(() => {
+    const el = mainRef.current
+    if (!el) return
+    if (restoreFormScrollRef.current) {
+      el.scrollTo?.({ top: formScrollRef.current })
+      restoreFormScrollRef.current = false
+    } else {
+      el.scrollTo?.({ top: 0 })
+    }
+  }, [phase])
+
+  // The colour picker is one long horizontal strip (~9,000px for a 124-colour tier), so the
+  // selected swatch is very often scrolled out of sight — the default Black sits in Earth
+  // Tones, the 6th category. On the old wrapped grid the selection was always on screen;
+  // without this it silently isn't. Only scrolls when it's actually out of view, so tapping
+  // a visible swatch doesn't yank the strip around under the customer's finger.
+  // (Keeping the selected swatch in view now lives inside ColorSwatches itself.)
+
+  // Leaving the form for an overlay phase ('quote' | 'artist') — stash where they were.
+  const leaveFormFor = (next) => {
+    formScrollRef.current = mainRef.current?.scrollTop || 0
+    setPhase(next)
+  }
+  const backToForm = () => { restoreFormScrollRef.current = true; setPhase('form') }
+  // Back closes the overlay instead of exiting the kiosk to ?page=walk-ins — see
+  // useBackToForm. Covers the Graphic Artist screen too, same class of overlay.
+  useBackToForm(phase === 'quote' || phase === 'artist', backToForm)
 
   return (
     <div className="wk-page">
@@ -483,6 +568,7 @@ export default function WalkInForm() {
           {phase === 'browse' && ' Step 1 · Browse'}
           {phase === 'assist' && ' Before you order'}
           {phase === 'assist-yes' && ' Assistance'}
+          {phase === 'artist' && ' Graphic Artist'}
           {phase === 'form' && ' Step 2 · Sample order'}
           {phase === 'quote' && ' Sample quotation · per piece'}
         </span>
@@ -664,20 +750,11 @@ export default function WalkInForm() {
                 </div>
 
                 <div className="wk-field-label">Color</div>
-                {groupColorsByCategory(colorsForFabric(form.fabric)).map((group) => (
-                  <div className="wk-color-group" key={group.slug}>
-                    <div className="wk-color-group-label">{group.label}</div>
-                    <div className="wk-swatches">
-                      {group.colors.map((c) => (
-                        <button key={c.name} type="button" className={'wk-swatch' + (form.color === c.name ? ' wk-swatch--on' : '')}
-                          onClick={() => set({ color: c.name })}>
-                          <span className="wk-swatch-chip" style={{ background: c.hex }} />
-                          <span className="wk-swatch-name">{c.name}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+                <ColorSwatches
+                  colors={colorsForFabric(form.fabric)}
+                  value={form.color}
+                  onChange={(name) => set({ color: name })}
+                />
               </div>
 
               {hasPrintStep && (
@@ -752,10 +829,56 @@ export default function WalkInForm() {
                         </>
                       )}
 
-                      <div className="wk-field-label">Design details</div>
-                      <textarea className="wk-input" rows="3" value={notes}
-                        placeholder="Describe the print, or bring a reference / file to show at the counter"
-                        onChange={(e) => setNotes(e.target.value)} />
+                      <div className="wk-field-label">Your design file</div>
+                      <label className="wk-design-upload">
+                        <input
+                          type="file"
+                          className="wk-design-upload-input"
+                          accept=".png,.jpg,.jpeg,.svg,.pdf,.ai,.psd"
+                          onChange={(e) => setDesignFile(e.target.files?.[0] || null)}
+                        />
+                        <span className="wk-design-upload-ico"><IoCloudUploadOutline /></span>
+                        {designFile ? (
+                          <>
+                            <span className="wk-design-upload-t">{designFile.name}</span>
+                            <span className="wk-design-upload-s">Tap to replace</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="wk-design-upload-t">Tap to upload your design</span>
+                            <span className="wk-design-upload-s">PNG, JPG, SVG, PDF, AI or PSD</span>
+                          </>
+                        )}
+                      </label>
+                      {designFile && (
+                        <button type="button" className="wk-design-remove" onClick={() => setDesignFile(null)}>
+                          <IoClose /> Remove file
+                        </button>
+                      )}
+                      <div className="wk-note-box">
+                        <span>Our graphic artist reviews every design. <strong>If anything needs adjusting, we'll message you</strong> — you don't need to wait around.</span>
+                      </div>
+
+                      <div className="wk-field-label">Modify with our artist?</div>
+                      <div className="wk-grid">
+                        <Option
+                          title="No, it's final"
+                          sub="We'll message you if needed"
+                          selected={!form.wantsArtistConsult}
+                          onClick={() => set({ wantsArtistConsult: false })}
+                        />
+                        <Option
+                          title="Yes, let's talk"
+                          sub={`+${peso(ARTIST_CONSULT_FEE)} · Station 4`}
+                          selected={!!form.wantsArtistConsult}
+                          onClick={() => { set({ wantsArtistConsult: true }); leaveFormFor('artist') }}
+                        />
+                      </div>
+                      {form.wantsArtistConsult && (
+                        <div className="wk-note-box">
+                          <span>Design session added — <strong>+{peso(ARTIST_CONSULT_FEE)} on your sample fee.</strong> Tap "Yes, let's talk" again anytime to see the directions to Station 4.</span>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
@@ -764,7 +887,7 @@ export default function WalkInForm() {
               <div className="wk-section">
                 <div className="wk-section-num"><span className="wk-section-n">{sampleSectionNum}</span>Sample &amp; next steps</div>
                 <div className="wk-note-box">
-                  <span>You're ordering <strong>one sample piece</strong>, priced per piece. Set your production quantity and contact info below so we can prep your quotation.</span>
+                  <span>You're ordering <strong>one sample piece</strong>, priced per piece. Set your production quantity below so we can prep your quotation.</span>
                 </div>
 
                 <div className="wk-qty-row">
@@ -774,13 +897,22 @@ export default function WalkInForm() {
                   <button className="wk-qty-btn" onClick={() => set({ qty: (form.qty || MIN_QTY) + 10 })}>+</button>
                 </div>
                 <div className="wk-hint">Minimum {MIN_QTY} pcs · steps of 10</div>
+              </div>
+            </div>
+          )}
 
-                <div className="wk-fields wk-contact">
-                  <input className="wk-input" type="text" value={label} placeholder="Design name / label (optional)"
-                    onChange={(e) => setLabel(e.target.value)} />
-                  <input className="wk-input" type="tel" value={phone} placeholder="Contact number (optional — for staff to reach you)"
-                    onChange={(e) => setPhone(e.target.value)} />
-                </div>
+          {/* "Yes, let's talk" — its own dedicated wayfinding screen, same shape as
+              assist-yes's "routed to a station" pattern. The map itself is already rendered
+              above by the MAP_BY_PHASE lookup at the top of wk-inner. */}
+          {phase === 'artist' && (
+            <div className="wk-panel">
+              <div className="wk-design-upload-ico wk-artist-icon"><IoBrushOutline /></div>
+              <h1 className="wk-h1 wk-h1--sub">Talk to our<br />Graphic Artist</h1>
+              <p className="wk-note">
+                Head to <strong>Graphic Artist · Station 4</strong> — they'll make the changes you want to your design.
+              </p>
+              <div className="wk-callout">
+                Come back here when you're done — you'll pick up your order right where you left off.
               </div>
             </div>
           )}
@@ -832,7 +964,7 @@ export default function WalkInForm() {
                   <span>Garment total × {form.qty} pcs</span><span>{priced ? peso(t.total) : '—'}</span>
                 </div>
                 <div className="wk-quote-row wk-quote-muted">
-                  <span>+ Sample fee</span><span>{peso(t.sampleFee)}</span>
+                  <span>+ Sample fee{form.wantsArtistConsult ? ' (incl. design session)' : ''}</span><span>{peso(t.sampleFee)}</span>
                 </div>
                 <div className="wk-quote-row wk-quote-total">
                   <span>Total (incl. sample fee)</span><span>{priced ? peso(t.grandTotal) : '—'}</span>
@@ -854,17 +986,17 @@ export default function WalkInForm() {
                     <span className="wk-quote-tool-s">{copied ? 'Ready to paste' : 'Text to clipboard'}</span>
                   </span>
                 </button>
-                <button type="button" className="wk-quote-tool" onClick={() => window.print()}>
+                <button type="button" className="wk-quote-tool" onClick={savePdf}>
                   <span className="wk-quote-tool-ico"><IoDownloadOutline /></span>
                   <span className="wk-quote-tool-body">
                     <span className="wk-quote-tool-t">Save as PDF</span>
-                    <span className="wk-quote-tool-s">Print-ready copy</span>
+                    <span className="wk-quote-tool-s">Downloads a PDF file</span>
                   </span>
                 </button>
               </div>
 
               {showAddress && (
-                <div className="wk-spec-box">
+                <div className="wk-spec-box wk-address-box" ref={addressRef}>
                   <div className="wk-spec-head">Delivery address</div>
                   {ready && (isAuthenticated ? (
                     <AddressPicker value={delivery} onChange={setDelivery} />
@@ -892,27 +1024,38 @@ export default function WalkInForm() {
       {/* wk-foot--rail: the form phase flips the bar to the prototype's black "live
           estimate" rail (tiny label + big Anton price + gold CTA); every other phase
           is a white action bar. Visual modifier only — same buttons, same handlers. */}
-      <footer className={'wk-foot' + (phase === 'form' ? ' wk-foot--rail' : '')}>
-        {phase === 'form' && (
-          <>
-            <div className="wk-foot-price">
-              <span className="wk-foot-k">Sample price · per pc</span>
-              <span className="wk-foot-v">{priced ? peso(t.perPc) : 'Ask CSR'}</span>
-            </div>
-            <div className="wk-foot-actions">
-              <button className="wk-foot-primary wk-foot-gold" onClick={() => setPhase('quote')}>See quotation <IoArrowForward /></button>
-            </div>
-          </>
-        )}
+      {/* The form phase uses the shared QuoteBar (components/QuoteBar.jsx) instead of the
+          white .wk-foot shell — fixed={false} because here it's an ordinary flex child of the
+          device shell, not pinned to the viewport. Every other phase keeps the kiosk's own
+          white action bar and its five shared footer buttons, which this must not disturb. */}
+      {phase === 'form' && (
+        <QuoteBar
+          fixed={false}
+          label="Live estimate · per pc"
+          price={priced ? peso(t.perPc) : 'Ask CSR'}
+          sub={`${form.qty} pcs · ${peso(t.grandTotal)} incl. sample fee`}
+          onCta={() => leaveFormFor('quote')}
+        />
+      )}
+      {phase !== 'form' && (
+      <footer className="wk-foot">
+        {/* No "Change" button — removed 2026-08-13 (owner's call); Back returns to the form
+            and restores its scroll position, which Change never did. */}
         {phase === 'quote' && (
           <div className="wk-foot-actions wk-foot-actions--full">
-            <button className="wk-foot-ghost" onClick={() => setPhase('form')}>Change</button>
             <button className="wk-foot-primary wk-foot-gold" onClick={handlePlaceOrder} disabled={placing || (showAddress && !delivery)}>
               {placing ? 'Placing…' : <>Place order <IoArrowForward /></>}
             </button>
           </div>
         )}
-        {phase !== 'form' && phase !== 'quote' && (
+        {phase === 'artist' && (
+          <div className="wk-foot-actions wk-foot-actions--full">
+            {/* history.back(), not setPhase — keeps the entry useBackToForm pushed in sync
+                with what's on screen, so Back never costs a dead press afterwards. */}
+            <button className="wk-foot-primary" onClick={goBackToForm}>Back to my order <IoArrowForward /></button>
+          </div>
+        )}
+        {phase !== 'form' && phase !== 'quote' && phase !== 'artist' && (
           <div className="wk-foot-actions wk-foot-actions--full">
             {phase !== 'welcome' && (
               <button
@@ -928,6 +1071,7 @@ export default function WalkInForm() {
           </div>
         )}
       </footer>
+      )}
 
       {sheet?.type === 'inspect' && (
         <Sheet title="Reading a rack tag" subtitle="What each line on the tag means" onClose={closeSheet}>

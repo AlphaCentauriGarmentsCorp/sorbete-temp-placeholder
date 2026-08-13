@@ -3,16 +3,19 @@
 // shared QuoteSummary → placeOrder (sign-in gate). No print-method / fulfillment / upload steps.
 // Ported from design-reference/04-Frontend-Update-React-Code/DirectForm.jsx; changes: chrome
 // import path, and onProceed now routes through the checkout hook instead of a dead link.
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
 import QuoteSummary from './QuoteSummary.jsx'
+import QuoteBar from '../components/QuoteBar.jsx'
+import ColorSwatches from '../components/ColorSwatches.jsx'
 import { navigateBack } from '../utils/navigation.js'
+import { useBackToForm } from '../hooks/useBackToForm.js'
 import { useCheckout } from '../hooks/useCheckout.js'
 import { useGarmentForm, DEFAULT_GARMENT_FORM } from '../hooks/useGarmentForm.js'
 import { loadReorder, clearReorder } from '../utils/draftOrder.js'
 import {
-  ORDERABLE_STYLES, FITS, SIZES, COLLARS, SLEEVES, FABRICS, colorsForFabric, groupColorsByCategory,
+  ORDERABLE_STYLES, FITS, SIZES, COLLARS, SLEEVES, FABRICS, colorsForFabric,
   PRINT_COLOR_OPTIONS, BACK_PRINT_COLOR_OPTIONS, PRINT_CHOICES, PLACEMENTS,
   hemsFor, showsPrice, sizePricesFor, peso, MIN_QTY,
 } from '../data/orderConfig.js'
@@ -40,6 +43,23 @@ export default function DirectForm() {
   // Consume the reorder seed once so a refresh starts fresh.
   useEffect(() => { clearReorder() }, [])
 
+  // "See quotation" sits at the BOTTOM of a long form, so returning to the top would dump
+  // the customer far from where they left off. Remember where they were and put them back.
+  const formScrollRef = useRef(0)
+  const openQuote = () => { formScrollRef.current = window.scrollY; setShowQuote(true) }
+  // Back closes the quote instead of leaving the flow entirely — see useBackToForm.
+  useBackToForm(showQuote, () => setShowQuote(false))
+  useLayoutEffect(() => {
+    if (showQuote) window.scrollTo(0, 0)
+    else if (formScrollRef.current) window.scrollTo(0, formScrollRef.current)
+  }, [showQuote])
+
+  // The colour picker is one long horizontal strip (~9,000px for a 124-colour tier), so the
+  // selected swatch is very often scrolled out of sight — the default Black sits in Earth
+  // Tones, the 6th category. On the old wrapped grid the selection was always on screen;
+  // without this it silently isn't. Only scrolls when it's actually out of view, so tapping
+  // a visible swatch doesn't yank the strip around under the customer's finger.
+  // (Keeping the selected swatch in view now lives inside ColorSwatches itself.)
   const hems = hemsFor(form.style)
   const priced = showsPrice(form.style)
 
@@ -51,7 +71,6 @@ export default function DirectForm() {
           <QuoteSummary
             form={{ ...form, hasDesign }}
             qty={form.qty}
-            onChange={() => setShowQuote(false)}
             onProceed={(delivery) => placeOrder({ path: 'instant', form: { ...form, hasDesign }, qty: form.qty, delivery })}
             onSignIn={() => redirectToSignIn({ path: 'instant', form: { ...form, hasDesign }, qty: form.qty })}
           />
@@ -149,24 +168,11 @@ export default function DirectForm() {
           </div>
 
           <div className="df-label">Color</div>
-          {groupColorsByCategory(colorsForFabric(form.fabric)).map((group) => (
-            <div className="df-color-group" key={group.slug}>
-              <div className="df-color-group-label">{group.label}</div>
-              <div className="df-swatches">
-                {group.colors.map((c) => (
-                  <button
-                    key={c.name}
-                    className={'df-swatch' + (form.color === c.name ? ' df-swatch--on' : '')}
-                    title={c.name}
-                    onClick={() => set({ color: c.name })}
-                  >
-                    <span style={{ background: c.hex }} />
-                    {c.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
+          <ColorSwatches
+            colors={colorsForFabric(form.fabric)}
+            value={form.color}
+            onChange={(name) => set({ color: name })}
+          />
         </section>
 
         {/* 3 · Print & Design */}
@@ -267,15 +273,13 @@ export default function DirectForm() {
         </section>
       </div>
 
-      {/* sticky live estimate */}
-      <div className="df-bar">
-        <div className="df-bar-price">
-          <div className="df-bar-k">Live estimate · per pc</div>
-          <div className="df-bar-v">{peso(t.perPc)}</div>
-          <div className="df-bar-sub">{peso(t.total)} total · {peso(t.grandTotal)} incl. sample fee</div>
-        </div>
-        <button className="df-bar-cta" onClick={() => setShowQuote(true)}>See quotation →</button>
-      </div>
+      {/* sticky live estimate — shared with the other two paths, see components/QuoteBar.jsx */}
+      <QuoteBar
+        label="Live estimate · per pc"
+        price={peso(t.perPc)}
+        sub={`${form.qty} pcs · ${peso(t.grandTotal)} incl. sample fee`}
+        onCta={openQuote}
+      />
 
       <Footer />
     </div>

@@ -1,6 +1,6 @@
 // src/components/AccountNav.jsx — sub-nav shared across the account-settings pages.
 // Mirrors the prototype's Account ↔ Address ↔ Rewards ↔ Founder's Club sub-nav
-// (the password page is dropped — Google-only auth, spec §2).
+// (there's no separate change-password page — see Auth.jsx for the actual sign-in flow).
 import { navigate, getPageParam } from '../utils/navigation.js'
 
 const ITEMS = [

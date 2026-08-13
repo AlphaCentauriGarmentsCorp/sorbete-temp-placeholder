@@ -175,18 +175,6 @@
 .wk-quote-tool--ok .wk-quote-tool-ico { background: #178a4c; color: #fff; animation: wk-pop 0.35s cubic-bezier(0.22, 1.2, 0.36, 1) both; }
 .wk-quote-tool--ok .wk-quote-tool-t { color: #178a4c; }
 
-/* Save as PDF — print only the quote card */
-@media print {
-  body * { visibility: hidden !important; }
-  #wkQuoteCard, #wkQuoteCard * { visibility: visible !important; }
-  #wkQuoteCard {
-    position: absolute !important; left: 0; top: 0;
-    width: 100% !important; box-shadow: none !important; border: none !important;
-    margin: 0 !important; padding: 24px !important;
-  }
-  #wkQuoteCard * { animation: none !important; transition: none !important; }
-}
-
 /* Dark callout at the top of the order form — "this is a sample, priced per piece" */
 .wk-dark-note {
   display: flex; gap: 9px; align-items: flex-start; background: var(--wk-black);
@@ -214,9 +202,43 @@
 .wk-note-box span { font-size: 11px; line-height: 1.4; color: var(--wk-ink-3); font-weight: 500; }
 .wk-note-box strong { color: var(--wk-black); }
 
+/* "Your design file" upload tile (Print & Design section, 2026-08-13) — dashed drop-zone
+   matching the wk-opt/wk-note-box visual language already used across this file. The real
+   <input type="file"> is visually hidden underneath a styled <label> so the whole tile is
+   the tap target. */
+.wk-design-upload {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  position: relative; border: 1.5px dashed var(--wk-line); border-radius: 14px; padding: 22px 14px;
+  background: var(--wk-white); cursor: pointer; text-align: center; margin-bottom: 8px;
+  transition: border-color 0.14s ease;
+}
+.wk-design-upload:active { transform: scale(0.99); }
+.wk-design-upload-input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.wk-design-upload-ico {
+  display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%;
+  background: var(--wk-black); color: var(--wk-yellow); font-size: 18px; margin-bottom: 4px;
+}
+.wk-design-upload-t { font-size: 13px; font-weight: 800; color: var(--wk-black); overflow-wrap: anywhere; }
+.wk-design-upload-s { font-size: 10.5px; color: var(--wk-gray); font-weight: 600; }
+
+.wk-design-remove {
+  display: inline-flex; align-items: center; gap: 4px; margin: 0 0 12px; padding: 0;
+  border: none; background: none; font-family: inherit; font-size: 11px; font-weight: 700;
+  color: var(--wk-ink-3); cursor: pointer;
+}
+.wk-design-remove:active { opacity: 0.6; }
+
+/* "Yes, let's talk" wayfinding screen (phase === 'artist') — its own dedicated icon,
+   centered above the heading; the map itself is the shared MAP_BY_PHASE-driven .wk-map
+   already rendered at the top of every phase that needs one. */
+.wk-artist-icon { margin: 0 auto; }
+
 /* Quotation spec grid — "Your specs" table on the quote screen */
-.wk-spec-box { border: 1.5px solid var(--wk-line); border-radius: 14px; overflow: hidden; margin-bottom: 16px; }
+.wk-spec-box { background: var(--wk-white); border: 1.5px solid var(--wk-line); border-radius: 14px; overflow: hidden; margin-bottom: 16px; }
 .wk-spec-head { background: #F4F1E9; padding: 8px 14px; font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--wk-gray); border-bottom: 1.5px solid var(--wk-line); }
+/* Breathing room when scrollIntoView({ block: 'nearest' }) settles this box against the
+   bottom edge of the scroller — see the effect in WalkInForm.jsx. */
+.wk-address-box { scroll-margin-bottom: 14px; }
 .wk-spec-grid { display: grid; grid-template-columns: 1fr 1fr; }
 .wk-spec-cell { background: var(--wk-white); padding: 10px 14px; border-right: 1px solid var(--wk-rule); border-bottom: 1px solid var(--wk-rule); }
 .wk-spec-cell:nth-child(2n) { border-right: none; }
@@ -245,29 +267,28 @@
 .wk-opt--on .wk-opt-t { color: var(--wk-yellow); }
 .wk-opt--on .wk-opt-s { color: rgba(255, 255, 255, 0.6); }
 
-.wk-swatches { display: flex; flex-wrap: wrap; gap: 12px; }
-.wk-swatch {
-  display: flex; flex-direction: column; align-items: center; gap: 5px; width: 60px;
-  background: none; border: none; cursor: pointer; font: inherit; font-size: 9.5px; font-weight: 700; color: var(--wk-gray); text-align: center;
-}
-.wk-swatch-chip {
-  width: 38px; height: 38px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px rgba(20, 20, 20, 0.14);
-  transition: box-shadow 0.18s ease, transform 0.14s ease;
-}
-.wk-swatch--on .wk-swatch-chip { box-shadow: 0 0 0 2.5px var(--wk-white), 0 0 0 5px var(--wk-black); }
-.wk-swatch--on .wk-swatch-name { color: var(--wk-black); }
+/* The colour picker is ONE horizontally-swiped strip, with every category sitting side by
+   side inside it (owner's call 2026-08-13 — "naaoverwhelm sya ung pinapakita agad sa
+   client"). Same shape GuidedWalkthrough's mobile panel already uses, which he'd signed off
+   on ("okay na yung sa scroll and scrub").
+   Why not one scrolling strip PER category, stacked — the first thing tried: with the full
+   catalog wired in, a GSM tier carries up to 124 colours across 7 categories, and 7 stacked
+   strips still measured 882px, most of a phone screen of nothing but swatches. Side by side
+   it's ~130px.
+   `overscroll-behavior-x: contain` matters more than it looks: without it, swiping past the
+   end chains to the page and can fire the browser's back gesture — which now genuinely
+   leaves the quote screen (see hooks/useBackToForm.js). */
 
-.wk-color-group { margin-bottom: 16px; }
-.wk-color-group:last-child { margin-bottom: 0; }
-.wk-color-group-label {
-  font-size: 9.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
-  color: var(--wk-black); background: var(--wk-yellow); display: inline-block;
-  padding: 3px 10px; border-radius: 999px; margin-bottom: 8px;
-}
+/* Only the OUTER strip scrolls; these rows just size to their content. */
+/* Fixed two-line name box so every category is exactly the same height. Without it a row
+   holding "Choco Brown (Earth Tones, 2318C)" stands several lines taller than one holding
+   "Red", and the strip visibly jumps as you swipe (measured 71px vs 101px). The full name
+   stays reachable through the button's title attribute. */
+
 
 /* Pinned bottom bar — the prototype's app-shell footer: a white action bar holding
    ONE full-width pill (black, or yellow for money/forward actions), flipping to the
-   black "live estimate" rail (.wk-foot--rail) on the form phase. A flex child of the
+   ONE full-width pill. The form phase renders the shared QuoteBar instead of this. A flex child of the
    device shell now (not position: fixed), so it pins to the frame's bottom on desktop
    and to the screen's bottom on a phone — same architecture as the prototype. */
 .wk-foot {
@@ -277,10 +298,9 @@
   border-top: 1px solid var(--wk-line);
   padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
 }
-.wk-foot--rail { background: var(--wk-black); color: var(--wk-white); border-top-color: var(--wk-black); }
-.wk-foot-price { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.wk-foot-k { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; color: rgba(255, 255, 255, 0.5); }
-.wk-foot-v { font-family: var(--wk-font); font-size: 24px; line-height: 1; color: var(--wk-yellow); white-space: nowrap; }
+/* The form phase's black "live estimate" rail moved to the shared components/QuoteBar.jsx
+   on 2026-08-13 so all three paths carry the identical bar — .wk-foot--rail and its
+   price/k/v children went with it. .wk-foot now only ever renders the white action bar. */
 .wk-foot-actions { display: flex; align-items: center; gap: 10px; flex: none; }
 .wk-foot-ghost {
   display: inline-flex; align-items: center; justify-content: center;
@@ -289,7 +309,6 @@
   border-radius: 999px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.03em;
   transition: transform 0.14s ease;
 }
-.wk-foot--rail .wk-foot-ghost { color: var(--wk-white); border-color: rgba(255, 255, 255, 0.3); }
 .wk-foot-primary {
   display: inline-flex; align-items: center; justify-content: center; gap: 10px;
   flex: 1; min-height: 54px;
@@ -306,7 +325,6 @@
 /* Assist phase: the lone Back button stretches so the bar never looks empty */
 .wk-foot-actions--full .wk-foot-ghost:only-child { flex: 1; }
 /* The form-phase rail CTA sizes to content (the price owns the left side) */
-.wk-foot--rail .wk-foot-primary { flex: none; font-size: 15px; min-height: 50px; padding: 0 18px; }
 
 /* Welcome */
 .wk-eyebrow { font-size: 9.5px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--wk-gray); margin-bottom: 4px; }
@@ -582,7 +600,6 @@
 .wk-sheet { animation: wk-sheet-up 0.32s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
 
 .wk-opt:active, .wk-garment:active, .wk-tag-legend-item:active { transform: scale(0.97); }
-.wk-swatch:active .wk-swatch-chip { transform: scale(0.9); }
 .wk-qty-btn { transition: transform 0.14s ease; }
 .wk-qty-btn:active { transform: scale(0.94); }
 

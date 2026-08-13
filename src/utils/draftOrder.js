@@ -1,5 +1,5 @@
 // src/utils/draftOrder.js — persist an in-progress quote across the sign-in redirect.
-// Guests can build a full quote; placing the order requires Google sign-in (spec §2), so
+// Guests can build a full quote; placing the order requires signing in (spec §2), so
 // we stash the draft here, bounce through Auth, and resume it in Checkout. Mirrors the
 // prototype's localStorage summaries (SYSTEM-FLOW §2) but unified into one key.
 import { getJSON, setJSON, remove } from './storage.js'

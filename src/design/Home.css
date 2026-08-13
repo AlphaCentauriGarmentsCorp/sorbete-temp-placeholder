@@ -228,13 +228,11 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
 }
+/* No divider rules between figures (owner's call 2026-08-13) — the band reads as one
+   continuous strip now rather than four boxed cells. */
 .hm-stat {
   padding: 44px 24px 46px;
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
   transition: background 0.2s ease;
-}
-.hm-stat:first-child {
-  border-left: none;
 }
 .hm-stat:hover {
   background: rgba(255, 255, 255, 0.03);
@@ -266,6 +264,12 @@
   margin: 0 auto;
   padding: 64px 16px 8px;
 }
+
+/* Founders Club — full-bleed band, same shape as .hm-stats: the wrapper spans the viewport
+   and only the heading is held in the normal 1100px column, so the testimonial card runs
+   edge to edge (owner's call 2026-08-13). */
+.hm-founders { padding: 64px 0 8px; }
+.hm-founders-head { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
 .hm-section-head {
   margin-bottom: 26px;
 }
@@ -477,17 +481,19 @@
     width: min(78%, 340px);
     margin: 6px auto 4px;
   }
-  .hm-stats-inner {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  /* Stays 4-across at every width (owner's call 2026-08-13) — it used to drop to a 2×2
+     block, which reads as four separate cards rather than one stat band. Type and padding
+     shrink instead so the row still fits a 390px phone. */
   .hm-stat {
-    padding: 30px 20px;
+    padding: 22px 8px 24px;
   }
-  .hm-stat:nth-child(2n + 1) {
-    border-left: none;
+  .hm-stat-k {
+    font-size: clamp(19px, 6.4vw, 34px);
   }
-  .hm-stat:nth-child(n + 3) {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  .hm-stat-v {
+    font-size: 8.5px;
+    letter-spacing: 0.03em;
+    margin-top: 5px;
   }
   .hm-steps {
     grid-template-columns: 1fr;

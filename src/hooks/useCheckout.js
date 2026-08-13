@@ -27,14 +27,14 @@ export function useCheckout() {
 
     if (!isAuthenticated) {
       // Locked gate (spec §2): sign in before placing. Resume at Checkout afterwards.
-      navigate('?page=auth&next=' + encodeURIComponent('?page=checkout'))
+      navigate('?page=auth&next=' + encodeURIComponent('?page=checkout&resume=1'))
       return null
     }
 
-    // WalkInForm collects a phone number into form.phone (there's no dedicated field
-    // for it on the online paths) — pass it through so it lands in orders.customer_phone
-    // instead of being silently dropped. PH customers primarily use phone as their
-    // contact channel, which matters once staff pick this order up in ash_ai.
+    // Generic passthrough: if any path's form ever carries a phone (none currently do —
+    // WalkInForm's own "Contact number" field was removed 2026-08-13, and the online paths
+    // never had one), it lands in orders.customer_phone instead of being silently dropped.
+    // Right now this always resolves to null; see CLAUDE.md §8 for the resulting gap.
     const customer = { name: user.name, email: user.email, phone: form.phone || null }
     const order = await createOrderRecord({ path, form, qty, customer, delivery })
     clearDraft()

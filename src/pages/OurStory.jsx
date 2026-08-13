@@ -3,7 +3,10 @@ import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
 import MarketingHero from '../components/MarketingHero.jsx'
 import MarketingCTA from '../components/MarketingCTA.jsx'
-import { IoCutOutline, IoColorPaletteOutline, IoShieldCheckmarkOutline } from 'react-icons/io5'
+import {
+  IoCutOutline, IoColorPaletteOutline, IoShieldCheckmarkOutline,
+  IoFlagOutline, IoEyeOutline,
+} from 'react-icons/io5'
 import { navigate } from '../utils/navigation.js'
 import { MIN_QTY } from '../data/orderConfig.js'
 import '../design/marketing.css'
@@ -12,6 +15,23 @@ const VALUES = [
   { icon: <IoCutOutline />, title: 'Made in-house', body: 'We cut, sew, and print under one roof — no subcontracting, no reseller markup.' },
   { icon: <IoShieldCheckmarkOutline />, title: 'Sample-first', body: 'You approve a physical sample before a single bulk piece is made. No surprises.' },
   { icon: <IoColorPaletteOutline />, title: 'Built for brands', body: 'Streetwear labels, teams, and orgs — we spec to your fit, fabric, and print.' },
+]
+
+// Ported from the old frontend's `.os-mission-vision` (OurStory.jsx), 2026-08-13 — same copy,
+// rebuilt as flowing markup on this site's own `.mk-*` card system instead of the old page's
+// absolute-pixel-positioned layout (that page pins every section to a fixed 1920×3223 canvas
+// and scales the whole thing down as one image would — not a pattern worth carrying over here).
+const MISSION_VISION = [
+  {
+    icon: <IoFlagOutline />,
+    title: 'Mission',
+    body: 'To provide businesses with high-quality, thoughtfully crafted garments that combine creativity, consistency, and efficient production — helping brands turn their ideas into products they can be proud of.',
+  },
+  {
+    icon: <IoEyeOutline />,
+    title: 'Vision',
+    body: 'To be a trusted apparel partner known for elevating local and growing brands through reliable manufacturing, modern design, and long-term collaboration.',
+  },
 ]
 
 export default function OurStory() {
@@ -53,6 +73,21 @@ export default function OurStory() {
                 <div className="mk-feature-title">{v.title}</div>
                 <div className="mk-feature-body">{v.body}</div>
               </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="mk-section">
+          <div className="mk-section-head"><h2 className="mk-h2">Mission &amp; Vision</h2></div>
+          <div className="mk-mv-grid">
+            {MISSION_VISION.map((m) => (
+              <article className="mk-mv-card" key={m.title}>
+                <div className="mk-mv-head">
+                  <span className="mk-mv-icon-wrap">{m.icon}</span>
+                  <h3 className="mk-mv-title">{m.title}</h3>
+                </div>
+                <p className="mk-mv-body">{m.body}</p>
+              </article>
             ))}
           </div>
         </section>

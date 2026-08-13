@@ -16,7 +16,7 @@ import QuoteSummary from './QuoteSummary.jsx'
 import StubScreen from '../components/StubScreen.jsx'
 import { useSession } from '../context/SessionContext.jsx'
 import { useOrders } from '../context/OrderContext.jsx'
-import { navigate } from '../utils/navigation.js'
+import { navigate, getParam } from '../utils/navigation.js'
 import { loadDraft, clearDraft } from '../utils/draftOrder.js'
 import '../design/Checkout.css'
 
@@ -26,7 +26,11 @@ export default function Checkout() {
   const ran = useRef(false) // guards double-submit (StrictMode / re-render)
   const [err, setErr] = useState(false)
   const [finalizing, setFinalizing] = useState(false)
-  const [draft] = useState(() => loadDraft()) // read once, not on every render
+  // Read once, not on every render — and ONLY when we actually came back from the sign-in
+  // redirect, which useCheckout.js marks with ?resume=1. Without that gate an abandoned
+  // sign-in leaves a draft in localStorage that silently resumes on some unrelated later
+  // visit; see WalkInForm.jsx, where the same defect was reported on the kiosk.
+  const [draft] = useState(() => (getParam('resume') === '1' ? loadDraft() : null))
 
   function finalize(delivery) {
     if (ran.current) return

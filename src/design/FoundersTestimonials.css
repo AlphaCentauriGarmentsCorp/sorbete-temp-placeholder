@@ -1,0 +1,182 @@
+/* src/design/FoundersTestimonials.css — see components/FoundersTestimonials.jsx.
+   Reproduces the original artwork's yellow-panel/photo split, and keeps that LANDSCAPE
+   composition at every width including phones (owner's call) — the card is always wider
+   than it is tall. Type and spacing shrink hard on small screens to hold that, which is
+   only possible because this was rebuilt as real markup instead of reusing the flat
+   1920×693 JPGs.
+
+   ONE proportional system, no per-breakpoint retuning — but with a CEILING. Everything
+   derives from a single scale variable:
+
+       --w: min(100vw, var(--ftc-max));      the card's "design width"
+       --u: calc(var(--w) / 100);            1 unit == 1% of it
+
+   Every size inside the card is written as a multiple of `--u` (so `3 * var(--u)` is what
+   used to be `3vw`), and the card's HEIGHT is `--w / ratio`. Below the ceiling this behaves
+   exactly like the old pure-vw system: a 390px card is still an exact 0.34× copy of a 1143px
+   one, and the height still can't vary between slides. Above it, everything simply stops.
+
+   ⚠️ WHY THE CEILING EXISTS (owner, 2026-08-13: "lumalaki sya nang lumalaki hanggang lumalaki
+   yung screen"). Full-bleed + a pinned aspect-ratio is an unbounded pair: the width tracks the
+   viewport and the height is derived from the width, so nothing ever stops. Measured before
+   the fix — 1600px gave a 1600×800 card, 1920px gave 1920×960, and 2560px gave 2560×1280 with
+   48.6px body copy. Capping `--w` fixes it while keeping the card genuinely edge-to-edge,
+   because the cap limits the card's HEIGHT and its contents, never its width.
+   Above the ceiling the card just gets wider than 2:1 — which is MORE landscape, not less, so
+   it doesn't walk back the "keep it landscape / nakasagad sa gilid" calls that shaped this.
+
+   ⚠️ Do NOT reintroduce clamp() minimums here. Floors like `clamp(84px, 10vw, …)` are exactly
+   what broke the scale before: below ~840px the logo stopped shrinking, crowded the panel and
+   forced the card taller, which is what made it read square on a phone. A ceiling on `--w` is
+   the opposite of that and touches only large screens. Only the arrows/dots carry min sizes,
+   because they are controls rather than artwork. */
+.ftc {
+  --ftc-yellow: #FFD302; /* sampled from the source artwork */
+  --ftc-ink: #141414;
+  /* The one number to change if the card should stop growing sooner or later. At 1240 the
+     card tops out at 620px tall with ~23.6px body copy — a touch larger than the 21.7px the
+     owner signed off on at 1143px. */
+  --ftc-max: 1240px;
+  --ftc-ratio: 2.0;
+  --w: min(100vw, var(--ftc-max));
+  --u: calc(var(--w) / 100);
+  position: relative;
+  /* No max-width / side padding: the card is a full-bleed band (see .hm-founders). */
+  margin: 0;
+  padding: 0;
+}
+
+.ftc-card {
+  display: grid;
+  /* NOT a fixed 68/32 split, and not a percentage either. The photo column is derived from the
+     card HEIGHT via the source portrait's own 614×693 ratio (0.886), and the yellow panel
+     takes whatever is left. That is what lets the card grow taller without ever cropping the
+     founder — make it taller and the photo widens to stay whole, and the yellow gives up the
+     width (owner 2026-08-13: "di mo isasacrifice yung image... yung kulay dilaw ang babawasan
+     mo"). Deriving it from the height rather than a % of the width is also what keeps the
+     portrait whole past the ceiling, where the card is wider than the ratio. */
+  grid-template-columns: 1fr calc(0.886 * var(--w) / var(--ftc-ratio));
+  background: var(--ftc-yellow);
+  border-radius: 4px;
+  overflow: hidden;
+  /* An explicit derived height, NOT aspect-ratio — that is what lets the width stay 100%
+     (full-bleed) while the height stops at the ceiling. It keeps aspect-ratio's own no-jump
+     guarantee, since the height still comes from --w and not from the slide's content.
+     ⚠️ Never pair this with a min-height: an earlier version had both and the browser derived
+     the card's WIDTH from the height, blowing a 390px viewport out to 612px. */
+  height: calc(var(--w) / var(--ftc-ratio));
+}
+
+.ftc-body {
+  display: flex;
+  flex-direction: column;
+  padding: calc(3 * var(--u)) calc(3.5 * var(--u)) calc(3 * var(--u)) calc(6.6 * var(--u));
+  /* Past the ceiling the yellow panel keeps widening (the card is still full-bleed) while its
+     contents have stopped growing, so the panel would otherwise be mostly void with the quote
+     mark stranded against the far right edge — `margin-left: auto` on that mark pins it to
+     whatever the panel's width happens to be. Bounding the panel's CONTENT to the width it has
+     at the ceiling and centring it keeps the whole composition looking exactly as it does at
+     1240px, with the surplus yellow spread evenly around it.
+     Below the ceiling this resolves to the panel's own natural width, so it does nothing. */
+  width: 100%;
+  max-width: calc(var(--w) - 0.886 * var(--w) / var(--ftc-ratio));
+  margin-inline: auto;
+  box-sizing: border-box;
+  animation: ftc-fade 0.45s ease both;
+}
+@keyframes ftc-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.ftc-top { display: flex; align-items: flex-start; gap: calc(3 * var(--u)); }
+/* The old per-logo max-widths (138px / 96px) are gone: the ceiling on --w now caps every size
+   in the card at once, so those only added a second, separate limit to keep in sync. */
+.ftc-fc-logo { width: calc(8.6 * var(--u)); height: auto; flex: none; }
+.ftc-brand-logo {
+  width: calc(5.9 * var(--u)); height: auto; flex: none;
+  align-self: center; object-fit: contain;
+}
+/* Typographic quote mark rather than the source PNG — scales cleanly and needs no asset. */
+.ftc-quote-mark {
+  margin-left: auto; align-self: flex-start;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: calc(7.4 * var(--u)); line-height: 0.72;
+  color: #fff; user-select: none;
+}
+
+.ftc-quote { margin: calc(2.2 * var(--u)) 0 auto; max-width: 68ch; }
+.ftc-quote p {
+  margin: 0 0 calc(1 * var(--u));
+  font-size: calc(1.9 * var(--u));
+  line-height: 1.5;
+  color: var(--ftc-ink);
+}
+.ftc-quote p:last-child { margin-bottom: 0; }
+/* The one testimonial (KUSH) that carries a highlighted pull-line in the original.
+   Selector must out-specify `.ftc-quote p` above (0,1,1) — as a bare `.ftc-highlight`
+   (0,1,0) it lost, and the text rendered ink-on-ink: a solid black bar with nothing in it. */
+.ftc-quote p.ftc-highlight {
+  display: inline-block;
+  background: var(--ftc-ink); color: #fff;
+  font-weight: 700;
+  padding: calc(0.6 * var(--u)) calc(1 * var(--u)); margin-top: calc(0.5 * var(--u));
+}
+
+.ftc-who {
+  display: flex; align-items: center; gap: calc(1.4 * var(--u)); flex-wrap: nowrap;
+  margin-top: calc(2.4 * var(--u));
+}
+.ftc-name {
+  font-family: var(--font-display); font-weight: 900;
+  font-size: calc(2.4 * var(--u)); line-height: 1.1; color: var(--ftc-ink);
+}
+.ftc-role { font-size: calc(1.1 * var(--u)); color: var(--ftc-ink); margin-top: calc(0.2 * var(--u)); }
+.ftc-role strong { font-weight: 800; }
+.ftc-socials { display: flex; gap: calc(0.7 * var(--u)); }
+.ftc-social {
+  width: calc(2.6 * var(--u)); height: calc(2.6 * var(--u)); min-width: 14px; min-height: 14px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: rgba(20, 20, 20, 0.08); color: var(--ftc-ink); font-size: calc(1.1 * var(--u));
+}
+
+.ftc-photo { position: relative; overflow: hidden; background: #ddd; }
+.ftc-photo img {
+  width: 100%; height: 100%; object-fit: cover; object-position: center top;
+  display: block; animation: ftc-fade 0.45s ease both;
+}
+
+/* Arrows — overlaid on desktop, same placement as the original. */
+.ftc-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 44px; height: 44px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: rgba(255, 255, 255, 0.9); color: var(--ftc-ink);
+  border: 1px solid rgba(20, 20, 20, 0.12); cursor: pointer;
+  font-size: 20px; z-index: 2;
+  transition: transform 0.14s ease, background 0.14s ease;
+}
+.ftc-nav:hover { background: #fff; }
+.ftc-nav:active { transform: translateY(-50%) scale(0.94); }
+.ftc-nav--prev { left: 12px; }
+.ftc-nav--next { right: 12px; }
+
+.ftc-dots { display: flex; justify-content: center; gap: 8px; margin-top: 14px; }
+.ftc-dot {
+  width: 8px; height: 8px; border-radius: 50%; padding: 0;
+  border: none; cursor: pointer; background: rgba(20, 20, 20, 0.22);
+  transition: background 0.2s ease, width 0.2s ease;
+}
+.ftc-dot--on { background: var(--ftc-ink); width: 22px; border-radius: 999px; }
+
+/* Full-bleed removed the side margins the overlaid arrows used to sit in, so the prev arrow
+   landed on top of the quote text. Reserve a lane for it wherever the arrows are overlaid
+   (they drop below the card on phones, so this only applies above that breakpoint). */
+/* Arrows scale with the card so they stay in proportion at every width. */
+@media (max-width: 900px) {
+  .ftc-nav { width: calc(4 * var(--u)); height: calc(4 * var(--u)); min-width: 22px; min-height: 22px; font-size: calc(2 * var(--u)); }
+  .ftc-dots { margin-top: calc(2 * var(--u)); }
+  .ftc-dot { width: calc(1 * var(--u)); height: calc(1 * var(--u)); min-width: 5px; min-height: 5px; }
+  .ftc-dot--on { width: calc(2.6 * var(--u)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ftc-body, .ftc-photo img { animation: none; }
+}
