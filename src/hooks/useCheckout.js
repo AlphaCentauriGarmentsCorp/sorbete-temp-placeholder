@@ -50,7 +50,10 @@ export function useCheckout() {
    */
   function redirectToSignIn({ path, form, qty }) {
     saveDraft({ path, form, qty })
-    navigate('?page=auth&next=' + encodeURIComponent('?page=checkout'))
+    // resume=1 is what authorises Checkout to re-apply the draft above. Without it
+    // Checkout reads no draft and bounces to ?page=start, throwing the quote away —
+    // same gate WalkInForm.jsx's signInToContinue() uses for the kiosk.
+    navigate('?page=auth&next=' + encodeURIComponent('?page=checkout&resume=1'))
   }
 
   return { placeOrder, redirectToSignIn }

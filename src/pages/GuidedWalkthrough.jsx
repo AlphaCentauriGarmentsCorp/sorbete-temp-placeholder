@@ -14,6 +14,7 @@ import GarmentScrub from '../components/GarmentScrub.jsx'
 import QuoteSummary from './QuoteSummary.jsx'
 import QuoteBar from '../components/QuoteBar.jsx'
 import ColorSwatches from '../components/ColorSwatches.jsx'
+import { IoEyeOutline } from 'react-icons/io5'
 import { navigateBack } from '../utils/navigation.js'
 import { useBackToForm } from '../hooks/useBackToForm.js'
 import { useCheckout } from '../hooks/useCheckout.js'
@@ -83,6 +84,18 @@ function DesignUploadPanel({ designs, onAdd, onRemove, onResize, side }) {
   }
   return (
     <div className="gw-design-panel">
+      {/* Sits ABOVE the picker on purpose — the customer reads what this upload is for
+          before choosing a file, not after. This is the only place the preview-only rule is
+          stated now: the step card's own hint used to carry it too, but that hint is
+          display:none at ≤820px, so on a phone the message was invisible entirely (and
+          saying it twice on desktop is the duplication that got trimmed once already). */}
+      <div className="gw-design-note">
+        <IoEyeOutline className="gw-design-note-ico" aria-hidden="true" />
+        <span className="gw-design-note-body">
+          <strong className="gw-design-note-t">Preview only · not saved</strong>
+          Just to see how it looks — it doesn’t have to be your final design.
+        </span>
+      </div>
       <input ref={inputRef} type="file" accept="image/*" multiple className="gw-design-input" onChange={handleFiles} />
       <button type="button" className="gw-design-pick" onClick={() => inputRef.current?.click()}>
         {designs.length ? `Add another ${side} image` : `Choose your ${side} design`}
@@ -237,13 +250,16 @@ export default function GuidedWalkthrough() {
       // Gated on scrubVariant (a real photo to lay the upload over) — not offered for
       // Oversized fit, which has no photo at all (always the 3D stage). Preview only, never
       // submitted with the order — see the state declared above.
+      // The "preview only / not saved" half of these hints moved into the panel's own
+      // .gw-design-note badge (see DesignUploadPanel) so it's said once, in one place, and
+      // stays visible on phones — this hint is display:none at ≤820px.
       hasDesign && scrubVariant && {
         key: 'designFront', section: 'Print & Design', label: 'Your front design',
-        hint: 'Upload your artwork to see it on the front. Preview only — not saved or sent with your order.',
+        hint: 'Upload your artwork to see it on the front.',
       },
       hasDesign && scrubVariant && form.placement === 'Front + back' && {
         key: 'designBack', section: 'Print & Design', label: 'Your back design',
-        hint: 'Upload your artwork to see it on the back. Preview only — not saved or sent with your order.',
+        hint: 'Upload your artwork to see it on the back.',
       },
     ].filter(Boolean)
     return list

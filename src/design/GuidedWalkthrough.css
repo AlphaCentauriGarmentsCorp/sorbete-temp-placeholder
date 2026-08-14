@@ -54,6 +54,26 @@
 
 /* design-upload panel controls (side panel) — one row per uploaded layer */
 .gw-design-panel { display: flex; flex-direction: column; gap: 10px; }
+
+/* "This upload is only a preview" badge, shown at the top of the design-upload panel.
+   It earns its space because the upload here is genuinely NOT the real one — the file is
+   held in local state, drawn over the photo, and never saved or sent with the order. The
+   walk-in kiosk's own "Your design file" step IS real (it uploads to the order), so the two
+   look alike and behave completely differently; this badge is what tells them apart.
+   Deliberately a badge rather than another sentence of hint copy: it has to survive the
+   mobile panel, which is a short bottom strip floating over the garment and is
+   height-critical (see the ≤820px block below). */
+.gw-design-note {
+  display: flex; gap: 8px; align-items: flex-start;
+  background: rgba(255, 212, 0, 0.18); border: 1px solid rgba(143, 115, 0, 0.3);
+  border-radius: 10px; padding: 8px 10px;
+}
+.gw-design-note-ico { flex: none; font-size: 15px; color: var(--gold-ink); margin-top: 1px; }
+.gw-design-note-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 11px; line-height: 1.4; color: var(--ink-soft); }
+.gw-design-note-t {
+  font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--gold-ink);
+}
 .gw-design-input { display: none; }
 .gw-design-pick {
   background: var(--ink); color: var(--gold); border: none; border-radius: 10px;
@@ -227,6 +247,12 @@
     backdrop-filter: blur(4px);
     padding: 7px;
   }
+  /* The panel is at its tightest here and floats over the garment — trim the badge, don't
+     drop it (it's the only place the preview-only rule is stated). */
+  .gw-design-note { padding: 7px 9px; gap: 7px; }
+  .gw-design-note-body { font-size: 10.5px; }
+  .gw-design-note-ico { font-size: 14px; }
+
   .gw-im-panel .gw-cards { gap: 6px; }
   .gw-im-panel .gw-cards .gw-card { min-width: 104px; padding: 7px 9px; }
   .gw-im-panel .gw-card { background: rgba(255, 255, 255, 0.5); }
